@@ -464,14 +464,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    3k
+                    3.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    12 分
+                    13 分
                 </div>
                 
 
@@ -495,12 +495,12 @@
 <span id="more"></span>
 <h1 id="Java-反序列化-Shiro-篇-01-Shiro550-流程分析"><a href="#Java-反序列化-Shiro-篇-01-Shiro550-流程分析" class="headerlink" title="Java 反序列化 Shiro 篇 01-Shiro550 流程分析"></a>Java 反序列化 Shiro 篇 01-Shiro550 流程分析</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>shiro550 的根本原因：固定 key 加密</p>
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://www.oracle.com/java/technologies/javase/javase7-archive-downloads.html">jdk7u21</a></li>
+<li>jdk8u65</li>
 <li><a target="_blank" rel="noopener" href="https://tomcat.apache.org/download-80.cgi">Tomcat8</a></li>
 <li>shiro 1.2.4</li>
 </ul>
 <p>搭建环境这里比较费心思，慢慢来。</p>
-<p>jdk7u21 和 tomcat8 的配置比较简单，直接下载，跟着安装就可以。tomcat8 下载这个包</p>
+<p>jdk8u65 和 tomcat8 的配置比较简单，直接下载，跟着安装就可以。tomcat8 下载这个包</p>
 <img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/InstallTomcat.png" class="">
 
 <h3 id="Tomcat8-在-IDEA-中配置"><a href="#Tomcat8-在-IDEA-中配置" class="headerlink" title="Tomcat8 在 IDEA 中配置"></a>Tomcat8 在 IDEA 中配置</h3><ul>
@@ -721,13 +721,16 @@
 <p>发包之后，我们会收到 DNS 的请求，如图</p>
 <img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SuccessURLDNS.png" class="">
 
-<h3 id="通过-CC11-链攻击"><a href="#通过-CC11-链攻击" class="headerlink" title="通过 CC11 链攻击"></a>通过 CC11 链攻击</h3><blockquote>
-<p>呵呵…… 果不其然，又踩坑了…………</p>
-</blockquote>
-<h3 id="通过-CB1-链攻击"><a href="#通过-CB1-链攻击" class="headerlink" title="通过 CB1 链攻击"></a>通过 CB1 链攻击</h3><blockquote>
-<p>呵呵…… 果不其然，又踩坑了………… 不过这也是 Java 安全的特性吧，难</p>
-</blockquote>
-<p>分析过程与 EXP 已经在之前写过了，分析过程就不写了，主要是如何使用的问题，先贴出我们的脚本</p>
+<h3 id="通过-CC11-链攻击"><a href="#通过-CC11-链攻击" class="headerlink" title="通过 CC11 链攻击"></a>通过 CC11 链攻击</h3><ul>
+<li>这里踩了很久的坑，原因我也不知道是为什么，出现了一个，就是字节码一直加载不进去，报错报的是 “Translet 类无法找到 Calc 名”</li>
+</ul>
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/error.png" class="">
+
+<p>后续解决的也很奇怪，修改了 jdk 版本就可以了，我之前是 1.7 的环境，换成了 1.8；</p>
+<p>用 EXP 攻击，编码，发包即可。</p>
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/CC11.png" class="">
+
+<h3 id="通过-CB1-链攻击"><a href="#通过-CB1-链攻击" class="headerlink" title="通过 CB1 链攻击"></a>通过 CB1 链攻击</h3><p>分析过程与 EXP 已经在之前写过了，分析过程就不写了，主要是如何使用的问题，先贴出我们的脚本</p>
 <pre class=" language-java"><code class="language-java"><span class="token keyword">import</span> com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>trax<span class="token punctuation">.</span>TemplatesImpl<span class="token punctuation">;</span>  
 <span class="token keyword">import</span> com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>trax<span class="token punctuation">.</span>TransformerFactoryImpl<span class="token punctuation">;</span>  
 <span class="token keyword">import</span> org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>commons<span class="token punctuation">.</span>beanutils<span class="token punctuation">.</span>BeanComparator<span class="token punctuation">;</span>  
@@ -794,7 +797,9 @@
 </blockquote>
 <p>简单来说就是没找到 <code>org.apache.commons.collections.comparators.ComparableComparator</code> 类，从包名即可看出，这个类是来自于commons-collections。</p>
 <p>commons-beanutils本来依赖于commons-collections，但是在Shiro中，它的commons-beanutils虽然包含了一部分commons-collections的类，但却不全。这也导致，正常使用Shiro的时候不需要依赖于commons-collections，但反序列化利用的时候需要依赖于commons-collections。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/CB1.png" class="">
+<h2 id="0x05-漏洞探测"><a href="#0x05-漏洞探测" class="headerlink" title="0x05 漏洞探测"></a>0x05 漏洞探测</h2><h3 id="指纹识别"><a href="#指纹识别" class="headerlink" title="指纹识别"></a>指纹识别</h3><p>在利用 shiro 漏洞时需要判断应用是否用到了 shiro。在请求包的 Cookie 中为 <code>rememberMe</code> 字段赋任意值，收到返回包的 Set-Cookie 中存在 <code>rememberMe=deleteMe</code> 字段，说明目标有使用Shiro框架，可以进一步测试。</p>
+<h3 id="AES密钥判断"><a href="#AES密钥判断" class="headerlink" title="AES密钥判断"></a>AES密钥判断</h3>
                 
             </div>
             <hr/>
