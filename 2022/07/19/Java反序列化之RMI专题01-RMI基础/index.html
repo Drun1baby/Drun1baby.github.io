@@ -464,14 +464,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    552
+                    1.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    2 分
+                    4 分
                 </div>
                 
 
@@ -491,7 +491,9 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>Java 反序列化之 RMI 专题 01-RMI 基础<br><span id="more"></span></p>
+                <p>Java 反序列化之 RMI 专题 01-RMI 基础</p>
+<span id="more"></span>
+
 <h1 id="Java-反序列化之-RMI-专题-01-RMI-基础"><a href="#Java-反序列化之-RMI-专题-01-RMI-基础" class="headerlink" title="Java 反序列化之 RMI 专题 01-RMI 基础"></a>Java 反序列化之 RMI 专题 01-RMI 基础</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>RMI 作为后续漏洞中最为基本的利用手段之一，学习的必要性非常之大。</p>
 <h2 id="0x02-RMI-基础"><a href="#0x02-RMI-基础" class="headerlink" title="0x02 RMI 基础"></a>0x02 RMI 基础</h2><h3 id="1-RMI-介绍"><a href="#1-RMI-介绍" class="headerlink" title="1. RMI 介绍"></a>1. RMI 介绍</h3><p>RMI 全称 Remote Method Invocation（远程方法调用），即在一个 JVM 中 Java 程序调用在另一个远程 JVM 中运行的 Java 程序，这个远程 JVM 既可以在同一台实体机上，也可以在不同的实体机上，两者之间通过网络进行通信。</p>
 <p>RMI 依赖的通信协议为 JRMP(Java Remote Message Protocol，Java 远程消息交换协议)，该协议为 Java 定制，要求服务端与客户端都为 Java 编写。</p>
@@ -502,14 +504,15 @@
 <p>RMI 包括以下三个部分</p>
 </blockquote>
 <img src="/2022/07/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BRMI%E4%B8%93%E9%A2%9801-RMI%E5%9F%BA%E7%A1%80/rmi.png" class="">
+
 <blockquote>
 <p>Server ———— 服务端：服务端通过绑定远程对象，这个对象可以封装很多网络操作，也就是 Socket<br>Client ———— 客户端：客户端调用服务端的方法</p>
 </blockquote>
-<p>因为有了 C/S 的交互，而且 Socket 是对应端口的，这个端口是动态的，所以这里引进了第三个 RMI 的部分 ———— Registry 部分。</p>
+<p>因为有了 C&#x2F;S 的交互，而且 Socket 是对应端口的，这个端口是动态的，所以这里引进了第三个 RMI 的部分 ———— Registry 部分。</p>
 <ul>
 <li>Registry ———— 注册端；提供服务注册与服务获取。即 Server 端向 Registry 注册服务，比如地址、端口等一些信息，Client 端从 Registry 获取远程对象的一些信息，如地址、端口等，然后进行远程调用。</li>
 </ul>
-<h4 id="RMI-的调用流程"><a href="#RMI-的调用流程" class="headerlink" title="RMI 的调用流程"></a>RMI 的调用流程</h4><p>首先是 <strong>Server 服务端的部署</strong></p>
+<h4 id="RMI-的工作流程"><a href="#RMI-的工作流程" class="headerlink" title="RMI 的工作流程"></a>RMI 的工作流程</h4><p>首先是 <strong>Server 服务端的部署</strong></p>
 <ul>
 <li>Server 向 Registry 注册远程对象，远程对象绑定在一个 <code>ip:port/objectname</code> 上，形成一个映射表（Service-Stub）。</li>
 </ul>
@@ -521,7 +524,73 @@
 </ol>
 <p>大致的流程图如图所示</p>
 <img src="/2022/07/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BRMI%E4%B8%93%E9%A2%9801-RMI%E5%9F%BA%E7%A1%80/Routine.png" class="">
-<h3 id="2-RMI-的实现"><a href="#2-RMI-的实现" class="headerlink" title="2. RMI 的实现"></a>2. RMI 的实现</h3>
+
+<h3 id="2-RMI-的实现"><a href="#2-RMI-的实现" class="headerlink" title="2. RMI 的实现"></a>2. RMI 的实现</h3><ul>
+<li>这里最好把服务端与客户端拆分成两个工程来做，会更有助于理解。</li>
+</ul>
+<p>先来写服务端 ———— Server</p>
+<h4 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h4><p><strong>1. 先编写一个远程接口，其中定义了一个 sayHello() 的方法</strong></p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">RemoteObj</span> <span class="token keyword">extends</span> <span class="token class-name">Remote</span> <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+  
+    <span class="token keyword">public</span> String <span class="token function">sayHello</span><span class="token punctuation">(</span>String keywords<span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException<span class="token punctuation">;</span>  
+<span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
+</code></pre>
+<p>此远程接口要求作用域为 public；<br>继承 Remote 接口；<br>让其中的接口方法抛出异常</p>
+<p><strong>2. 定义该接口的实现类 Impl</strong></p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RemoteObjImpl</span> <span class="token keyword">extends</span> <span class="token class-name">UnicastRemoteObject</span> <span class="token keyword">implements</span> <span class="token class-name">RemoteObj</span> <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span> 
+  
+    <span class="token keyword">public</span> <span class="token function">RemoteObjImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+    <span class="token comment" spellcheck="true">//    UnicastRemoteObject.exportObject(this, 0); // 如果不能继承 UnicastRemoteObject 就需要手工导出  </span>
+ <span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>  
+  
+    <span class="token annotation punctuation">@Override</span>  
+ <span class="token keyword">public</span> String <span class="token function">sayHello</span><span class="token punctuation">(</span>String keywords<span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+        String upKeywords <span class="token operator">=</span> keywords<span class="token punctuation">.</span><span class="token function">toUpperCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ System<span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>upKeywords<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> upKeywords<span class="token punctuation">;</span>  
+ <span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>  
+<span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
+</code></pre>
+<ul>
+<li>实现远程接口</li>
+<li>继承UnicastRemoteObject类，用于生成 Stub（存根）和 Skeleton（骨架）。<br>Stub可以看作远程对象在本地的一个代理，囊括了远程对象的具体信息，客户端可以通过这个代理和服务端进行交互。<br>Skeleton可以看作为服务端的一个代理，用来处理Stub发送过来的请求，然后去调用客户端需要的请求方法，最终将方法执行结果返回给Stub。 （如果不继承UnicastRemoteObject类，则需要手工初始化远程对象，在远程对象的构造方法的调用<code>UnicastRemoteObject.exportObject()</code>静态方法。）</li>
+<li>构造函数需要抛出一个RemoteException错误</li>
+<li>实现类中使用的对象必须都可序列化，即都继承<code>java.io.Serializable</code></li>
+</ul>
+<p><strong>3. 注册远程对象</strong></p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RMIServer</span> <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException<span class="token punctuation">,</span> AlreadyBoundException <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+        RemoteObj remoteObj <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RemoteObjImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ Registry r <span class="token operator">=</span> LocateRegistry<span class="token punctuation">.</span><span class="token function">createRegistry</span><span class="token punctuation">(</span><span class="token number">1099</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ r<span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token string">"remoteObj"</span><span class="token punctuation">,</span> remoteObj<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>  
+<span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
+</code></pre>
+<ul>
+<li>port默认是1099，不写会自动补上，其他端口必须写</li>
+<li>bind 的绑定这里，只要和客户端去查找的 registry 一致即可。</li>
+</ul>
+<p>如此，服务端就写好了</p>
+<hr>
+<hr>
+<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><p>客户端只需从从注册器中获取远程对象，然后调用方法即可。当然客户端还需要一个远程对象的接口，不然不知道获取回来的对象是什么类型的。</p>
+<p>所以在客户端这里，也需要定义一个远程对象的接口：</p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">RemoteObj</span> <span class="token keyword">extends</span> <span class="token class-name">Remote</span> <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+  
+    <span class="token keyword">public</span> String <span class="token function">sayHello</span><span class="token punctuation">(</span>String keywords<span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException<span class="token punctuation">;</span>  
+<span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
+</code></pre>
+<p>然后编写客户端的代码，获取远程对象，并调用方法</p>
+<pre class=" language-java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RMIClient</span> <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span>String<span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> RemoteException<span class="token punctuation">,</span> NotBoundException <span class="token operator">&amp;</span>#<span class="token number">123</span><span class="token punctuation">;</span>  
+        Registry registry <span class="token operator">=</span> LocateRegistry<span class="token punctuation">.</span><span class="token function">getRegistry</span><span class="token punctuation">(</span><span class="token string">"127.0.0.1"</span><span class="token punctuation">,</span> <span class="token number">1099</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ RemoteObj remoteObj <span class="token operator">=</span> <span class="token punctuation">(</span>RemoteObj<span class="token punctuation">)</span> registry<span class="token punctuation">.</span><span class="token function">lookup</span><span class="token punctuation">(</span><span class="token string">"remoteObj"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment" spellcheck="true">// 查找远程对象</span>
+ remoteObj<span class="token punctuation">.</span><span class="token function">sayHello</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>  
+<span class="token operator">&amp;</span>#<span class="token number">125</span><span class="token punctuation">;</span>
+</code></pre>
+<p>这样就能够从远端的服务端中调用 RemoteHelloWorld 对象的 <code>sayHello()</code> 方法了。</p>
+
                 
             </div>
             <hr/>
