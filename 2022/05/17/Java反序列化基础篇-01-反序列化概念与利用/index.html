@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java反序列化基础篇-01-反序列化概念与利用 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java反序列化基础篇-01-反序列化概念与利用</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-05-17 21:06:55</span>
+        <span class="mobile">2022-05-17 21:06</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:36:33</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.7k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>14 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>Java反序列化基础篇 (一) 反序列化概念与基础利用<br>视频可以参考 ———— <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV16h411z7o9?spm_id_from=333.999.0.0">白日梦组长的视频 Java反序列化漏洞专题</a>；当时个人也是从这里学到了很多</p>
+<a id="more"></a>
+<h1 id="Java反序列化基础篇"><a href="#Java反序列化基础篇" class="headerlink" title="Java反序列化基础篇"></a>Java反序列化基础篇</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><blockquote>
+<p>写这篇文章，是想在 Java 反序列化基础的地方再多过几遍，毕竟万丈高楼平地起。</p>
+</blockquote>
+<p>我是非常不建议新手们一上来就开始分析 CC 链，就开始看 shiro 的 POC 的，我觉得还是得先打好基础。</p>
+<ul>
+<li><font color=red>人人都会走弯路，但是要尽量少走弯路，这也是我写这篇文章由衷的目的，希望师傅们学习过程中可以少走弯路。</font></li>
+</ul>
+<p>先学好基础，为后续的 Java 安全学习做好铺垫。</p>
+<p>这里强推大家先去了解一下 Java 的反射是什么，力推 “<strong>Java 安全漫谈系列</strong>“，师傅们可以加入 “<strong>Java 代码审计</strong>“ 的知识星球。</p>
+<h2 id="0x02-序列化与反序列化"><a href="#0x02-序列化与反序列化" class="headerlink" title="0x02 序列化与反序列化"></a>0x02 序列化与反序列化</h2><h3 id="1-什么是序列化与反序列化"><a href="#1-什么是序列化与反序列化" class="headerlink" title="1. 什么是序列化与反序列化"></a>1. 什么是序列化与反序列化</h3><ul>
+<li>之前也刷了 Port，对于序列化和反序列化还是清楚的，这里不厌其烦，再写一遍，也让自己再过一遍。</li>
+</ul>
+<blockquote>
+<p>序列化：对象 -&gt; 字符串<br>反序列化：字符串 -&gt; 对象</p>
+</blockquote>
+<h3 id="2-为什么我们需要序列化与反序列化"><a href="#2-为什么我们需要序列化与反序列化" class="headerlink" title="2. 为什么我们需要序列化与反序列化"></a>2. 为什么我们需要序列化与反序列化</h3><ul>
+<li>一开始学的时候还是不知道的。</li>
+</ul>
+<p>序列化与反序列化的设计就是用来传输数据的。</p>
+<p>当两个进程进行通信的时候，可以通过序列化反序列化来进行传输。</p>
+<h4 id="序列化的好处"><a href="#序列化的好处" class="headerlink" title="序列化的好处"></a>序列化的好处</h4><p>(1) 能够实现数据的持久化，通过序列化可以把数据永久的保存在硬盘上，也可以理解为通过序列化将数据保存在文件中。</p>
+<p>(2) 利用序列化实现远程通信，在网络上传送对象的字节序列。</p>
+<h4 id="序列化与反序列化应用的场景"><a href="#序列化与反序列化应用的场景" class="headerlink" title="序列化与反序列化应用的场景"></a>序列化与反序列化应用的场景</h4><p>(1) 想把内存中的对象保存到一个文件中或者是数据库当中。<br>(2) 用套接字在网络上传输对象。<br>(3) 通过 RMI 传输对象的时候。</p>
+<h3 id="3-几种创建的序列化和反序列化协议"><a href="#3-几种创建的序列化和反序列化协议" class="headerlink" title="3. 几种创建的序列化和反序列化协议"></a>3. 几种创建的序列化和反序列化协议</h3><p>XML&amp;SOAP<br>JSON<br>Protobuf</p>
+<ul>
+<li>当今 Java 原生当中的序列化与反序列化其实用的比较少吧，但是我们最开始讲起的话还是从原生开始讲起。</li>
+</ul>
+<h2 id="0x03-序列化与反序列化代码实现"><a href="#0x03-序列化与反序列化代码实现" class="headerlink" title="0x03 序列化与反序列化代码实现"></a>0x03 序列化与反序列化代码实现</h2><p>先创建几个文件，这里要避免踩个坑</p>
+<h4 id="踩坑小记-——-IDEA-右键新建时没有-Java-Class-选项"><a href="#踩坑小记-——-IDEA-右键新建时没有-Java-Class-选项" class="headerlink" title="踩坑小记 —— IDEA 右键新建时没有 Java Class 选项"></a>踩坑小记 —— IDEA 右键新建时没有 Java Class 选项</h4><h5 id="异常现象如图"><a href="#异常现象如图" class="headerlink" title="异常现象如图"></a>异常现象如图</h5><img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/HoleSee.png" class="">
+
+<h5 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h5><img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/SolutionForHole.png" class="">
+
+<p>还有一种情况是你以数字命名文件夹了，比如 “001” 这种，是不行的</p>
+<h3 id="1-代码展示，便于大家-Copy-省时间"><a href="#1-代码展示，便于大家-Copy-省时间" class="headerlink" title="1. 代码展示，便于大家 Copy 省时间"></a>1. 代码展示，便于大家 Copy 省时间</h3><ul>
+<li>类文件：<strong>Person.java</strong></li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src</span><span class="token punctuation">;</span>  <span class="token comment">// 修改成自己的 Package 路径</span>
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">Serializable</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Person</span> <span class="token keyword">implements</span> <span class="token class-name">Serializable</span> <span class="token punctuation">&#123;</span>  
+  
+    <span class="token keyword">private</span> <span class="token class-name">String</span> name<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token keyword">int</span> age<span class="token punctuation">;</span>  
+  
+ <span class="token keyword">public</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+  
+    <span class="token punctuation">&#125;</span>  
+    <span class="token comment">// 构造函数  </span>
+ <span class="token keyword">public</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token keyword">int</span> age<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>  
+ <span class="token keyword">this</span><span class="token punctuation">.</span>age <span class="token operator">=</span> age<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token annotation punctuation">@Override</span>  
+ <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">return</span> <span class="token string">"Person&#123;"</span> <span class="token operator">+</span>  
+                <span class="token string">"name='"</span> <span class="token operator">+</span> name <span class="token operator">+</span> <span class="token char">'\''</span> <span class="token operator">+</span>  
+                <span class="token string">", age="</span> <span class="token operator">+</span> age <span class="token operator">+</span>  
+                <span class="token char">'&#125;'</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>序列化文件 <strong>SerializationTest.java</strong></li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src</span><span class="token punctuation">;</span>  
+  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">FileOutputStream</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">ObjectOutput</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">ObjectOutputStream</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">SerializationTest</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">serialize</span><span class="token punctuation">(</span><span class="token class-name">Object</span> obj<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">ObjectOutputStream</span> oos <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObjectOutputStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FileOutputStream</span><span class="token punctuation">(</span><span class="token string">"ser.bin"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ oos<span class="token punctuation">.</span><span class="token function">writeObject</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Person</span> person <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token string">"aa"</span><span class="token punctuation">,</span><span class="token number">22</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+         <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>person<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+          <span class="token function">serialize</span><span class="token punctuation">(</span>person<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>反序列化文件 <strong>UnserializeTest.java</strong></li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">FileInputStream</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">ObjectInputStream</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">UnserializeTest</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">Object</span> <span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token class-name">String</span> <span class="token class-name">Filename</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">ClassNotFoundException</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">ObjectInputStream</span> ois <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObjectInputStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FileInputStream</span><span class="token punctuation">(</span><span class="token class-name">Filename</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Object</span> obj <span class="token operator">=</span> ois<span class="token punctuation">.</span><span class="token function">readObject</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> obj<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Person</span> person <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Person</span><span class="token punctuation">)</span><span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token string">"ser.bin"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>person<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="2-序列化与反序列化的代码讲解"><a href="#2-序列化与反序列化的代码讲解" class="headerlink" title="2. 序列化与反序列化的代码讲解"></a>2. 序列化与反序列化的代码讲解</h3><h4 id="基本实现"><a href="#基本实现" class="headerlink" title="基本实现"></a>基本实现</h4><p>这里我们可以先跑一跑代码，看一看。</p>
+<p><strong>Run SerializationTest.java</strong></p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/SerializationTestResult1.png" class="">
+
+<p><strong>Run UnserializationTest.java</strong></p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/UnSerializationTestResult1.png" class="">
+
+<blockquote>
+<p>前文我们说，序列化与反序列化的根本目的是数据的传输。</p>
+</blockquote>
+<ul>
+<li><strong>SerializationTest.java</strong></li>
+</ul>
+<p>这里我们将代码进行了封装，将序列化功能封装进了 <strong>serialize</strong> 这个方法里面，在序列化当中，我们通过这个 <code>FileOutputStream</code> 输出流对象，将序列化的对象输出到 <code>ser.bin</code> 当中。再调用 oos 的 <code>writeObject</code> 方法，将对象进行序列化操作。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">ObjectOutputStream</span> oos <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObjectOutputStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FileOutputStream</span><span class="token punctuation">(</span><span class="token string">"ser.bin"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+oos<span class="token punctuation">.</span><span class="token function">writeObject</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<ul>
+<li><strong>UnserializeTest.java</strong></li>
+</ul>
+<p>进行反序列化</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">ObjectInputStream</span> ois <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObjectInputStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">FileInputStream</span><span class="token punctuation">(</span><span class="token class-name">Filename</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token class-name">Object</span> obj <span class="token operator">=</span> ois<span class="token punctuation">.</span><span class="token function">readObject</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h4 id="Serializable-接口"><a href="#Serializable-接口" class="headerlink" title="Serializable 接口"></a>Serializable 接口</h4><h5 id="1-序列化类的属性没有实现-Serializable-那么在序列化就会报错"><a href="#1-序列化类的属性没有实现-Serializable-那么在序列化就会报错" class="headerlink" title="(1) 序列化类的属性没有实现 Serializable 那么在序列化就会报错"></a>(1) 序列化类的属性没有实现 <strong>Serializable</strong> 那么在序列化就会报错</h5><p>只有实现 了<strong>Serializable</strong> 或者 <strong>Externalizable</strong> 接口的类的对象才能被序列化为字节序列。（不是则会抛出异常）</p>
+<p>Serializable 接口是 Java 提供的序列化接口，它是一个空接口，所以其实我们不需要实现什么。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">Serializable</span> <span class="token punctuation">&#123;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>Serializable 用来标识当前类可以被 ObjectOutputStream 序列化，以及被 ObjectInputStream 反序列化。如果我们此处将 Serializable 接口删除掉的话，会导致如下结果。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/ImplementsDelete.png" class="">
+
+<h5 id="2-在反序列化过程中，它的父类如果没有实现序列化接口，那么将需要提供无参构造函数来重新创建对象。"><a href="#2-在反序列化过程中，它的父类如果没有实现序列化接口，那么将需要提供无参构造函数来重新创建对象。" class="headerlink" title="(2) 在反序列化过程中，它的父类如果没有实现序列化接口，那么将需要提供无参构造函数来重新创建对象。"></a>(2) 在反序列化过程中，它的父类如果没有实现序列化接口，那么将需要提供无参构造函数来重新创建对象。</h5><h5 id="3-一个实现-Serializable-接口的子类也是可以被序列化的。"><a href="#3-一个实现-Serializable-接口的子类也是可以被序列化的。" class="headerlink" title="(3)一个实现 Serializable 接口的子类也是可以被序列化的。"></a>(3)一个实现 <strong>Serializable</strong> 接口的子类也是可以被序列化的。</h5><h5 id="4-静态成员变量是不能被序列化"><a href="#4-静态成员变量是不能被序列化" class="headerlink" title="(4) 静态成员变量是不能被序列化"></a>(4) 静态成员变量是不能被序列化</h5><p>序列化是针对对象属性的，而静态成员变量是属于类的。</p>
+<h5 id="5-transient-标识的对象成员变量不参与序列化"><a href="#5-transient-标识的对象成员变量不参与序列化" class="headerlink" title="(5) transient 标识的对象成员变量不参与序列化"></a>(5) transient 标识的对象成员变量不参与序列化</h5><p>这里我们可以动手实操一下，将 <strong>Person.java</strong> 中的 <code>name</code> 加上 <code>transient</code> 的类型标识。加完之后再跑我们的序列化与反序列化的两个程序，修改过程与运行结果如图所示。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/TransientShow.png" class="">
+
+<hr>
+<p>上述说的还是关于序列化本身的一些特性，接下来我们讲一讲序列化的安全问题是如何产生的。</p>
+<h2 id="0x04-为什么会产生序列化的安全问题"><a href="#0x04-为什么会产生序列化的安全问题" class="headerlink" title="0x04 为什么会产生序列化的安全问题"></a>0x04 为什么会产生序列化的安全问题</h2><h3 id="1-引子"><a href="#1-引子" class="headerlink" title="1. 引子"></a>1. 引子</h3><ul>
+<li>序列化与反序列化当中有两个 <strong>“特别特别特别特别特别”</strong> 重要的方法 ———— <code>writeObject</code> 和 <code>readObject</code>。</li>
+</ul>
+<p>这两个方法可以经过开发者重写，一般序列化的重写都是由于下面这种场景诞生的。</p>
+<blockquote>
+<p>举个例子，MyList 这个类定义了一个 arr 数组属性，初始化的数组长度为 100。在实际序列化时如果让 arr 属性参与序列化的话，那么长度为 100 的数组都会被序列化下来，但是我在数组中可能只存放 30 个数组而已，这明显是不可理的，所以这里就要自定义序列化过程啦，具体的做法是重写以下两个 private 方法：</p>
+</blockquote>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">writeObject</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span>ObjectOutputStream</span> s<span class="token punctuation">)</span><span class="token keyword">throws</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span>IOException</span>
+<span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">readObject</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span>ObjectInputStream</span> s<span class="token punctuation">)</span><span class="token keyword">throws</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span>IOException</span><span class="token punctuation">,</span> <span class="token class-name">ClassNotFoundException</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>只要服务端反序列化数据，客户端传递类的 <code>readObject</code> 中代码会自动执行，基于攻击者在服务器上运行代码的能力。</p>
+<blockquote>
+<p>所以从根本上来说，Java 反序列化的漏洞的与 <code>readObject</code> 有关。</p>
+</blockquote>
+<h3 id="2-可能存在安全漏洞的形式"><a href="#2-可能存在安全漏洞的形式" class="headerlink" title="2. 可能存在安全漏洞的形式"></a>2. 可能存在安全漏洞的形式</h3><h4 id="1-入口类的-readObject-直接调用危险方法"><a href="#1-入口类的-readObject-直接调用危险方法" class="headerlink" title="(1) 入口类的 readObject 直接调用危险方法"></a>(1) 入口类的 <code>readObject</code> 直接调用危险方法</h4><ul>
+<li>这种情况呢，在实际开发场景中并不是特别常见，我们还是跟着代码来走一遍，写一段弹计算器的代码，文件 ———— “<strong>Person.Java</strong>“</li>
+</ul>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/ReadObjectOneScene.png" class="">
+
+<p>先运行序列化程序 ———— “<strong>SerializationTest.java</strong>“，再运行反序列化程序 ———— “<strong>UnserializeTest.java</strong>“</p>
+<p>这时候就会弹出计算器，也就是 <code>calc.exe</code>，是不是帅的飞起哈哈。</p>
+<p>这是黑客最理想的情况，但是这种情况几乎不会出现。</p>
+<h4 id="2-入口参数中包含可控类，该类有危险方法，readObject-时调用"><a href="#2-入口参数中包含可控类，该类有危险方法，readObject-时调用" class="headerlink" title="(2) 入口参数中包含可控类，该类有危险方法，readObject 时调用"></a>(2) 入口参数中包含可控类，该类有危险方法，<code>readObject</code> 时调用</h4><h4 id="3-入口类参数中包含可控类，该类又调用其他有危险方法的类，readObject-时调用"><a href="#3-入口类参数中包含可控类，该类又调用其他有危险方法的类，readObject-时调用" class="headerlink" title="(3) 入口类参数中包含可控类，该类又调用其他有危险方法的类，readObject 时调用"></a>(3) 入口类参数中包含可控类，该类又调用其他有危险方法的类，<code>readObject</code> 时调用</h4><h4 id="4-构造函数-x2F-静态代码块等类加载时隐式执行"><a href="#4-构造函数-x2F-静态代码块等类加载时隐式执行" class="headerlink" title="(4) 构造函数&#x2F;静态代码块等类加载时隐式执行"></a>(4) 构造函数&#x2F;静态代码块等类加载时隐式执行</h4><h3 id="3-产生漏洞的攻击路线"><a href="#3-产生漏洞的攻击路线" class="headerlink" title="3. 产生漏洞的攻击路线"></a>3. 产生漏洞的攻击路线</h3><p>首先的攻击前提：继承 Serializable</p>
+<p>入口类：source （重写 readObject 调用常见的函数；<font color =red>参数类型宽泛，比如可以传入一个类作为参数</font>；最好 jdk 自带）</p>
+<p>找到入口类之后要找调用链 gadget chain 相同名称、相同类型</p>
+<p>执行类 sink （RCE SSRF 写文件等等）比如 <code>exec</code> 这种函数</p>
+<blockquote>
+<p>这里看不懂先不要紧，后续看到 URLDNS 利用链的复现就会悟了哈哈，我当时这里也看不懂，后面悟了。</p>
+</blockquote>
+<h4 id="以-HashMap-为例说明一下，仅仅只是说明如何找到入门类"><a href="#以-HashMap-为例说明一下，仅仅只是说明如何找到入门类" class="headerlink" title="以 HashMap 为例说明一下，仅仅只是说明如何找到入门类"></a>以 HashMap 为例说明一下，仅仅只是说明如何找到入门类</h4><ul>
+<li>我这里逐个给大家过一遍，以 <code>HashMap</code> 为例进行说明。</li>
+</ul>
+<p>首先，攻击前提，那必然是要继承了 <code>Serializable</code> 这个接口，要不然谈何序列化与反序列化对吧。</p>
+<p>HashMap 确实继承了 <code>Serializable</code> 这个接口。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/HashMap01.png" class="">
+
+<p><strong>入口类</strong>这里比较难懂，还是以 <code>HashMap</code> 为例吧，这些步骤是要自己动手实操一下的，不然体验感很差。</p>
+<p>打开 “Structure”，找到重写的 <code>readObject</code>，往下分析。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/ReWriteReadObject.png" class="">
+
+<p>我们看到第 1416 行与 1418 行中，Key 与 Value 的值执行了 <code>readObject</code> 的操作，再将 Key 和 Value 两个变量扔进 <code>hash</code> 这个方法里，我们再跟进(ctrl+鼠标左键即可) hash 当中。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/HashMap02.png" class="">
+
+<ul>
+<li>若传入的参数 key 不为空，则 <code>h = key.hashCode()</code>，于是乎，继续跟进 <code>hashCode</code> 当中。</li>
+</ul>
+<p>hashCode 位置处于 Object 类当中，满足我们 <font color=red>调用常见的函数</font> 这一条件。</p>
+<h4 id="实战-————-URLDNS"><a href="#实战-————-URLDNS" class="headerlink" title="实战 ———— URLDNS"></a>实战 ———— URLDNS</h4><ul>
+<li><p>出发点：URLDNS 在 Java 复杂的反序列化漏洞当中足够简单；URLDNS 就是 ysoserial 中⼀个利⽤链的名字，但准确来说，这个其实不能称作“利⽤链”。<br>因为其参数不是⼀个可以“利⽤”的命令，⽽仅为⼀个URL，其能触发的结果也不是命令执⾏，⽽是⼀次 DNS 请求。</p>
+</li>
+<li><p>虽然这个“利⽤链”实际上是不能“利⽤”的，但因为其如下的优点，⾮常适合我们在检测反序列化漏洞时使⽤。</p>
+<ul>
+<li><p>使⽤ Java 内置的类构造，对第三⽅库没有依赖。</p>
+</li>
+<li><p>在⽬标没有回显的时候，能够通过 DNS 请求得知是否存在反序列化漏洞 URL 类，调用 <code>openConnection</code> 方法，到此处的时候，其实 <code>openConnection</code> 不是常见函数，就已经难以利用了。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>我们先去到 ysoserial 的项目当中，去看看它是如何构造 URLDNS 链的。<br><a target="_blank" rel="noopener" href="https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/URLDNS.java">ysoserial&#x2F;URLDNS.java at master · frohoff&#x2F;ysoserial (github.com)</a></p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/ysoserial.png" class="">
+
+<p>ysoserial 对 URLDNS 的利用链看着无比简单，就这么几行代码。</p>
+<pre class="line-numbers language-none"><code class="language-none">Gadget Chain:
+    HashMap.readObject()
+        HashMap.putVal()
+            HashMap.hash()
+                URL.hashCode()<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>再来开始自己复现一遍 URLDNS 的利用链。</p>
+<h5 id="初步复现"><a href="#初步复现" class="headerlink" title="初步复现"></a>初步复现</h5><p>URL 是由 HashMap 的 <code>put</code> 方法产生的，所以我们先跟进 <code>put</code> 方法当中。<code>put</code> 方法之后又是调用了 <code>hash</code> 方法；<code>hash</code> 方法则是调用了 <code>hashcode</code> 这一函数。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNS02.png" class="">
+
+<p>还记得前文最看不懂的地方吗？我当时说这一块不懂不要紧，看到 URLDNS 的复现就懂了。</p>
+<p>我们看到这个 <code>hashCode</code> 函数的变量名是 key；那这个 key 是啥啊？<br>噢 ~ 原来 key 是 <code>hash</code> 这一方法传进的参数！那我们前面写的 key 不就是这个东东吗 ~！</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">hashmap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"DNS生成的 URL，用dnslog就可以"</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 传进去两个参数，key = 前面那串网址，value = 1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>所以这里，我们跟进 URL，去看看 URL 跟进一堆之后的 <code>hashCode</code> 方法是如何实现的。</p>
+<p>跟进 URL，我们肯定是要去寻找 URL 调用的函数的函数（的函数，应该还有好几个的函数，就不写出来了，不然大家就晕了）的 <code>hashCode</code> 方法。</p>
+<p>在左边 Structure 直接寻找 <code>hashCode</code> 方法，URL 中的 <code>hashCode</code> 被 <code>handler</code> 这一对象所调用，<code>handler</code> 又是 <code>URLStreamHandler</code> 的抽象类。我们再去找 <code>URLStreamHandler</code> 的 <code>hashCode</code> 方法。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNS03.png" class="">
+
+<p>终于找到了，这个用于 URLDNS 的方法 ———— <code>getHostAddress</code></p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNS04.png" class="">
+
+<p>再跟进 <code>getHostAddress</code></p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNS05.png" class="">
+
+<p>这⾥ <code>InetAddress.getByName(host)</code> 的作⽤是根据主机名，获取其 IP 地址，在⽹络上其实就是⼀次 DNS 查询。到这⾥就不必要再跟了。</p>
+<blockquote>
+<p>所以，⾄此，整个 URLDNS 的Gadget其实清晰⼜简单：</p>
+</blockquote>
+<ol>
+<li><p>HashMap-&gt;readObject()</p>
+</li>
+<li><p>HashMap-&gt;hash()</p>
+</li>
+<li><p>URL-&gt;hashCode()</p>
+</li>
+<li><p>URLStreamHandler-&gt;hashCode()</p>
+</li>
+<li><p>URLStreamHandler-&gt;getHostAddress()</p>
+</li>
+<li><p>InetAddress-&gt;getByName()</p>
+</li>
+</ol>
+<h5 id="半路杀出个程咬金"><a href="#半路杀出个程咬金" class="headerlink" title="半路杀出个程咬金"></a>半路杀出个程咬金</h5><ul>
+<li>我们的复现步骤：</li>
+</ul>
+<p><strong>SerializationTest.java</strong> 文件下添加如下代码</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span>URL<span class="token punctuation">,</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> hashmap<span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span>URL<span class="token punctuation">,</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   
+hashmap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"DNS生成的 URL，用dnslog就可以"</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">serialize</span><span class="token punctuation">(</span>hashmap<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNS01.png" class="">
+
+<p>我们先把它序列化，按照道理来说，这个过程应该什么都不会发生对吧。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/StrangeSee.png" class="">
+
+<p>很奇怪，为什么却能收到 URLDNS 的请求？？？？<br>那我们的视线很容易就被干扰了呀，无法判断到底是因为反序列化的 URLDNS ，还是因为序列化的过程中的 URLDNS。</p>
+<h5 id="把程咬金给办了！"><a href="#把程咬金给办了！" class="headerlink" title="把程咬金给办了！"></a>把程咬金给办了！</h5><p>还是从原理角度分析，我们回到 URL 这个对象，回到 <code>hashCode</code> 这里。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNSKill01.png" class="">
+
+<p>我们发现，当 <code>hashCode</code> 的值不等于 -1 的时候，函数就会直接 <code>return hashCode</code> 而不执行 <code>hashCode = handler.hashCode(this);</code>。而一开始定义 HashMap 类的时候<code>hashCode</code> 的值为 -1，便是发起了请求。</p>
+<p>所以我们在没有反序列化的情况下面，就收到了 DNS 请求，这是不正确的。</p>
+<p>那要如何才能把 “半路杀出的程咬金” 给办了呢？我们大致有这样一个思路。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/URLDNSKill02.png" class="">
+
+<p>有关反射的知识又是一个很庞大的体系了，我们下篇文章再讲 ~<br>这里我先把 Poc 挂出来。</p>
+<h5 id="URLDNS-反序列化利用链的-POC"><a href="#URLDNS-反序列化利用链的-POC" class="headerlink" title="URLDNS 反序列化利用链的 POC"></a>URLDNS 反序列化利用链的 POC</h5><p>根据我们的思路，将 Main 函数进行修改，我这里直接全部挂出来了，不然师傅们容易看错。</p>
+<p><strong>SerializationTest.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+ <span class="token class-name">Person</span> person <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token string">"aa"</span><span class="token punctuation">,</span><span class="token number">22</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span>URL<span class="token punctuation">,</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> hashmap<span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span>URL<span class="token punctuation">,</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 这里不要发起请求  </span>
+ <span class="token class-name">URL</span> url <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"http://bl00nzimnnujskz418kboqxt9kfb30.oastify.com"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+ <span class="token class-name">Class</span> c <span class="token operator">=</span> url<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Field</span> hashcodefile <span class="token operator">=</span> c<span class="token punctuation">.</span><span class="token function">getDeclaredField</span><span class="token punctuation">(</span><span class="token string">"hashCode"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ hashcodefile<span class="token punctuation">.</span><span class="token function">setAccessible</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ hashcodefile<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span><span class="token number">1234</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ hashmap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 这里把 hashCode 改为 -1； 通过反射的技术改变已有对象的属性  </span>
+ hashcodefile<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token function">serialize</span><span class="token punctuation">(</span>hashmap<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>反序列化的文件无需更改</p>
+<p>接着我们运行序列化文件，是收不到 DNS 请求的，而当我们运行反序列化的文件时候，可以收到请求，这就代表着我们的 URLDNS 链构造成功了。</p>
+<img src="/2022/05/17/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-01-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%88%A9%E7%94%A8/End.png" class="">
+
+
+<h2 id="0x05-小结与后续展望"><a href="#0x05-小结与后续展望" class="headerlink" title="0x05 小结与后续展望"></a>0x05 小结与后续展望</h2><p>其实看了很多的反序列化教程，自己写这篇文章也是为了大家能够少走弯路吧，我们分析下来，一个最简单的 URLDNS 对于刚入门的师傅们来说也是比较难以理解与分析的，我本人也是学了好几天才啃下来的。</p>
+<p>相对于一开始就接触 CC 链，或者是其他 Tomcat，shiro 漏洞复现的就更甚了，不懂原理只当一个脚本小子对个人的提升意义并不是很大。</p>
+<ul>
+<li>后续的一些展望</li>
+</ul>
+<p>师傅们若是对 Java 安全感兴趣的话可以关注我 ~后续还会继续更新相关自己的学习笔记的。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java反序列化基础篇-01-反序列化概念与利用</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-05-17 21:06:55</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/05/17/Java反序列化基础篇-01-反序列化概念与利用/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/05/20/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-02-Java%E5%8F%8D%E5%B0%84%E4%B8%8EURLDNS%E9%93%BE%E5%88%86%E6%9E%90/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化基础篇-02-Java反射与URLDNS链分析</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/05/16/SSRF-Lab%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">SSRF-Lab环境搭建</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87"><span class="nav-text">Java反序列化基础篇</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x02 序列化与反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">1. 什么是序列化与反序列化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">2. 为什么我们需要序列化与反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%A5%BD%E5%A4%84"><span class="nav-text">序列化的好处</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%BA%94%E7%94%A8%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="nav-text">序列化与反序列化应用的场景</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%87%A0%E7%A7%8D%E5%88%9B%E5%BB%BA%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8D%8F%E8%AE%AE"><span class="nav-text">3. 几种创建的序列化和反序列化协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">0x03 序列化与反序列化代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B8%A9%E5%9D%91%E5%B0%8F%E8%AE%B0-%E2%80%94%E2%80%94-IDEA-%E5%8F%B3%E9%94%AE%E6%96%B0%E5%BB%BA%E6%97%B6%E6%B2%A1%E6%9C%89-Java-Class-%E9%80%89%E9%A1%B9"><span class="nav-text">踩坑小记 —— IDEA 右键新建时没有 Java Class 选项</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E7%8E%B0%E8%B1%A1%E5%A6%82%E5%9B%BE"><span class="nav-text">异常现象如图</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3"><span class="nav-text">解决</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%B1%95%E7%A4%BA%EF%BC%8C%E4%BE%BF%E4%BA%8E%E5%A4%A7%E5%AE%B6-Copy-%E7%9C%81%E6%97%B6%E9%97%B4"><span class="nav-text">1. 代码展示，便于大家 Copy 省时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E4%BB%A3%E7%A0%81%E8%AE%B2%E8%A7%A3"><span class="nav-text">2. 序列化与反序列化的代码讲解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0"><span class="nav-text">基本实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Serializable-%E6%8E%A5%E5%8F%A3"><span class="nav-text">Serializable 接口</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E5%BA%8F%E5%88%97%E5%8C%96%E7%B1%BB%E7%9A%84%E5%B1%9E%E6%80%A7%E6%B2%A1%E6%9C%89%E5%AE%9E%E7%8E%B0-Serializable-%E9%82%A3%E4%B9%88%E5%9C%A8%E5%BA%8F%E5%88%97%E5%8C%96%E5%B0%B1%E4%BC%9A%E6%8A%A5%E9%94%99"><span class="nav-text">(1) 序列化类的属性没有实现 Serializable 那么在序列化就会报错</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E5%9C%A8%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E8%BF%87%E7%A8%8B%E4%B8%AD%EF%BC%8C%E5%AE%83%E7%9A%84%E7%88%B6%E7%B1%BB%E5%A6%82%E6%9E%9C%E6%B2%A1%E6%9C%89%E5%AE%9E%E7%8E%B0%E5%BA%8F%E5%88%97%E5%8C%96%E6%8E%A5%E5%8F%A3%EF%BC%8C%E9%82%A3%E4%B9%88%E5%B0%86%E9%9C%80%E8%A6%81%E6%8F%90%E4%BE%9B%E6%97%A0%E5%8F%82%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E6%9D%A5%E9%87%8D%E6%96%B0%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E3%80%82"><span class="nav-text">(2) 在反序列化过程中，它的父类如果没有实现序列化接口，那么将需要提供无参构造函数来重新创建对象。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%8E%B0-Serializable-%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%AD%90%E7%B1%BB%E4%B9%9F%E6%98%AF%E5%8F%AF%E4%BB%A5%E8%A2%AB%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E3%80%82"><span class="nav-text">(3)一个实现 Serializable 接口的子类也是可以被序列化的。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E9%9D%99%E6%80%81%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E6%98%AF%E4%B8%8D%E8%83%BD%E8%A2%AB%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">(4) 静态成员变量是不能被序列化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-transient-%E6%A0%87%E8%AF%86%E7%9A%84%E5%AF%B9%E8%B1%A1%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E4%B8%8D%E5%8F%82%E4%B8%8E%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">(5) transient 标识的对象成员变量不参与序列化</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E4%BA%A7%E7%94%9F%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98"><span class="nav-text">0x04 为什么会产生序列化的安全问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BC%95%E5%AD%90"><span class="nav-text">1. 引子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8F%AF%E8%83%BD%E5%AD%98%E5%9C%A8%E5%AE%89%E5%85%A8%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-text">2. 可能存在安全漏洞的形式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%85%A5%E5%8F%A3%E7%B1%BB%E7%9A%84-readObject-%E7%9B%B4%E6%8E%A5%E8%B0%83%E7%94%A8%E5%8D%B1%E9%99%A9%E6%96%B9%E6%B3%95"><span class="nav-text">(1) 入口类的 readObject 直接调用危险方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%85%A5%E5%8F%A3%E5%8F%82%E6%95%B0%E4%B8%AD%E5%8C%85%E5%90%AB%E5%8F%AF%E6%8E%A7%E7%B1%BB%EF%BC%8C%E8%AF%A5%E7%B1%BB%E6%9C%89%E5%8D%B1%E9%99%A9%E6%96%B9%E6%B3%95%EF%BC%8CreadObject-%E6%97%B6%E8%B0%83%E7%94%A8"><span class="nav-text">(2) 入口参数中包含可控类，该类有危险方法，readObject 时调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%85%A5%E5%8F%A3%E7%B1%BB%E5%8F%82%E6%95%B0%E4%B8%AD%E5%8C%85%E5%90%AB%E5%8F%AF%E6%8E%A7%E7%B1%BB%EF%BC%8C%E8%AF%A5%E7%B1%BB%E5%8F%88%E8%B0%83%E7%94%A8%E5%85%B6%E4%BB%96%E6%9C%89%E5%8D%B1%E9%99%A9%E6%96%B9%E6%B3%95%E7%9A%84%E7%B1%BB%EF%BC%8CreadObject-%E6%97%B6%E8%B0%83%E7%94%A8"><span class="nav-text">(3) 入口类参数中包含可控类，该类又调用其他有危险方法的类，readObject 时调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0-x2F-%E9%9D%99%E6%80%81%E4%BB%A3%E7%A0%81%E5%9D%97%E7%AD%89%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%97%B6%E9%9A%90%E5%BC%8F%E6%89%A7%E8%A1%8C"><span class="nav-text">(4) 构造函数&#x2F;静态代码块等类加载时隐式执行</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BA%A7%E7%94%9F%E6%BC%8F%E6%B4%9E%E7%9A%84%E6%94%BB%E5%87%BB%E8%B7%AF%E7%BA%BF"><span class="nav-text">3. 产生漏洞的攻击路线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A5-HashMap-%E4%B8%BA%E4%BE%8B%E8%AF%B4%E6%98%8E%E4%B8%80%E4%B8%8B%EF%BC%8C%E4%BB%85%E4%BB%85%E5%8F%AA%E6%98%AF%E8%AF%B4%E6%98%8E%E5%A6%82%E4%BD%95%E6%89%BE%E5%88%B0%E5%85%A5%E9%97%A8%E7%B1%BB"><span class="nav-text">以 HashMap 为例说明一下，仅仅只是说明如何找到入门类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E6%88%98-%E2%80%94%E2%80%94%E2%80%94%E2%80%94-URLDNS"><span class="nav-text">实战 ———— URLDNS</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E5%A4%8D%E7%8E%B0"><span class="nav-text">初步复现</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8D%8A%E8%B7%AF%E6%9D%80%E5%87%BA%E4%B8%AA%E7%A8%8B%E5%92%AC%E9%87%91"><span class="nav-text">半路杀出个程咬金</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8A%8A%E7%A8%8B%E5%92%AC%E9%87%91%E7%BB%99%E5%8A%9E%E4%BA%86%EF%BC%81"><span class="nav-text">把程咬金给办了！</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#URLDNS-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%A9%E7%94%A8%E9%93%BE%E7%9A%84-POC"><span class="nav-text">URLDNS 反序列化利用链的 POC</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93%E4%B8%8E%E5%90%8E%E7%BB%AD%E5%B1%95%E6%9C%9B"><span class="nav-text">0x05 小结与后续展望</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

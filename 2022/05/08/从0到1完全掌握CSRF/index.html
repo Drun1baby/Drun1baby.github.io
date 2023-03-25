@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            从0到1完全掌握CSRF |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">从0到1完全掌握CSRF</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-05-08 17:13:17</span>
+        <span class="mobile">2022-05-08 17:13</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:27:11</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.9k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>15 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <blockquote>
+<p>本文首发于 FreeBuf <a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/333173.html">https://www.freebuf.com/articles/web/333173.html</a></p>
+</blockquote>
+<h1 id="从0到1完全掌握CSRF"><a href="#从0到1完全掌握CSRF" class="headerlink" title="从0到1完全掌握CSRF"></a>从0到1完全掌握CSRF</h1><blockquote>
+<p>二刷漏洞：知其所以然 -&gt; 知其然 -&gt; 懂其攻 -&gt; 知其守</p>
+</blockquote>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><ul>
+<li>总觉得自己的 CSRF 掌握的挺不好的，如今二刷一遍。</li>
+<li>当初一刷的时候用的是 Port，而毕竟 Port 嘛，更加注重的是漏洞挖掘，所以当时只是简单地会用 Burpsuite 当中的 CSRF Poc 而已，其余的原理阿，防御措施阿，都不太懂。</li>
+</ul>
+<h2 id="0x02-什么是-CSRF"><a href="#0x02-什么是-CSRF" class="headerlink" title="0x02 什么是 CSRF"></a>0x02 什么是 CSRF</h2><ul>
+<li>面试的时候的著名问题：”谈一谈你对 CSRF 与 SSRF 区别的看法”</li>
+</ul>
+<p>这个问题，如果我们用非常通俗的语言讲的话，CSRF 更像是钓鱼的举动，是用户攻击用户的；而对于 SSRF 来说，是由服务器发出请求，用户<strong>日</strong>服务器的。</p>
+<p>CSRF（Cross-site request forgery）跨站请求伪造：攻击者诱导受害者进入第三方网站，在第三方网站中，向被攻击网站发送跨站请求。利用受害者在被攻击网站已经获取的注册凭证，绕过后台的用户验证，达到冒充用户对被攻击的网站执行某项操作的目的。</p>
+<p>在 Port 中，原理图是这样的</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/CSRFOri.png" class="">
+
+<blockquote>
+<p>我们在学习 CSRF 攻击之前好好先阐述一下它的原理</p>
+</blockquote>
+<p>一个典型的CSRF攻击有着如下的流程：</p>
+<ul>
+<li>受害者登录 a.com，并保留了登录凭证（Cookie）。</li>
+<li>攻击者引诱受害者访问了 b.com。</li>
+<li>b.com 向 a.com 发送了一个请求：a.com&#x2F;act&#x3D;xx。浏览器会默认携带 a.com 的 Cookie。</li>
+<li>a.com 接收到请求后，对请求进行验证，并确认是受害者的凭证，误以为是受害者自己发送的请求。</li>
+<li>a.com 以受害者的名义执行了 act&#x3D;xx。</li>
+<li>攻击完成，攻击者在受害者不知情的情况下，冒充受害者，让 a.com 执行了自己定义的操作。</li>
+</ul>
+<p>是不是感觉这个工作流程和 XSS 有些类似，但是 XSS 与 CSRF 的最大区别在于对 Cookie 的使用，XSS 的把受害者 的 Cookie 偷盗过来，而 CSRF 则是借用了受害者的 Cookie。</p>
+<p>下面我们举个例子深化一下 CSRF 的原理。</p>
+<h2 id="0x03-CSRF-实战场景-原理应用"><a href="#0x03-CSRF-实战场景-原理应用" class="headerlink" title="0x03 CSRF 实战场景(原理应用)"></a>0x03 CSRF 实战场景(原理应用)</h2><ul>
+<li>本段内容摘自<a target="_blank" rel="noopener" href="https://tech.meituan.com/2018/10/11/fe-security-csrf.html">美团技术团队文章</a></li>
+</ul>
+<p>这一天，小明同学百无聊赖地刷着 Gmail 邮件。大部分都是没营养的通知、验证码、聊天记录之类。但有一封邮件引起了小明的注意：</p>
+<blockquote>
+<p>甩卖比特币，一个只要998！！</p>
+</blockquote>
+<p>聪明的小明当然知道这种肯定是骗子，但还是抱着好奇的态度点了进去（请勿模仿）。果然，这只是一个什么都没有的空白页面，小明失望的关闭了页面。一切似乎什么都没有发生……</p>
+<p>在这平静的外表之下，黑客的攻击已然得手。小明的 Gmail 中，被偷偷设置了一个过滤规则，这个规则使得所有的邮件都会被<strong>自动转发</strong>到 <a href="mailto:&#104;&#x61;&#99;&#107;&#101;&#114;&#64;&#x68;&#x61;&#99;&#x6b;&#x65;&#x72;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#104;&#x61;&#99;&#107;&#101;&#114;&#64;&#x68;&#x61;&#99;&#x6b;&#x65;&#x72;&#x6d;&#97;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a>(也就是攻击方的邮箱)。小明还在继续刷着邮件，殊不知他的邮件正在一封封地，如脱缰的野马一般地，持续不断地向着黑客的邮箱转发而去。</p>
+<p>不久之后的一天，小明发现自己的域名已经被转让了。懵懂的小明以为是域名到期自己忘了续费，直到有一天，对方开出了 $650 的赎回价码，小明才开始觉得不太对劲。</p>
+<p>小明仔细查了下域名的转让，对方是拥有自己的验证码的，而域名的验证码只存在于自己的邮箱里面。小明回想起那天奇怪的链接，打开后重新查看了“空白页”的源码：</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>POST<span class="token punctuation">"</span></span>         <span class="token attr-name">action</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://mail.google.com/mail/h/ewt1jmuj4ddv/?v=prf<span class="token punctuation">"</span></span> <span class="token attr-name">enctype</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>multipart/form-data<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cf2_emc<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>true<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cf2_email<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hacker@hakermail.com<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span> 
+    ..... 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>irf<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>on<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nvp_bu_cftb<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Create Filter<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">></span></span> 
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"> document<span class="token punctuation">.</span>forms<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">submit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h5 id="代码解析-————-这也是我们后续要讲到的-CSRF-Poc"><a href="#代码解析-————-这也是我们后续要讲到的-CSRF-Poc" class="headerlink" title="代码解析 ———— 这也是我们后续要讲到的 CSRF Poc"></a>代码解析 ———— 这也是我们后续要讲到的 CSRF Poc</h5><p>这个页面只要打开，就会向Gmail发送一个post请求。请求中，执行了“Create Filter”命令，将所有的邮件，转发到“<a href="mailto:&#104;&#97;&#99;&#107;&#101;&#x72;&#64;&#x68;&#x61;&#99;&#x6b;&#x65;&#114;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;">&#104;&#97;&#99;&#107;&#101;&#x72;&#64;&#x68;&#x61;&#99;&#x6b;&#x65;&#114;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#109;</a>”。</p>
+<p>小明由于刚刚就登陆了Gmail，所以这个请求发送时，携带着小明的登录凭证（Cookie），Gmail的后台接收到请求，验证了确实有小明的登录凭证，于是成功给小明配置了过滤器。</p>
+<p>黑客可以查看小明的所有邮件，包括邮件里的域名验证码等隐私信息。拿到验证码之后，黑客就可以要求域名服务商把域名重置给自己。</p>
+<p>这个页面只要打开，就会向Gmail发送一个post请求。请求中，执行了“Create Filter”命令，将所有的邮件，转发到“<a href="mailto:&#x68;&#97;&#x63;&#x6b;&#x65;&#114;&#64;&#x68;&#97;&#99;&#107;&#x65;&#x72;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#x6f;&#109;">&#x68;&#97;&#x63;&#x6b;&#x65;&#114;&#64;&#x68;&#97;&#99;&#107;&#x65;&#x72;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#x6f;&#109;</a>”。</p>
+<p>小明由于刚刚就登陆了Gmail，所以这个请求发送时，携带着小明的登录凭证（Cookie），Gmail的后台接收到请求，验证了确实有小明的登录凭证，于是成功给小明配置了过滤器。</p>
+<p>黑客可以查看小明的所有邮件，包括邮件里的域名验证码等隐私信息。拿到验证码之后，黑客就可以要求域名服务商把域名重置给自己。</p>
+<h2 id="0x04-CSRF-的攻击方式"><a href="#0x04-CSRF-的攻击方式" class="headerlink" title="0x04 CSRF 的攻击方式"></a>0x04 CSRF 的攻击方式</h2><ul>
+<li>上文中，我们明晰了一下 CSRF 的攻击原理，下面我们主讲漏洞挖掘。</li>
+</ul>
+<h3 id="1-GET-请求产生的-CSRF"><a href="#1-GET-请求产生的-CSRF" class="headerlink" title="1. GET 请求产生的 CSRF"></a>1. GET 请求产生的 CSRF</h3><p>GET 请求产生的 CSRF 较为简单，有 href 攻击的方式与 HTTP 请求的方式。</p>
+<h4 id="GET-请求的-href-类-CSRF"><a href="#GET-请求的-href-类-CSRF" class="headerlink" title="GET 请求的 href 类 CSRF"></a>GET 请求的 href 类 CSRF</h4><pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://bank.com/transfer?account_number_from=123456789&amp;account_number_to=987654321&amp;amount=100000<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>View my Pictures!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在已经登录了<code>bank.com</code>的情况下，当我们点击 “View my Pictures” 这一链接时，就会将钱从一个账户转移到另一个账户，数额为 100000</p>
+<h4 id="GET-请求的-HTTP-发包-CSRF"><a href="#GET-请求的-HTTP-发包-CSRF" class="headerlink" title="GET 请求的 HTTP 发包 CSRF"></a>GET 请求的 HTTP 发包 CSRF</h4><p>一般会这样利用：</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html">![](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2018b/ff0cdbee.example/withdraw?amount=10000&amp;for=hacker)
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在受害者访问含有这个img的页面后，浏览器会自动向<br><code>http://bank.example/withdraw/account=xiaoming&amp;amount=10000&amp;for=hacker</code> 发出一次 HTTP 请求。在攻击者接收到请求的时候我们便可以“借用”对方的 Cookie。</p>
+<h3 id="2-POST-请求产生的-CSRF"><a href="#2-POST-请求产生的-CSRF" class="headerlink" title="2. POST 请求产生的 CSRF"></a>2. POST 请求产生的 CSRF</h3><blockquote>
+<p>POST 请求所产生的 CSRF 是我们利用地最多的攻击方式。</p>
+</blockquote>
+<p>这种类型的 CSRF 利用起来通常使用的是一个自动提交的表单。</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">action</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://bank.example/withdraw<span class="token punctuation">"</span></span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>POST</span><span class="token punctuation">></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>account<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>xiaoming<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>amount<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>10000<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span> 
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>for<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hacker<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript"> document<span class="token punctuation">.</span>forms<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">submit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>访问该页面后，表单会自动提交，相当于模拟用户完成了一次 POST 操作。</p>
+<p>POST 类型的攻击通常比 GET 要求更加严格一点，但仍并不复杂。任何个人网站、博客，被黑客上传页面的网站都有可能是发起攻击的来源，后端接口不能将安全寄托在仅允许 POST 上面。</p>
+<p>这里可以通过 Burpsuite 自带的 CSRF Poc 工具进行攻击，不过在使用的时候也有一些小技巧。</p>
+<h4 id="基础的-CSRF-攻击体验"><a href="#基础的-CSRF-攻击体验" class="headerlink" title="基础的 CSRF 攻击体验"></a>基础的 CSRF 攻击体验</h4><p>对应可以尝试的靶场，在这靶场当中，并没有添加任意的 CSRF 防御</p>
+<blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-no-defenses">Lab: CSRF vulnerability with no defenses</a></p>
+</blockquote>
+<p>因为 CSRF 本质上是一种钓鱼，所以我们也需要第三方网站攻击，如自己的服务器，或者 Burpsuite 靶场自带的 Exploit server；WebGoat 的 WebWolf。</p>
+<p>我们先登录进靶场当中，发现有一功能点 ———— Update email</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/EasyCSRF.png" class="">
+
+<ul>
+<li>试想一下，我们账号进行了 Update email 的操作。</li>
+<li>若我们在自己的服务器上面挂上恶意的 Payload，诱导他人点击之后。相对应的，对方的邮箱也会变成我们 CSRF Poc 所指定的，这样子一来，我就可以通过 “忘记密码” 这种服务来获取他账户的权限了。(当然这里有个前提，对方是登录过的且 Cookie 处于生效期间)</li>
+</ul>
+<p><strong>Exploit 部分</strong></p>
+<p>用 Burpsuite 自带的 CSRF Poc 构造出基本框架；</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/CSRFPocGenerate.png" class="">
+
+<p>然后我们把这个核心的表单拿出来，并加以修改，构造成最后的 POC</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">method</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$method<span class="token punctuation">"</span></span> <span class="token attr-name">action</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$url<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> 
+    
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hidden<span class="token punctuation">"</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$param1name<span class="token punctuation">"</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$param1value<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">></span></span><span class="token script"><span class="token language-javascript">
+    document<span class="token punctuation">.</span>forms<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">submit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>再放入到 Exploit Server 当中，点击 Deliver it to victim 即可。</p>
+<p>在对方未对 CSRF 进行任何防御的时候，上述两种 CSRF 攻击方式能够通杀。</p>
+<blockquote>
+<p>懂其攻 -&gt; 知其守</p>
+<p>我们现在已经知道 CSRF 攻击方式了，接下来着重讲一讲 CSRF 的防御手段以及绕过方式。</p>
+</blockquote>
+<h2 id="0x05-CSRF-的防御手段"><a href="#0x05-CSRF-的防御手段" class="headerlink" title="0x05 CSRF 的防御手段"></a>0x05 CSRF 的防御手段</h2><ul>
+<li><p>主流的 CSRF 防御手段有以下两种</p>
+<ul>
+<li>ban 掉不明域外访问 ———— 使用同源检测与 Samesite Cookie</li>
+<li>多加一层验证手段 CSRF Token</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-接近无敌的防御手法-CSRF-Token"><a href="#1-接近无敌的防御手法-CSRF-Token" class="headerlink" title="1. 接近无敌的防御手法 CSRF Token"></a>1. 接近无敌的防御手法 CSRF Token</h3><p>如果通俗易懂地解释一下 CSRF Token 的工作原理的话是这样的。</p>
+<p>CSRF Token 每随着页面被操作，Token 都会改变，比如 f5 刷新，点击按钮等等，都会导致 CSRF Token 变化。</p>
+<p>而每一个请求的 CSRF Token 会通过后端代码验证 Token 的有效性 ———— 是否正确，在时间戳上是否有效，如果加密字符串一致且时间未过期，那么这个Token就是有效的。</p>
+<p>以 Java 为例，我们介绍一下 CSRF Token 服务端的校验逻辑</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">HttpServletRequest</span> req <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">)</span>request<span class="token punctuation">;</span> <span class="token class-name">HttpSession</span> s <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">getSession</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token comment">// 从 session 中得到 csrftoken 属性 </span>
+<span class="token class-name">String</span> sToken <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span>s<span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span>“csrftoken”<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token keyword">if</span><span class="token punctuation">(</span>sToken <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> 
+    <span class="token comment">// 产生新的 token 放入 session 中 </span>
+    sToken <span class="token operator">=</span> <span class="token function">generateToken</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> s<span class="token punctuation">.</span><span class="token function">setAttribute</span><span class="token punctuation">(</span>“csrftoken”<span class="token punctuation">,</span>sToken<span class="token punctuation">)</span><span class="token punctuation">;</span> chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">else</span> <span class="token punctuation">&#123;</span> 
+    <span class="token comment">// 从 HTTP 头中取得 csrftoken </span>
+    <span class="token class-name">String</span> xhrToken <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">getHeader</span><span class="token punctuation">(</span>“csrftoken”<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token comment">// 从请求参数中取得 csrftoken </span>
+    <span class="token class-name">String</span> pToken <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span>“csrftoken”<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token keyword">if</span><span class="token punctuation">(</span>sToken <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> xhrToken <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> sToken<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>xhrToken<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span> 
+        chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>sToken <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> pToken <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> sToken<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>pToken<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span> 
+        chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">else</span>
+    <span class="token punctuation">&#123;</span> request<span class="token punctuation">.</span><span class="token function">getRequestDispatcher</span><span class="token punctuation">(</span>“error<span class="token punctuation">.</span>jsp”<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">forward</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span>response<span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span> 
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="2-用的较少的限制同源"><a href="#2-用的较少的限制同源" class="headerlink" title="2. 用的较少的限制同源"></a>2. 用的较少的限制同源</h3><p>Samesite 是 Set-Cookie 的一种属性，它有三个值</p>
+<p><code>Strict</code>最为严格，完全禁止第三方 Cookie，跨站点时，任何情况下都不会发送 Cookie。换言之，只有当前网页的 URL 与请求目标一致，才会带上 Cookie。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Set-Cookie: <span class="token assign-left variable">CookieName</span><span class="token operator">=</span>CookieValue<span class="token punctuation">;</span> <span class="token assign-left variable">SameSite</span><span class="token operator">=</span>Strict<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><code>Lax</code>规则稍稍放宽，大多数情况也是不发送第三方 Cookie，但是导航到目标网址的 Get 请求除外。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Set-Cookie: <span class="token assign-left variable">CookieName</span><span class="token operator">=</span>CookieValue<span class="token punctuation">;</span> <span class="token assign-left variable">SameSite</span><span class="token operator">=</span>Lax<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>还有一种属性为 <code>None</code>，这种属性代表关闭了 <code>SameSite</code></p>
+<blockquote>
+<p>一般攻击要进行绕过可以尝试将 SameSite 设置为 None</p>
+</blockquote>
+<ul>
+<li>这种方法的原理也比较简单，因为 CSRF 的本质也是钓鱼，比如我通过邮箱发送钓鱼邮件，那么这时候的 “源” 就是邮箱界面。</li>
+<li>如果服务器设置了严格的同源政策，将不接收来自邮箱这一 “源” 的请求。</li>
+</ul>
+<p><strong>ok，讲完了常规的防御手段，接下来我们聊聊绕过</strong></p>
+<hr>
+<h2 id="0x06-针对-CSRF-Token-与同源政策的绕过手段"><a href="#0x06-针对-CSRF-Token-与同源政策的绕过手段" class="headerlink" title="0x06 针对 CSRF Token 与同源政策的绕过手段"></a>0x06 针对 CSRF Token 与同源政策的绕过手段</h2><blockquote>
+<p>我们的绕过手段是基于 CSRF Token 或同源政策并不是那么严格的情况下，甚至某些时候由于设计的疏忽产生的逻辑漏洞。</p>
+</blockquote>
+<p>若非特别提醒，以下所有靶场的业务点均处于 <strong>“Update email”</strong> 下。</p>
+<h3 id="1-将-POST-修改为-GET-请求进行绕过"><a href="#1-将-POST-修改为-GET-请求进行绕过" class="headerlink" title="1. 将 POST 修改为 GET 请求进行绕过"></a>1. 将 POST 修改为 GET 请求进行绕过</h3><blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-request-method">Lab: CSRF where token validation depends on request method)</a></p>
+</blockquote>
+<ul>
+<li><strong>背后逻辑</strong>：</li>
+</ul>
+<p>CSRF Token 在 POST 请求当中生效，且业务点并非完全限制请求为 POST 请求，从而给了攻击者进行绕过的机会。</p>
+<p>探测方法：将 CSRF Token 删掉，并将 HTTP 请求修改为 GET 请求。</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/DeleteCSRFToken.png" class="">
+
+<p>此时的回显为 <code>&quot;Missing parameter &#39;csrf&#39;&quot;</code>，我们再将 HTTP 请求修改为 GET 请求，观察回显。</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/SuccessGET.png" class="">
+
+<p>回显 302，代表我们可以用这种方式进行绕过，构造 Payload</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/PayloadGET.png" class="">
+
+<h3 id="2-删除-CSRF-Token-进行绕过"><a href="#2-删除-CSRF-Token-进行绕过" class="headerlink" title="2. 删除 CSRF Token 进行绕过"></a>2. 删除 CSRF Token 进行绕过</h3><blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-token-being-present">Lab: CSRF where token validation depends on token being present</a></p>
+</blockquote>
+<ul>
+<li><strong>背后逻辑</strong>:</li>
+</ul>
+<p>并没有强验证 CSRF Token 的存在性。</p>
+<p>我们尝试删除 CSRF Token，回显 302</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/DeleteCSRFTokenSucc.png" class="">
+
+<p>在删除掉 CSRF Token 之后生成 POC 即可。</p>
+<h3 id="3-CSRF-Token-未与用户-Session-绑定"><a href="#3-CSRF-Token-未与用户-Session-绑定" class="headerlink" title="3. CSRF Token 未与用户 Session 绑定"></a>3. CSRF Token 未与用户 Session 绑定</h3><blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-token-not-tied-to-user-session">Lab: CSRF where token is not tied to user session</a></p>
+</blockquote>
+<ul>
+<li>背后逻辑</li>
+</ul>
+<p>未进行严格的一一身份对应，这其实很好理解。举个例子，我们登录注册界面，实际上是需要去匹配用户名与密码是否相等的，而这里的逻辑也是一致。</p>
+<p>那么这里，我可以先修改 Cookie，再修改 CSRF Token，来观察 CSRF Token 与 Cookie 是否对应了，或者说是否绑定了。</p>
+<p>修改 Cookie 中的 Session 值，观察回显为 “Unauthorized”</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/ChangeCookie.png" class="">
+
+<p>修改 CSRF Token，观察回显为 “Invalid CSRF Token”</p>
+<p>说明 CSRF Token 并未与 session 绑定，而是与 csrfKey(也就是 value) 绑定的，根据 cookie 的传递性，我们可以在其他页面提前把 csrfKey 注入进去，这里我们利用 <code>img</code> 与 <code>onerror</code> 组合的 XSS 以及 CLRF 技术来构造 CSRF。</p>
+<ul>
+<li>这里借用梨子师傅的 Poc</li>
+</ul>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/CLRFPoc.png" class="">
+
+<p>当受害者点击 CSRF 链接时会先触发 CLRF 注入 Set-Cookie 参数值，将 csrfKey 值添加到 Cookie 中，然后再用附有与 csrfKey 对应的 CSRF Token 的请求去提交修改邮箱请求。</p>
+<h3 id="4-当-Cookie-中的-CSRF-值与-CSRF-Token-的值一致时"><a href="#4-当-Cookie-中的-CSRF-值与-CSRF-Token-的值一致时" class="headerlink" title="4. 当 Cookie 中的 CSRF 值与 CSRF Token 的值一致时"></a>4. 当 Cookie 中的 CSRF 值与 CSRF Token 的值一致时</h3><blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-token-duplicated-in-cookie">Lab: CSRF where token is duplicated in cookie</a></p>
+</blockquote>
+<ul>
+<li>背后逻辑：</li>
+</ul>
+<p>只是将 CSRF Token 简单复制到 cookie 头中，然后仅验证两者是否一致。</p>
+<p>所以这里我们的绕过 Poc 的核心部分应该是这样的,<code>%0d%0a</code> 为<code>\r\n</code>，也就是 CR 与 LF</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;img src&#x3D;&quot;url&#x2F;?search&#x3D;test%0d%0aSet-Cookie:%20csrf&#x3D;jVDOkLRjgEe41xJlURwUeAIcDet4Cier&quot; onerror&#x3D;&quot;document.forms[0].submit();&quot;&#x2F;&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/CLRFPoc.png" class="">
+
+<h3 id="5-对不严格的-Referer-限制进行绕过"><a href="#5-对不严格的-Referer-限制进行绕过" class="headerlink" title="5. 对不严格的 Referer 限制进行绕过"></a>5. 对不严格的 Referer 限制进行绕过</h3><blockquote>
+<p>靶场地址 <a target="_blank" rel="noopener" href="https://portswigger.net/web-security/csrf/lab-referer-validation-broken">Lab: CSRF with broken Referer validation </a></p>
+</blockquote>
+<ul>
+<li>背后逻辑</li>
+</ul>
+<p>并没有特别严格地限制 Referer，仅仅只是不允许了这一种的 Referer。</p>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http"><span class="token header"><span class="token header-name keyword">Referer</span><span class="token punctuation">:</span> <span class="token header-value">靶场地址.com</span></span>
+
+// 下面是非法的
+
+<span class="token header"><span class="token header-name keyword">Referer</span><span class="token punctuation">:</span> <span class="token header-value">baidu.com</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>一般我们通过 <code>Referer: baidu.com</code> 来判断 Referer 的限制。</p>
+<p>若 <code>Referer: baidu.com</code> 被限制，则我们可以通过这种方式进行绕过</p>
+<pre class="line-numbers language-none"><code class="language-none">http:&#x2F;&#x2F;attacker-website.com&#x2F;csrf-attack?baidu.com<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>靶场部分，同样是对更改邮箱这个功能点进行 CSRF 攻击</li>
+</ul>
+<p>这里我们需要介绍一下 <code>history.pushState</code>，这个函数顾名思义，就是插入历史记录的，所以这也就是为什么第三个参数的值修改为与攻击链接同源后即可绕过错误地 Referer 头验证机制，所以我们这样构造 CSRF 页面。</p>
+<p>我们先修改 Referer 为 baidu.com 查看回显，成功发包。</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/FailedReferer.png" class="">
+
+<p>修改 Referer 为 <code>baidu.com+?laburl</code>，回显为 302 成功。</p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/SuccessRefererBypass.png" class="">
+
+<p>构造 Payload，将 <code>history.pushState</code> 的第三个参数修改为 Lab 的 URL 地址。投放之后，在 Head 当中添加 <code>Referrer-Policy: unsafe-url</code></p>
+<img src="/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/End.png" class="">
+
+<h2 id="0x07-小结"><a href="#0x07-小结" class="headerlink" title="0x07 小结"></a>0x07 小结</h2><p>CSRF 攻击本质上还是一种钓鱼手段，本文着重讲了一些 CSRF 攻击的绕过手法，说不定渗透的时候多试一试就能起到意想不到的效果。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">从0到1完全掌握CSRF</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-05-08 17:13:17</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/05/08/从0到1完全掌握CSRF/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%8E0%E5%88%B01/">#从0到1</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/05/14/%E8%AE%B0%E4%B8%80%E6%AC%A1%E7%94%A8docker%E9%83%A8%E7%BD%B2Springboot%E7%9A%84%E7%BB%8F%E5%8E%86/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">记一次用docker部署Springboot的经历</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-09-跨站点请求伪造</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF"><span class="nav-text">从0到1完全掌握CSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E4%BB%80%E4%B9%88%E6%98%AF-CSRF"><span class="nav-text">0x02 什么是 CSRF</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-CSRF-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF-%E5%8E%9F%E7%90%86%E5%BA%94%E7%94%A8"><span class="nav-text">0x03 CSRF 实战场景(原理应用)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90-%E2%80%94%E2%80%94%E2%80%94%E2%80%94-%E8%BF%99%E4%B9%9F%E6%98%AF%E6%88%91%E4%BB%AC%E5%90%8E%E7%BB%AD%E8%A6%81%E8%AE%B2%E5%88%B0%E7%9A%84-CSRF-Poc"><span class="nav-text">代码解析 ———— 这也是我们后续要讲到的 CSRF Poc</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-CSRF-%E7%9A%84%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F"><span class="nav-text">0x04 CSRF 的攻击方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-GET-%E8%AF%B7%E6%B1%82%E4%BA%A7%E7%94%9F%E7%9A%84-CSRF"><span class="nav-text">1. GET 请求产生的 CSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GET-%E8%AF%B7%E6%B1%82%E7%9A%84-href-%E7%B1%BB-CSRF"><span class="nav-text">GET 请求的 href 类 CSRF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GET-%E8%AF%B7%E6%B1%82%E7%9A%84-HTTP-%E5%8F%91%E5%8C%85-CSRF"><span class="nav-text">GET 请求的 HTTP 发包 CSRF</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-POST-%E8%AF%B7%E6%B1%82%E4%BA%A7%E7%94%9F%E7%9A%84-CSRF"><span class="nav-text">2. POST 请求产生的 CSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9A%84-CSRF-%E6%94%BB%E5%87%BB%E4%BD%93%E9%AA%8C"><span class="nav-text">基础的 CSRF 攻击体验</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-CSRF-%E7%9A%84%E9%98%B2%E5%BE%A1%E6%89%8B%E6%AE%B5"><span class="nav-text">0x05 CSRF 的防御手段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8E%A5%E8%BF%91%E6%97%A0%E6%95%8C%E7%9A%84%E9%98%B2%E5%BE%A1%E6%89%8B%E6%B3%95-CSRF-Token"><span class="nav-text">1. 接近无敌的防御手法 CSRF Token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%94%A8%E7%9A%84%E8%BE%83%E5%B0%91%E7%9A%84%E9%99%90%E5%88%B6%E5%90%8C%E6%BA%90"><span class="nav-text">2. 用的较少的限制同源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E9%92%88%E5%AF%B9-CSRF-Token-%E4%B8%8E%E5%90%8C%E6%BA%90%E6%94%BF%E7%AD%96%E7%9A%84%E7%BB%95%E8%BF%87%E6%89%8B%E6%AE%B5"><span class="nav-text">0x06 针对 CSRF Token 与同源政策的绕过手段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%B0%86-POST-%E4%BF%AE%E6%94%B9%E4%B8%BA-GET-%E8%AF%B7%E6%B1%82%E8%BF%9B%E8%A1%8C%E7%BB%95%E8%BF%87"><span class="nav-text">1. 将 POST 修改为 GET 请求进行绕过</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%A0%E9%99%A4-CSRF-Token-%E8%BF%9B%E8%A1%8C%E7%BB%95%E8%BF%87"><span class="nav-text">2. 删除 CSRF Token 进行绕过</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-CSRF-Token-%E6%9C%AA%E4%B8%8E%E7%94%A8%E6%88%B7-Session-%E7%BB%91%E5%AE%9A"><span class="nav-text">3. CSRF Token 未与用户 Session 绑定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%BD%93-Cookie-%E4%B8%AD%E7%9A%84-CSRF-%E5%80%BC%E4%B8%8E-CSRF-Token-%E7%9A%84%E5%80%BC%E4%B8%80%E8%87%B4%E6%97%B6"><span class="nav-text">4. 当 Cookie 中的 CSRF 值与 CSRF Token 的值一致时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%AF%B9%E4%B8%8D%E4%B8%A5%E6%A0%BC%E7%9A%84-Referer-%E9%99%90%E5%88%B6%E8%BF%9B%E8%A1%8C%E7%BB%95%E8%BF%87"><span class="nav-text">5. 对不严格的 Referer 限制进行绕过</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x07-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x07 小结</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

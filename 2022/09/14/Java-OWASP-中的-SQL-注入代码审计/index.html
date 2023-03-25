@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java OWASP 中的 SQL 注入代码审计 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java OWASP 中的 SQL 注入代码审计</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-09-14 14:21:35</span>
+        <span class="mobile">2022-09-14 14:21</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 19:47:18</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>4.3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>18 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="Java-中的-SQL-注入代码审计"><a href="#Java-中的-SQL-注入代码审计" class="headerlink" title="Java 中的 SQL 注入代码审计"></a>Java 中的 SQL 注入代码审计</h1><p>代码审计基于这个项目 <a target="_blank" rel="noopener" href="https://github.com/JoyChou93/java-sec-code/">https://github.com/JoyChou93/java-sec-code/</a></p>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>出于一些个人原因，决定回过头来再过一遍 Java 基础的代码审计</p>
+<p>也不说那么多没什么营养的话了，直接开始正文。</p>
+<h2 id="0x02-由于-jdbc-拼接不当导致的-SQL-注入"><a href="#0x02-由于-jdbc-拼接不当导致的-SQL-注入" class="headerlink" title="0x02 由于 jdbc 拼接不当导致的 SQL 注入"></a>0x02 由于 jdbc 拼接不当导致的 SQL 注入</h2><p>jdbc 存在两种方法执行 SQL 语句，分别为 PreparedStatement 和 Statement。</p>
+<p>普通的 Statement 的语句一般会这样写：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> checkUserQuery <span class="token operator">=</span> <span class="token string">"select userid from sql_challenge_users where userid = '"</span> <span class="token operator">+</span> username_reg <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">;</span>  
+
+<span class="token class-name">Statement</span> statement <span class="token operator">=</span> connection<span class="token punctuation">.</span><span class="token function">createStatement</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+<span class="token class-name">ResultSet</span> resultSet <span class="token operator">=</span> statement<span class="token punctuation">.</span><span class="token function">executeQuery</span><span class="token punctuation">(</span>checkUserQuery<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>Statement 会直接拼接 SQL 语句，<strong>注意！</strong>，99.99999% 的 Statement 直接拼接，都会导致 SQL 注入。</p>
+<p>相比 Statement，还有一种执行 SQL 语句的方式是 PreparedStatement，它会对 SQL 语句进行预编译，一般长这样。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">var</span> statement <span class="token operator">=</span> connection<span class="token punctuation">.</span><span class="token function">prepareStatement</span><span class="token punctuation">(</span><span class="token string">"select password from sql_challenge_users where userid = ? and password = ?"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+
+statement<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> username_login<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+statement<span class="token punctuation">.</span><span class="token function">setString</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> password_login<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+
+<span class="token keyword">var</span> resultSet <span class="token operator">=</span> statement<span class="token punctuation">.</span><span class="token function">executeQuery</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="Statement-SQL-注入"><a href="#Statement-SQL-注入" class="headerlink" title="Statement SQL 注入"></a>Statement SQL 注入</h3><p>我们下个断点在 SQLI 这里，66 行，然后访问 <code>/sqli/jdbc/vuln?username=123</code>，看一下发生了什么。</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SQL01.png" class="">
+
+<p>因为执行查询是我们的 SQL 语句，现在的 sql 变量的值是 ————<br><code>select * from users where username = &#39;123&#39;</code></p>
+<p>攻击方式的话，用万能密码攻击即可。</p>
+<p>原理就不说了，太基础了，就是 SQL 语句拼接而已。</p>
+<p>攻击的话：payload 如下</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">username&#x3D;123&#39; or &#39;1&#39;&#x3D;&#39;1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="Statement-SQL-注入的修复手段：预编译"><a href="#Statement-SQL-注入的修复手段：预编译" class="headerlink" title="Statement SQL 注入的修复手段：预编译"></a>Statement SQL 注入的修复手段：预编译</h3><p>后面 <code>/jdbc/sec</code> 接口，就是修好的代码，我们不妨也打断点看看它的工作流程。</p>
+<p>payload 直接用 <code>admin&#39; or &#39;1&#39;=&#39;1</code></p>
+<p>这个时候的 sql 语句始终如一都是 <code>select * from users where username = ?</code>；那么预编译到底是怎么实现的呢？我们的 username 是何时放进去呗查询的呢？</p>
+<p>不妨再深入一点跟进看一下。跟进 <code>executeQuery()</code></p>
+<p>进来之后，第 762 行，看着像是 sql 语句的查询，跟进去 <code>getOriginalSql()</code> 方法看看。</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/executeQuery.png" class="">
+
+<p>得到的结果是屁都没有，继续往下，768 行，是 <code>executeInternal()</code> 方法，一般 <code>Internal</code> 结尾的方法都是一些内部处理的方法，跟进。</p>
+<p>这个 <code>executeInternal()</code> 方法主要做了两件事：第一件事：返回查询结果，第二件事：返回查询时间。如图</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/getResults.png" class="">
+
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/getTimer.png" class="">
+
+<p>这些信息都包含在返回的 result 里面。</p>
+<p>所以我们能够很清楚的看到，<strong>在预编译当中，输入和 SQL 语句是完完全全分开的</strong></p>
+<h3 id="总结-JDBC-易产生漏洞点"><a href="#总结-JDBC-易产生漏洞点" class="headerlink" title="总结 JDBC 易产生漏洞点"></a>总结 JDBC 易产生漏洞点</h3><h4 id="未使用占位符"><a href="#未使用占位符" class="headerlink" title="未使用占位符"></a>未使用占位符</h4><ul>
+<li>PreparedStatement 只有在使用”?”作为占位符才能预防sql注入，直接拼接仍会存在sql注入漏洞</li>
+</ul>
+<h4 id="使用-in-语句"><a href="#使用-in-语句" class="headerlink" title="使用 in 语句"></a>使用 in 语句</h4><p>删除语句中可能会存在此类语句,由于无法确定delIds含有对象个数而直接拼接sql语句，造成sql注入。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">"delete from users where id in("</span><span class="token operator">+</span>delIds<span class="token operator">+</span>"<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//存在sql注入</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>解决方法为遍历传入的 对象个数，使用“?”占位符。</li>
+</ul>
+<h4 id="使用-like-语句"><a href="#使用-like-语句" class="headerlink" title="使用 like 语句"></a>使用 like 语句</h4><ul>
+<li>使用like语句直接拼接会造成sql注入</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">"select * from users where password like '%"</span> <span class="token operator">+</span> con <span class="token operator">+</span> <span class="token string">"%'"</span><span class="token punctuation">;</span> <span class="token comment">//存在sql注入</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="和"><a href="#和" class="headerlink" title="%和_"></a>%和_</h4><ul>
+<li>没有手动过滤 <code>%</code></li>
+</ul>
+<p>预编译是不能处理这个符号的， 所以需要手动过滤，否则会造成慢查询，造成 dos。</p>
+<h4 id="Order-by、from-等关键字无法预编译"><a href="#Order-by、from-等关键字无法预编译" class="headerlink" title="Order by、from 等关键字无法预编译"></a>Order by、from 等关键字无法预编译</h4><p>通过上面对使用 in 关键字和 like 关键字发现，只需要对要传参的位置使用占位符进行预编译时似乎就可以完全防止 SQL 注入，然而事实并非如此，当使用 order by 语句时是无法使用预编译的，原因是 order by 子句后面需要加字段名或者字段位置，而字段名是不能带引号的，否则就会被认为是一个字符串而不是字段名，简单来说就是会报错。</p>
+<p>然而使用 PreapareStatement 将会强制给参数加上’，所以，在使用 order by 语句时就必须得使用拼接的 Statement，所以就会造成 SQL 注入，这里其实算是 SQL 的原生问题了；</p>
+<p>解决问题的话需要进行手动过滤。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">"Select * from news where title =?"</span> <span class="token operator">+</span> <span class="token string">"order by '"</span> <span class="token operator">+</span> time <span class="token operator">+</span> <span class="token string">"' asc"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="0x03-Mybatis-下的-SQL-注入"><a href="#0x03-Mybatis-下的-SQL-注入" class="headerlink" title="0x03 Mybatis 下的 SQL 注入"></a>0x03 Mybatis 下的 SQL 注入</h2><p>我们的 SQL 语句一般是写在 Mapper 里面的，正常的应该是 Controller 层调 Service 层调 pojo 层，SQL 语句是写在 Mapper 文件里面的。所以如果是从代码审计的角度来看的话，我们可以直接来看 Mapper 层的代码。</p>
+<h3 id="mybatis-下的-SQL-注入"><a href="#mybatis-下的-SQL-注入" class="headerlink" title="mybatis 下的 SQL 注入"></a>mybatis 下的 SQL 注入</h3><p>mybatis 下的 SQL 注入主要是这一种情况：<code>$&#123;Parameter&#125;</code></p>
+<ul>
+<li><code>$&#123;Parameter&#125;</code></li>
+</ul>
+<p>有类似的一些 CMS 0day 漏洞，比如 RuoYi &lt;&#x3D; 4.6.1 的 SQL 注入漏洞。就是这样导致的</p>
+<p>对应的这个项目当中，有问题的 SQL 语句如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//Mybatis </span>
+<span class="token annotation punctuation">@Select</span><span class="token punctuation">(</span><span class="token string">"select * from users where username = '$&#123;username&#125;'"</span><span class="token punctuation">)</span>
+<span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> <span class="token function">findByUserNameVuln01</span><span class="token punctuation">(</span><span class="token annotation punctuation">@Param</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">)</span> <span class="token class-name">String</span> username<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">//Mybatis </span>
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis/vuln01"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> <span class="token function">mybatisVuln01</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">)</span> <span class="token class-name">String</span> username<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> userMapper<span class="token punctuation">.</span><span class="token function">findByUserNameVuln01</span><span class="token punctuation">(</span>username<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里是存在漏洞的，因为 <code>$&#123;username&#125;</code> 的方式就是直接拼接，和之前的 jdbc 是一样的。</p>
+<p>payload 如下</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">admin&#39; or &#39;1&#39;&#x3D;&#39;1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这里这道题目，怎么说呢；和我们平常见到的 mybatis 语句很不一样，我们平常的 SQL 语句都是写在 xxxMapper.xml 里面的，但是这个里面不是这样的。</p>
+<p>测试一下</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MybatisExec.png" class="">
+
+<h3 id="mybatis-下的-SQL-注入防护：预编译"><a href="#mybatis-下的-SQL-注入防护：预编译" class="headerlink" title="mybatis 下的 SQL 注入防护：预编译"></a>mybatis 下的 SQL 注入防护：预编译</h3><ul>
+<li>这种 SQL 注入的防护 ———— 预编译，其实是这一种方式 <code>#&#123;Parameter&#125;</code></li>
+</ul>
+<p>代码如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis/sec01"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token class-name">User</span> <span class="token function">mybatisSec01</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">)</span> <span class="token class-name">String</span> username<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> userMapper<span class="token punctuation">.</span><span class="token function">findByUserName</span><span class="token punctuation">(</span>username<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>Mapper 层代码</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//Mybatis </span>
+<span class="token annotation punctuation">@Select</span><span class="token punctuation">(</span><span class="token string">"select * from users where username = #&#123;username&#125;"</span><span class="token punctuation">)</span>
+<span class="token class-name">User</span> <span class="token function">findByUserName</span><span class="token punctuation">(</span><span class="token annotation punctuation">@Param</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">)</span> <span class="token class-name">String</span> username<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>这样就防住了</p>
+<h3 id="MyBatis易产生SQL注入的三种情况"><a href="#MyBatis易产生SQL注入的三种情况" class="headerlink" title="MyBatis易产生SQL注入的三种情况"></a>MyBatis易产生SQL注入的三种情况</h3><h4 id="like-关键字的模糊查询"><a href="#like-关键字的模糊查询" class="headerlink" title="like 关键字的模糊查询"></a>like 关键字的模糊查询</h4><p>在这种情况下使用 <code>#&#123;&#125;</code> 程序会报错，新手程序员就把 <code>#号</code> 改成了 <code>$</code>，这就照样导致了拼接的问题了。</p>
+<ul>
+<li>源码如下</li>
+</ul>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>select</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>findByUserNameVuln02<span class="token punctuation">"</span></span> <span class="token attr-name">parameterType</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>String<span class="token punctuation">"</span></span> <span class="token attr-name">resultMap</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>User<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    select * from users where username like '%$&#123;_parameter&#125;%'
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>select</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MybatisExec2.png" class="">
+
+<p>正确写法如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>select</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>findByUserNamesec<span class="token punctuation">"</span></span> <span class="token attr-name">parameterType</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>String<span class="token punctuation">"</span></span> <span class="token attr-name">resultMap</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>User<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    select * from users where username like concat('%',#&#123;_parameter&#125;, '%')
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>select</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>正确写法：</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">mysql:
+    <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> users <span class="token keyword">where</span> username <span class="token operator">like</span> concat<span class="token punctuation">(</span><span class="token string">'%'</span><span class="token punctuation">,</span><span class="token comment">#&#123;username&#125;,'%')</span>
+oracle:
+    <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> users <span class="token keyword">where</span> username <span class="token operator">like</span> <span class="token string">'%'</span><span class="token operator">||</span><span class="token comment">#&#123;username&#125;||'%'</span>
+sqlserver:
+    <span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> users <span class="token keyword">where</span> username <span class="token operator">like</span> <span class="token string">'%'</span><span class="token operator">+</span><span class="token comment">#&#123;username&#125;+'%'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="使用-in-语句-1"><a href="#使用-in-语句-1" class="headerlink" title="使用 in 语句"></a>使用 in 语句</h4><p>使用in语句时直接使用 <code>#&#123;&#125;</code> 会报错，可能会存在使用 <code>$&#123;&#125;</code> 直接拼接，造成sql注入</p>
+<p>这个项目里面并没有这一模块，所以需要自行添加，XML 和 接口编写如下</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>select</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>findByUserNameVuln04<span class="token punctuation">"</span></span> <span class="token attr-name">parameterType</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>String<span class="token punctuation">"</span></span> <span class="token attr-name">resultMap</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>User<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    select * from users where id in ($&#123;id&#125;)
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>select</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// http://localhost:8080/sqli/mybatis/vuln04?id=1)%20or%201=1%23</span>
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis/vuln04"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> <span class="token function">mybatisVuln04</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span><span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">)</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> userMapper<span class="token punctuation">.</span><span class="token function">findByUserNameVuln04</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>测试成功！</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MybatisExec3ID.png" class="">
+
+<p>这里，当时 RuoYi 的漏洞就是这一种，in 语句使用 <code>$&#123;&#125;</code> 的拼接</p>
+<p>正确用法为使用 foreach，<code>而不是将#替换为$</code></p>
+<p>这里前面的写法和 Vuln04 差不多，需要我们修改 userMapper.xml 的内容。mybatis 为了防止这种现象的 SQL 注入，</p>
+<p>定义接口：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis/sec04"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> <span class="token function">mybatisSec04</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span><span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">)</span> <span class="token class-name">List</span> id<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> userMapper<span class="token punctuation">.</span><span class="token function">findByIdSec04</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>写个 Mapper</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> <span class="token function">findByIdSec04</span><span class="token punctuation">(</span><span class="token annotation punctuation">@Param</span><span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">)</span> <span class="token class-name">List</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>接着是 <code>UserMapper.xml</code></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>select</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>findByIdSec04<span class="token punctuation">"</span></span> <span class="token attr-name">parameterType</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>String<span class="token punctuation">"</span></span> <span class="token attr-name">resultMap</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>User<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+ SELECT  
+ * from users WHERE id IN <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>foreach</span> <span class="token attr-name">collection</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>id<span class="token punctuation">"</span></span> <span class="token attr-name">item</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>id<span class="token punctuation">"</span></span> <span class="token attr-name">open</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(<span class="token punctuation">"</span></span> <span class="token attr-name">close</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>)<span class="token punctuation">"</span></span> <span class="token attr-name">separator</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>,<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+ #&#123;id&#125;  
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>foreach</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>select</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>如此便可以成功防护啦！</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/InDefense.png" class="">
+
+<p>原理上，会把每一个查找的字符都进行分割，我们正确的输入可以是 id&#x3D;1,2,3,4；当然，这里就涉及到其他的逻辑问题了。</p>
+<h4 id="使用-order-by-语句"><a href="#使用-order-by-语句" class="headerlink" title="使用 order by 语句"></a>使用 order by 语句</h4><p>和JDBC同理，使用 <code>#&#123;&#125;</code> 方式传参会导致order by语句失效，所以使用order by语句的时候还是需要做好过滤</p>
+<p>在项目里面说的挺明白的，加了个 Filter，我这里就不再赘述了。</p>
+<h3 id="关于-mybatis-中的运行原理"><a href="#关于-mybatis-中的运行原理" class="headerlink" title="关于 mybatis 中的运行原理"></a>关于 mybatis 中的运行原理</h3><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cxuanBlog/p/12248536.html%EF%BC%9B">https://www.cnblogs.com/cxuanBlog/p/12248536.html；</a><br>cy 一下，有空再过一遍。</p>
+<h2 id="0x04-Mybatis-Plus-的-SQL-注入探讨"><a href="#0x04-Mybatis-Plus-的-SQL-注入探讨" class="headerlink" title="0x04 Mybatis-Plus 的 SQL 注入探讨"></a>0x04 Mybatis-Plus 的 SQL 注入探讨</h2><ul>
+<li>为了方便各位师傅们学习，我这里自己简单写了一个项目。</li>
+</ul>
+<p>本来是可以直接 fork joychou 大师傅的项目的，但是 mybatis 和 mybatis_plus 不太好兼容，所以就自己写一个小项目帮助师傅们理解</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/OWASP%20TOP10">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/OWASP%20TOP10</a></p>
+<p>里面的 MybatisPluSqli module 就是对应的项目。</p>
+<p><code>/mybatis_plus/test</code> 是一个关于 mybatis-plus 的测试接口，若部署成功，访问如图</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MybatisPlusSuccess.png" class="">
+
+<p>我们后续讲到的这些有问题的方法，都是基于用户可控输入的情况。</p>
+<h3 id="使用-apply-直接拼接-SQL-语句"><a href="#使用-apply-直接拼接-SQL-语句" class="headerlink" title="使用 apply 直接拼接 SQL 语句"></a>使用 apply 直接拼接 SQL 语句</h3><h4 id="理想的-apply-漏洞场景"><a href="#理想的-apply-漏洞场景" class="headerlink" title="理想的 apply 漏洞场景"></a>理想的 apply 漏洞场景</h4><p>我们可以先看一种纯拼接的手法，但是讲道理，实际开发里面不可能这么写的。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln02"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpVuln02</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token string">"id="</span><span class="token operator">+</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>首先实际开发中不可能会用 <code>selectList</code> 这个方法，这完全就是自己给自己找坑。</p>
+<p>我拿这个例子出来给师傅们看只是简单说明一下 SQL 注入里面的 apply 漏洞</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MPApply.png" class="">
+
+<h4 id="实际情况的-apply-场景"><a href="#实际情况的-apply-场景" class="headerlink" title="实际情况的 apply 场景"></a>实际情况的 apply 场景</h4><p>代码如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln01"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">Employee</span> <span class="token function">mpVuln01</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">eq</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span>name<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token string">"id="</span><span class="token operator">+</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Employee</span> employee <span class="token operator">=</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectOne</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employee<span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这是比较接近实际的情况，首先 <code>apply()</code> 方法算是一个多参请求，我们需要通过 id 与 name 来确定这个数据（虽然实际开发肯定不会告诉你 id）</p>
+<p>这里我们的 payload 要这么打</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">?name&#x3D;drunkbaby&amp;id&#x3D;1%20and%20extractvalue(1,concat(0x7e,(select%20database()),0x7e))<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>是只有报错注入才能打通的，如果我们只是简单的 <code>1&#39; or &#39;1&#39;=&#39;1</code> 这种方式是不可以的。</p>
+<p>因为这个地方</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Employee</span> employee <span class="token operator">=</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectOne</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>我们的结果是 <code>selectOne()</code>，只是搞出一个，而万能密码是导出所有的数据，明显是会报错的，所以这里只能用报错注入爆数据。</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MPApplySuccess.png" class="">
+
+<p>虽然表面是 500，但是有时候这种方式是可行的，因为我们看到报错的地方爆出了数据库名，比如在服务器对 500 报错，是打印错误消息的情况下，就可以成功进行 SQL 注入了！</p>
+<h4 id="关于-apply-场景的防护"><a href="#关于-apply-场景的防护" class="headerlink" title="关于 apply 场景的防护"></a>关于 apply 场景的防护</h4><ul>
+<li>用预编译来；我们修对应 <code>/Vuln02</code> 的洞</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpSec02"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpSec02</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">apply</span><span class="token punctuation">(</span><span class="token string">"id=&#123;0&#125;"</span><span class="token punctuation">,</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>很简单，要 apply 的地方加上 <code>&#123;0&#125;</code> 即可。</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SuucessDenfeseMP02.png" class="">
+
+<p>防护成功了，对应的 SQL 语句其实是这样的</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MPDefenseSQL.png" class="">
+
+<h3 id="last-方法产生的-SQL-注入"><a href="#last-方法产生的-SQL-注入" class="headerlink" title="last 方法产生的 SQL 注入"></a>last 方法产生的 SQL 注入</h3><p><code>last()</code> 方法经过重写，有两个方法，如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">last</span><span class="token punctuation">(</span><span class="token class-name">String</span> lastSql<span class="token punctuation">)</span>
+<span class="token function">last</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">String</span> lastSql<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>也就是说，在 lastSql 里面我们是可以直接写 SQL 语句的，编写一个新的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln03"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpVuln03</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">last</span><span class="token punctuation">(</span><span class="token string">"order by "</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从根本上来说，也是拼接产生的问题</p>
+<p>我们用 payload 打：</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">?id&#x3D;1%20or%201&#x3D;1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/last.png" class="">
+
+<h3 id="exists-x2F-notExists-拼接产生的SQL-注入"><a href="#exists-x2F-notExists-拼接产生的SQL-注入" class="headerlink" title="exists&#x2F;notExists 拼接产生的SQL 注入"></a>exists&#x2F;notExists 拼接产生的SQL 注入</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">exists</span><span class="token punctuation">(</span><span class="token class-name">String</span> existsSql<span class="token punctuation">)</span>
+<span class="token function">exists</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">String</span> existsSql<span class="token punctuation">)</span>
+
+<span class="token function">notExists</span><span class="token punctuation">(</span><span class="token class-name">String</span> notExistsSql<span class="token punctuation">)</span>
+<span class="token function">notExists</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">String</span> notExistsSql<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>一共是这四个方法</p>
+<p>原理也比较简单，后续的内容如果没有特别，就不再赘述了</p>
+<p>exists 的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln04"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpVuln04</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">exists</span><span class="token punctuation">(</span><span class="token string">"select * from employees where id = "</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>NotExists 的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln05"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpVuln05</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">notExists</span><span class="token punctuation">(</span><span class="token string">"select * from employees where id = "</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="having-语句"><a href="#having-语句" class="headerlink" title="having 语句"></a>having 语句</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">having</span><span class="token punctuation">(</span><span class="token class-name">String</span> sqlHaving<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> params<span class="token punctuation">)</span>
+<span class="token function">having</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">String</span> sqlHaving<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> params<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>接口如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/mpVuln06"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">mpVuln06</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">groupBy</span><span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">having</span><span class="token punctuation">(</span><span class="token string">"id >"</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="order-by-语句"><a href="#order-by-语句" class="headerlink" title="order by 语句"></a>order by 语句</h3><ul>
+<li>orderBy</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">orderBy</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token keyword">boolean</span> isAsc<span class="token punctuation">,</span> <span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>orderByAsc</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">orderByAsc</span><span class="token punctuation">(</span><span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span>
+<span class="token function">orderByAsc</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<ul>
+<li>orderByDesc</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">orderByDesc</span><span class="token punctuation">(</span><span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这和之前说的 mybatis 里面的问题是一样的，因为 order by 的时候不能预编译，所以会出现问题</p>
+<p>三个接口的写法大同小异，如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">orderby01</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">orderBy</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span>
+
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/orderby02"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">orderby02</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">orderByAsc</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span>
+
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/orderby03"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">orderby03</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">orderByDesc</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="group-By"><a href="#group-By" class="headerlink" title="group By"></a>group By</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">groupBy</span><span class="token punctuation">(</span><span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span>
+<span class="token function">groupBy</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">R</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> columns<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>与 <code>order by</code> 的原理是一样的</p>
+<p>接口如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/groupBy"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">groupBy</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">groupBy</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="inSql-x2F-notInSql"><a href="#inSql-x2F-notInSql" class="headerlink" title="inSql&#x2F;notInSql"></a>inSql&#x2F;notInSql</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">inSql</span><span class="token punctuation">(</span><span class="token class-name">R</span> column<span class="token punctuation">,</span> <span class="token class-name">String</span> inValue<span class="token punctuation">)</span>
+<span class="token function">inSql</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">R</span> column<span class="token punctuation">,</span> <span class="token class-name">String</span> inValue<span class="token punctuation">)</span>
+
+<span class="token function">notInSql</span><span class="token punctuation">(</span><span class="token class-name">R</span> column<span class="token punctuation">,</span> <span class="token class-name">String</span> inValue<span class="token punctuation">)</span>
+<span class="token function">notInSql</span><span class="token punctuation">(</span><span class="token keyword">boolean</span> condition<span class="token punctuation">,</span> <span class="token class-name">R</span> column<span class="token punctuation">,</span> <span class="token class-name">String</span> inValue<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>对应的两个接口</p>
+<p>inSql 的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/insql"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">inSql</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">inSql</span><span class="token punctuation">(</span>id<span class="token punctuation">,</span> <span class="token string">"select * from employees where id >"</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>notInSql 的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/notinSql"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> <span class="token function">notinSql</span><span class="token punctuation">(</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Employee</span><span class="token punctuation">></span></span> wrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ wrapper<span class="token punctuation">.</span><span class="token function">select</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">notInSql</span><span class="token punctuation">(</span>id<span class="token punctuation">,</span> <span class="token string">"select * from employees where id >"</span> <span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> employeeMapper<span class="token punctuation">.</span><span class="token function">selectList</span><span class="token punctuation">(</span>wrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="关于-Wrapper-自定义-SQL"><a href="#关于-Wrapper-自定义-SQL" class="headerlink" title="关于 Wrapper 自定义 SQL"></a>关于 Wrapper 自定义 SQL</h3><p>基本和上面的一样，就不再赘述了。</p>
+<h3 id="分页插件的-SQL-注入情况"><a href="#分页插件的-SQL-注入情况" class="headerlink" title="分页插件的 SQL 注入情况"></a>分页插件的 SQL 注入情况</h3><p>漏洞点比较之前少很多，主要集中于两个地方。</p>
+<p>一个是分页插件自带的 <code>addOrder()</code> 方法，另外一个是之前就有问题的 <code>order by</code> 方法。</p>
+<ul>
+<li><strong>配置分页插件</strong></li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>drunkbaby<span class="token punctuation">.</span>config</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>baomidou<span class="token punctuation">.</span>mybatisplus<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">DbType</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>baomidou<span class="token punctuation">.</span>mybatisplus<span class="token punctuation">.</span>extension<span class="token punctuation">.</span>plugins<span class="token punctuation">.</span></span><span class="token class-name">MybatisPlusInterceptor</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>baomidou<span class="token punctuation">.</span>mybatisplus<span class="token punctuation">.</span>extension<span class="token punctuation">.</span>plugins<span class="token punctuation">.</span>inner<span class="token punctuation">.</span></span><span class="token class-name">PaginationInnerInterceptor</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Bean</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>context<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">Configuration</span><span class="token punctuation">;</span>  
+  
+<span class="token annotation punctuation">@Configuration</span>  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MybatisPlusConfig</span> <span class="token punctuation">&#123;</span>  
+  
+    <span class="token comment">/**  
+ * 注册插件  
+ */</span>  
+ <span class="token annotation punctuation">@Bean</span>  
+ <span class="token keyword">public</span> <span class="token class-name">MybatisPlusInterceptor</span> <span class="token function">mybatisPlusInterceptor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+  
+        <span class="token class-name">MybatisPlusInterceptor</span> interceptor <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">MybatisPlusInterceptor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 添加分页插件  </span>
+ <span class="token class-name">PaginationInnerInterceptor</span> pageInterceptor <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">PaginationInnerInterceptor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 设置请求的页面大于最大页后操作，true调回到首页，false继续请求。默认false  </span>
+ pageInterceptor<span class="token punctuation">.</span><span class="token function">setOverflow</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 单页分页条数限制，默认无限制  </span>
+ pageInterceptor<span class="token punctuation">.</span><span class="token function">setMaxLimit</span><span class="token punctuation">(</span><span class="token number">500L</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 设置数据库类型  </span>
+ pageInterceptor<span class="token punctuation">.</span><span class="token function">setDbType</span><span class="token punctuation">(</span><span class="token class-name">DbType</span><span class="token punctuation">.</span>MYSQL<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+ interceptor<span class="token punctuation">.</span><span class="token function">addInnerInterceptor</span><span class="token punctuation">(</span>pageInterceptor<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> interceptor<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里我新建了一个 Person 相关的 ORM 操作，这样的话我们后续的操作就不会存在干扰，至于 pojo 那些怎么做，我这里就不赘述了。直接看存在漏洞的接口。</p>
+<h4 id="addOrder"><a href="#addOrder" class="headerlink" title="addOrder()"></a>addOrder()</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span><span class="token string">"/mybatis_plus/PageVul01"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Person</span><span class="token punctuation">></span></span> <span class="token function">mybatisPlusPageVuln01</span><span class="token punctuation">(</span><span class="token class-name">Long</span> page<span class="token punctuation">,</span> <span class="token class-name">Long</span> size<span class="token punctuation">,</span> <span class="token class-name">String</span> id<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+    <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Person</span><span class="token punctuation">></span></span> queryWrapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">QueryWrapper</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Page</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Person</span><span class="token punctuation">></span></span> personPage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Page</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ personPage<span class="token punctuation">.</span><span class="token function">addOrder</span><span class="token punctuation">(</span><span class="token class-name">OrderItem</span><span class="token punctuation">.</span><span class="token function">asc</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">IPage</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Person</span><span class="token punctuation">></span></span> iPage<span class="token operator">=</span> personMapper<span class="token punctuation">.</span><span class="token function">selectPage</span><span class="token punctuation">(</span>personPage<span class="token punctuation">,</span> queryWrapper<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Person</span><span class="token punctuation">></span></span> people <span class="token operator">=</span> iPage<span class="token punctuation">.</span><span class="token function">getRecords</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> people<span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里的 <code>Page&lt;Person&gt; personPage = new Page&lt;&gt;(1,2);</code> 的参数由自己定义</p>
+<p>这里对应的 payload 其实，比较有讲究：</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">?id&#x3D;1%20and%20extractvalue(1,concat(0x7e,(select%20database()),0x7e)))
+
+&#x2F;&#x2F; 或者是
+?id&#x3D;1&#39; and sleep(5)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>必须是通过盲注的形式，如果是普通的注入，是不会有回显的；因为这里分页查找，size 就把你的数据数量限定死了，如果超过这个数据就会报错，所以只能盲注。</p>
+<img src="/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Page.png" class="">
+
+<h4 id="pagehelper"><a href="#pagehelper" class="headerlink" title="pagehelper"></a>pagehelper</h4><p>这里的原理就和 order by 一样，不赘述了</p>
+<p>因为Order by排序时不能进行预编译处理，所以在使用插件时需要额外注意如下function，同样会存在SQL注入风险：</p>
+<ul>
+<li><strong>com.github.pagehelper.Page</strong><ul>
+<li>主要是setOrderBy(java.lang.String)方法</li>
+</ul>
+</li>
+<li><strong>com.github.pagehelper.page.PageMethod</strong><ul>
+<li>主要是startPage(int,int,java.lang.String)方法</li>
+</ul>
+</li>
+<li><strong>com.github.pagehelper.PageHelper</strong><ul>
+<li>主要是startPage(int,int,java.lang.String)方法</li>
+</ul>
+</li>
+</ul>
+<h3 id="mybatis-Plus-SQL-注入的修复"><a href="#mybatis-Plus-SQL-注入的修复" class="headerlink" title="mybatis Plus SQL 注入的修复"></a>mybatis Plus SQL 注入的修复</h3><ul>
+<li>看了很多资料，基本上没有太好的防御手段，只有写 Filter 比较靠谱，我这里写了一个集成各种 Filter 的，比如 XSS。SQL 注入等漏洞的过滤器。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecFilters">https://github.com/Drun1baby/JavaSecFilters</a></p>
+<h2 id="0x05-Hibernate-框架下的-SQL-注入"><a href="#0x05-Hibernate-框架下的-SQL-注入" class="headerlink" title="0x05 Hibernate 框架下的 SQL 注入"></a>0x05 Hibernate 框架下的 SQL 注入</h2><p>Hibernate 是一个开放源代码的对象关系映射框架，它对JDBC进行了非常轻量级的对象封装，使得 Java 程序员可以随心所欲的使用对象编程思维来操纵数据库。</p>
+<p>Hibernate 可以使用 hql 来执行 SQL 语句，也可以直接执行 SQL 语句，无论是哪种方式都有可能导致 SQL 注入</p>
+<h3 id="HQL"><a href="#HQL" class="headerlink" title="HQL"></a>HQL</h3><p>hql 语句就和 PHP 里面的语句非常相似，和 JDBC 的也非常相似，所以这个理解起来比较简单，主要是防护措施。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> hql <span class="token operator">=</span> <span class="token string">"from People where username = '"</span> <span class="token operator">+</span> username <span class="token operator">+</span> <span class="token string">"' and password = '"</span> <span class="token operator">+</span> password <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这种拼接方式存在 SQL 注入</p>
+<p>正确使用以下几种 HQL 参数绑定的方式可以有效避免注入的产生：</p>
+<h4 id="1-命名参数（named-parameter）"><a href="#1-命名参数（named-parameter）" class="headerlink" title="1.命名参数（named parameter）"></a>1.命名参数（named parameter）</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createQuery</span><span class="token punctuation">(</span><span class="token string">"from users name = ?1"</span><span class="token punctuation">,</span> <span class="token class-name">User</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">String</span> parameter <span class="token operator">=</span> <span class="token string">"g1ts"</span><span class="token punctuation">;</span>
+<span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createQuery</span><span class="token punctuation">(</span><span class="token string">"from users name = :name"</span><span class="token punctuation">,</span> <span class="token class-name">User</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+query<span class="token punctuation">.</span><span class="token function">setParameter</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> parameter<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="2-位置参数（Positional-parameter）"><a href="#2-位置参数（Positional-parameter）" class="headerlink" title="2.位置参数（Positional parameter）"></a>2.位置参数（Positional parameter）</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> parameter <span class="token operator">=</span> <span class="token string">"g1ts"</span><span class="token punctuation">;</span>
+<span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createQuery</span><span class="token punctuation">(</span><span class="token string">"from users name = ?1"</span><span class="token punctuation">,</span> <span class="token class-name">User</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+query<span class="token punctuation">.</span><span class="token function">setParameter</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> parameter<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-命名参数列表（named-parameter-list）"><a href="#3-命名参数列表（named-parameter-list）" class="headerlink" title="3.命名参数列表（named parameter list）"></a>3.命名参数列表（named parameter list）</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> names <span class="token operator">=</span> <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">asList</span><span class="token punctuation">(</span><span class="token string">"g1ts"</span><span class="token punctuation">,</span> <span class="token string">"g2ts"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createQuery</span><span class="token punctuation">(</span><span class="token string">"from users where name in (:names)"</span><span class="token punctuation">,</span> <span class="token class-name">User</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+query<span class="token punctuation">.</span><span class="token function">setParameter</span><span class="token punctuation">(</span><span class="token string">"names"</span><span class="token punctuation">,</span> names<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="4-类实例（JavaBean）"><a href="#4-类实例（JavaBean）" class="headerlink" title="4.类实例（JavaBean）"></a>4.类实例（JavaBean）</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java">user1<span class="token punctuation">.</span><span class="token function">setName</span><span class="token punctuation">(</span><span class="token string">"g1ts"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createQuery</span><span class="token punctuation">(</span><span class="token string">"from users where name =:name"</span><span class="token punctuation">,</span> <span class="token class-name">User</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+query<span class="token punctuation">.</span><span class="token function">setProperties</span><span class="token punctuation">(</span>user1<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="5-HQL拼接方法"><a href="#5-HQL拼接方法" class="headerlink" title="5.HQL拼接方法"></a>5.HQL拼接方法</h4><p>这种方式是最常用，而且容易忽视且容易被注入的，通常做法就是对参数的特殊字符进行过滤，推荐大家使用 Spring工具包的StringEscapeUtils.escapeSql()方法对参数进行过滤：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>commons<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span><span class="token class-name">StringEscapeUtils</span><span class="token punctuation">;</span>
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token class-name">String</span> str <span class="token operator">=</span> <span class="token class-name">StringEscapeUtils</span><span class="token punctuation">.</span><span class="token function">escapeSql</span><span class="token punctuation">(</span><span class="token string">"'"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h3><p>Hibernate支持使用原生SQL语句执行，所以其风险和JDBC是一致的，直接使用拼接的方法时会导致SQL注入</p>
+<p>语句如下：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">People</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createNativeQuery</span><span class="token punctuation">(</span><span class="token string">"select * from user where username = '"</span> <span class="token operator">+</span> username <span class="token operator">+</span> <span class="token string">"' and password = '"</span> <span class="token operator">+</span> password <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+<p>正确写法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> parameter <span class="token operator">=</span> <span class="token string">"g1ts"</span><span class="token punctuation">;</span>
+<span class="token class-name">Query</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">User</span><span class="token punctuation">></span></span> query <span class="token operator">=</span> session<span class="token punctuation">.</span><span class="token function">createNativeQuery</span><span class="token punctuation">(</span><span class="token string">"select * from user where name = :name"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+query<span class="token punctuation">.</span><span class="token function">setParameter</span><span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span>parameter<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11672">https://xz.aliyun.com/t/11672</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java OWASP 中的 SQL 注入代码审计</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-09-14 14:21:35</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/09/14/Java-OWASP-中的-SQL-注入代码审计/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java OWASP 中的 XXE 代码审计</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/09/09/%E5%BE%80%E5%9B%9E%E7%9C%8B%EF%BC%8C%E6%96%B0%E5%90%AF%E7%A8%8B/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">往回看，新启程</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="nav-text">Java 中的 SQL 注入代码审计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%94%B1%E4%BA%8E-jdbc-%E6%8B%BC%E6%8E%A5%E4%B8%8D%E5%BD%93%E5%AF%BC%E8%87%B4%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">0x02 由于 jdbc 拼接不当导致的 SQL 注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Statement-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">Statement SQL 注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Statement-SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E4%BF%AE%E5%A4%8D%E6%89%8B%E6%AE%B5%EF%BC%9A%E9%A2%84%E7%BC%96%E8%AF%91"><span class="nav-text">Statement SQL 注入的修复手段：预编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-JDBC-%E6%98%93%E4%BA%A7%E7%94%9F%E6%BC%8F%E6%B4%9E%E7%82%B9"><span class="nav-text">总结 JDBC 易产生漏洞点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AA%E4%BD%BF%E7%94%A8%E5%8D%A0%E4%BD%8D%E7%AC%A6"><span class="nav-text">未使用占位符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-in-%E8%AF%AD%E5%8F%A5"><span class="nav-text">使用 in 语句</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-like-%E8%AF%AD%E5%8F%A5"><span class="nav-text">使用 like 语句</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%92%8C"><span class="nav-text">%和_</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Order-by%E3%80%81from-%E7%AD%89%E5%85%B3%E9%94%AE%E5%AD%97%E6%97%A0%E6%B3%95%E9%A2%84%E7%BC%96%E8%AF%91"><span class="nav-text">Order by、from 等关键字无法预编译</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-Mybatis-%E4%B8%8B%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">0x03 Mybatis 下的 SQL 注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mybatis-%E4%B8%8B%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">mybatis 下的 SQL 注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mybatis-%E4%B8%8B%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E9%98%B2%E6%8A%A4%EF%BC%9A%E9%A2%84%E7%BC%96%E8%AF%91"><span class="nav-text">mybatis 下的 SQL 注入防护：预编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MyBatis%E6%98%93%E4%BA%A7%E7%94%9FSQL%E6%B3%A8%E5%85%A5%E7%9A%84%E4%B8%89%E7%A7%8D%E6%83%85%E5%86%B5"><span class="nav-text">MyBatis易产生SQL注入的三种情况</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#like-%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E6%A8%A1%E7%B3%8A%E6%9F%A5%E8%AF%A2"><span class="nav-text">like 关键字的模糊查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-in-%E8%AF%AD%E5%8F%A5-1"><span class="nav-text">使用 in 语句</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-order-by-%E8%AF%AD%E5%8F%A5"><span class="nav-text">使用 order by 语句</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-mybatis-%E4%B8%AD%E7%9A%84%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86"><span class="nav-text">关于 mybatis 中的运行原理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-Mybatis-Plus-%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E6%8E%A2%E8%AE%A8"><span class="nav-text">0x04 Mybatis-Plus 的 SQL 注入探讨</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-apply-%E7%9B%B4%E6%8E%A5%E6%8B%BC%E6%8E%A5-SQL-%E8%AF%AD%E5%8F%A5"><span class="nav-text">使用 apply 直接拼接 SQL 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E6%83%B3%E7%9A%84-apply-%E6%BC%8F%E6%B4%9E%E5%9C%BA%E6%99%AF"><span class="nav-text">理想的 apply 漏洞场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E6%83%85%E5%86%B5%E7%9A%84-apply-%E5%9C%BA%E6%99%AF"><span class="nav-text">实际情况的 apply 场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-apply-%E5%9C%BA%E6%99%AF%E7%9A%84%E9%98%B2%E6%8A%A4"><span class="nav-text">关于 apply 场景的防护</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#last-%E6%96%B9%E6%B3%95%E4%BA%A7%E7%94%9F%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">last 方法产生的 SQL 注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exists-x2F-notExists-%E6%8B%BC%E6%8E%A5%E4%BA%A7%E7%94%9F%E7%9A%84SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">exists&#x2F;notExists 拼接产生的SQL 注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#having-%E8%AF%AD%E5%8F%A5"><span class="nav-text">having 语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#order-by-%E8%AF%AD%E5%8F%A5"><span class="nav-text">order by 语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#group-By"><span class="nav-text">group By</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#inSql-x2F-notInSql"><span class="nav-text">inSql&#x2F;notInSql</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Wrapper-%E8%87%AA%E5%AE%9A%E4%B9%89-SQL"><span class="nav-text">关于 Wrapper 自定义 SQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E9%A1%B5%E6%8F%92%E4%BB%B6%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E6%83%85%E5%86%B5"><span class="nav-text">分页插件的 SQL 注入情况</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#addOrder"><span class="nav-text">addOrder()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pagehelper"><span class="nav-text">pagehelper</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mybatis-Plus-SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E4%BF%AE%E5%A4%8D"><span class="nav-text">mybatis Plus SQL 注入的修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Hibernate-%E6%A1%86%E6%9E%B6%E4%B8%8B%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">0x05 Hibernate 框架下的 SQL 注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HQL"><span class="nav-text">HQL</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%91%BD%E5%90%8D%E5%8F%82%E6%95%B0%EF%BC%88named-parameter%EF%BC%89"><span class="nav-text">1.命名参数（named parameter）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BD%8D%E7%BD%AE%E5%8F%82%E6%95%B0%EF%BC%88Positional-parameter%EF%BC%89"><span class="nav-text">2.位置参数（Positional parameter）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%91%BD%E5%90%8D%E5%8F%82%E6%95%B0%E5%88%97%E8%A1%A8%EF%BC%88named-parameter-list%EF%BC%89"><span class="nav-text">3.命名参数列表（named parameter list）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E7%B1%BB%E5%AE%9E%E4%BE%8B%EF%BC%88JavaBean%EF%BC%89"><span class="nav-text">4.类实例（JavaBean）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-HQL%E6%8B%BC%E6%8E%A5%E6%96%B9%E6%B3%95"><span class="nav-text">5.HQL拼接方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL"><span class="nav-text">SQL</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">0x06 参考资料</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

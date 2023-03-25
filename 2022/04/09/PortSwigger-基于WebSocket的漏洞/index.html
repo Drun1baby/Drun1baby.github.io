@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            PortSwigger-基于WebSocket的漏洞 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">PortSwigger-基于WebSocket的漏洞</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-04-09 16:38:46</span>
+        <span class="mobile">2022-04-09 16:38</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:48:52</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Port/">Port</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/web%E5%AE%89%E5%85%A8/">web安全</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>1.8k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>6 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <blockquote>
+<p>本文首发于 FreeBuf <a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/328279.html">https://www.freebuf.com/vuls/328279.html</a></p>
+</blockquote>
+<h1 id="PortSwigger-基于-WebSocket-的漏洞"><a href="#PortSwigger-基于-WebSocket-的漏洞" class="headerlink" title="PortSwigger-基于 WebSocket 的漏洞"></a>PortSwigger-基于 WebSocket 的漏洞</h1><h2 id="0x01-什么是-WebSocket"><a href="#0x01-什么是-WebSocket" class="headerlink" title="0x01 什么是 WebSocket"></a>0x01 什么是 WebSocket</h2><h3 id="WebSocket"><a href="#WebSocket" class="headerlink" title="WebSocket"></a>WebSocket</h3><ul>
+<li>简单地说，WebSocket 协议允许服务器可以主动向客户端推送信息，而传统的 HTTP 协议只能是客户端向服务器发出请求，服务器返回查询结果。</li>
+</ul>
+<p>WebSocket 建议于 TCP 协议之上，与 HTTP 协议有良好的兼容性。<br>协议标识符是<code>ws</code>；如果加密，则为<code>wss</code>，服务器网址就是 URL</p>
+<blockquote>
+<p>看一段 WebSocket 的代码，比较通俗易懂，并不需要过多讲解</p>
+</blockquote>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token keyword">var</span> ws <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">WebSocket</span><span class="token punctuation">(</span><span class="token string">"vans.org"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+ws<span class="token punctuation">.</span><span class="token function-variable function">onopen</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> 
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Connection open ..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+  ws<span class="token punctuation">.</span><span class="token function">send</span><span class="token punctuation">(</span><span class="token string">"Hello WebSockets!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+ws<span class="token punctuation">.</span><span class="token function-variable function">onmessage</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span> <span class="token string">"Received Message: "</span> <span class="token operator">+</span> evt<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  ws<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+ws<span class="token punctuation">.</span><span class="token function-variable function">onclose</span> <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">evt</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Connection closed."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="WebSocket-与-HTTP"><a href="#WebSocket-与-HTTP" class="headerlink" title="WebSocket 与 HTTP"></a>WebSocket 与 HTTP</h3><p>形象理解一下 WebSocket 与 HTTP 在发送数据的问题，参考<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/20215561">WebSocket原理</a></p>
+<blockquote>
+<p>WebSocket 允许服务器和用户<strong>互相</strong>发送消息<br>HTTP 只允许用户发送请求给服务器</p>
+<hr>
+<p>HTTP 小场景，模拟 ajax 轮询<br>客户端：啦啦啦，有没有新信息(Request)<br>服务端：没有（Response）<br>客户端：啦啦啦，有没有新信息(Request)<br>服务端：没有。。（Response）<br>客户端：啦啦啦，有没有新信息(Request)<br>服务端：你好烦啊，没有啊。。（Response）-loop</p>
+<hr>
+<p>WebSocket 小场景<br>客户端：啦啦啦，有没有新信息，没有的话就等有了才返回给我吧（Request）<br>服务端：额。。 等待到有消息的时候。。来 给你（Response）<br>客户端：啦啦啦，有没有新信息，没有的话就等有了才返回给我吧（Request） -loop</p>
+</blockquote>
+<p>前文说到 WebSocket 是一种协议，且与 HTTP 兼容性很好，于是我们抓一个 WebSocket 的包观察一下；在 Burpsuite 当中存在一个专门为 WebSocket 服务的界面叫 “WebSockets History”</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/WebSocketBag.png" class="">
+
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/WebSocketBag2.png" class="">
+
+<p>这边再放个 HTTP 的包对比一下</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/HTTPBagLike.png" class="">
+
+<p>很明显的看到 WebSocket 的 Response 非常不一样</p>
+<h2 id="0x02-基于-WebSocket-的漏洞详解"><a href="#0x02-基于-WebSocket-的漏洞详解" class="headerlink" title="0x02 基于 WebSocket 的漏洞详解"></a>0x02 基于 WebSocket 的漏洞详解</h2><blockquote>
+<p>在讲靶场与知识点之前，我们先介绍一下应用 WebSocket 最多的场景 —————— Live Chat，或者是一些直播</p>
+<p>对于 Live Chat 这一场景来说，是需要用户与服务器的交互，服务器也与用户交互。</p>
+</blockquote>
+<ul>
+<li>在 Burpsuite 当中，有一个专门的 WebSockets History，在这里我们可以看到 WebSocket 的记录</li>
+</ul>
+<h3 id="1-尝试修改-WebSocket-的发送内容，造成-XSS-攻击"><a href="#1-尝试修改-WebSocket-的发送内容，造成-XSS-攻击" class="headerlink" title="1. 尝试修改 WebSocket 的发送内容，造成 XSS 攻击"></a>1. 尝试修改 WebSocket 的发送内容，造成 XSS 攻击</h3><blockquote>
+<h5 id="Lab-Manipulating-WebSocket-messages-to-exploit-vulnerabilities"><a href="#Lab-Manipulating-WebSocket-messages-to-exploit-vulnerabilities" class="headerlink" title="Lab: Manipulating WebSocket messages to exploit vulnerabilities"></a>Lab: Manipulating WebSocket messages to exploit vulnerabilities</h5></blockquote>
+<p>点开靶场，我们移步到 Live Chat 的界面</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/LiveChatPage.png" class="">
+
+<p>先抓包，接着发送一条数据，并在 WebSockets History 中查看数据，修改包，构造成 XSS 的 POC。</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>1</span> <span class="token special-attr"><span class="token attr-name">onerror</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span><span class="token value javascript language-javascript"><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span></span><span class="token punctuation">'</span></span></span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/XSSChangeWebSocket.png" class="">
+
+<p>发包，再回到 Web 界面的时候成功实现 XSS</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/XSSLike.png" class="">
+
+<h3 id="2-操纵-WebSocket-的握手过程利用漏洞"><a href="#2-操纵-WebSocket-的握手过程利用漏洞" class="headerlink" title="2. 操纵 WebSocket 的握手过程利用漏洞"></a>2. 操纵 WebSocket 的握手过程利用漏洞</h3><ul>
+<li>WebSocket 的握手过程：</li>
+</ul>
+<p>WebSocket 的 Request 包在发送过程中，比 HTTP 包多了几个数据</p>
+<pre class="line-numbers language-WebSocket" data-language="WebSocket"><code class="language-WebSocket">Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw&#x3D;&#x3D;
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这个就是Websocket的核心了，告诉Apache、Nginx等服务器：**注意啦，窝发起的是Websocket协议，快点帮我找到对应的助理处理~不是那个老土的HTTP。</p>
+<p>Sec-WebSocket-Key 是一个Base64 encode的值，这个是浏览器随机生成的，负责验证。</p>
+<p>Sec_WebSocket-Protocol 是一个用户定义的字符串，用来区分同URL下，不同的服务所需要的协议。</p>
+<p>Sec-WebSocket-Version 是告诉服务器所使用的Websocket Draft（协议版本）</p>
+<hr>
+<p>上述就是 WebSocket 的握手全过程，操纵 WebSocket 的握手过程一般有一下三种攻击方法，这些方法是用来辅助攻击的，而不是攻击的主题。</p>
+<ul>
+<li>1.由于服务器过于信任用户的输入，在 HTTP Header 中伪造 <code>X-Forwarded-For</code>，绕过一些安全策略。</li>
+<li>2.WebSocket 消息修改，也就是上面的一个靶场，因为处理 WebSocket 消息的会话上下文通常由握手消息的会话上下文确定。</li>
+<li>3.应用程序使用的自定义 HTTP Header 引入的攻击面。</li>
+</ul>
+<blockquote>
+<h5 id="Lab-Manipulating-the-WebSocket-handshake-to-exploit-vulnerabilities"><a href="#Lab-Manipulating-the-WebSocket-handshake-to-exploit-vulnerabilities" class="headerlink" title="Lab: Manipulating the WebSocket handshake to exploit vulnerabilities"></a>Lab: Manipulating the WebSocket handshake to exploit vulnerabilities</h5></blockquote>
+<ul>
+<li>先交代清楚这道题目的防御措施，不然讲起靶场来，乱七八糟。</li>
+</ul>
+<p>这道靶场当中，服务器会过滤 WebSocket 消息中关于 XSS 的攻击，也就是说，当我们输入 <code>&lt;img src=1 onerror=&#39;alert(1)&#39;&gt;</code>时，会被过滤，而且我们的 IP 会被封禁，在短时间内无法再发起 WebSocket 连接。</p>
+<ul>
+<li>由此我们可以尝试伪造 XFF，让自己成为不被封禁的 “IP”</li>
+</ul>
+<p><strong>靶场部分</strong><br>同样去到 Live Chat 界面发完消息后抓包，修改 message 信息，构造 XSS 攻击的 POC</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>1</span> <span class="token special-attr"><span class="token attr-name">onerror</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">'</span><span class="token value javascript language-javascript"><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span></span><span class="token punctuation">'</span></span></span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>发出消息许久，无回显，很明显是被过滤了，而且再发消息也没有响应， IP 也被封禁。</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/BlockedByServer.png" class="">
+
+<p>接着点 Reconnect，修改 XFF 之后发包，可以立马连接上。再尝试绕过方法，构造 POC</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>1</span> <span class="token special-attr"><span class="token attr-name">oNeRrOr</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token value javascript language-javascript">alert<span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">1</span><span class="token template-punctuation string">`</span></span></span></span></span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/XFFReconnectAgain.png" class="">
+
+<p>成功过关 ~</p>
+<h2 id="0x03-基于-WebSocket-的-CSRF"><a href="#0x03-基于-WebSocket-的-CSRF" class="headerlink" title="0x03 基于 WebSocket 的 CSRF"></a>0x03 基于 WebSocket 的 CSRF</h2><p>CSRF 相关的知识可以移步至我的博客<a target="_blank" rel="noopener" href="https://withd-raw.github.io/2021/12/10/PortSwigger-CSRF%E6%94%BB%E5%87%BB/">CSRF攻击 | 芜风 </a>下学习，这里简单提一提。</p>
+<h3 id="1-基于-WebSocket-的-CSRF-的定义"><a href="#1-基于-WebSocket-的-CSRF-的定义" class="headerlink" title="1. 基于 WebSocket 的 CSRF 的定义"></a>1. 基于 WebSocket 的 CSRF 的定义</h3><ul>
+<li>Cross-site WebSocket hijacking，也就是跨域 WebSocket 劫持攻击，是基于 WebSocket 的握手过程进行的 CSRF 攻击。</li>
+<li>造成这种攻击的根本原因在于 WebSocket 的握手只依赖于 HTTP Cookie 进行会话处理，而没有任何其他不可预测的值。例如 CSRF Token 或是其他的。</li>
+</ul>
+<h3 id="2-跨站点-WebSocket-劫持的危害"><a href="#2-跨站点-WebSocket-劫持的危害" class="headerlink" title="2. 跨站点 WebSocket 劫持的危害"></a>2. 跨站点 WebSocket 劫持的危害</h3><h4 id="1-越权"><a href="#1-越权" class="headerlink" title="(1) 越权"></a>(1) 越权</h4><p>也就是熟知的访问控制，垂直越权与水平越权。</p>
+<h4 id="2-泄露数据"><a href="#2-泄露数据" class="headerlink" title="(2) 泄露数据"></a>(2) 泄露数据</h4><p>因为 WebSocket 的通信是全双工通信的，所以用户与服务器之间交互的信息有可能被攻击者监听，这种监听是无声的监听，被攻击者不知道自己处于被监听状态。</p>
+<p>从而造成信息的泄露</p>
+<h3 id="3-实现跨站点的-WebSocket-劫持攻击"><a href="#3-实现跨站点的-WebSocket-劫持攻击" class="headerlink" title="3. 实现跨站点的 WebSocket 劫持攻击"></a>3. 实现跨站点的 WebSocket 劫持攻击</h3><ul>
+<li>前面说到，跨站点的 WebSocket 劫持攻击一般是因为 WebSocket 的握手消息，只由 HTTP Cookie 判断，并且在请求参数中不使用 CSRF Token 或其他随机值。</li>
+</ul>
+<p>就和之前的 CSRF 攻击差不多，我们直接看靶场</p>
+<blockquote>
+<h5 id="Lab-Cross-site-WebSocket-hijacking"><a href="#Lab-Cross-site-WebSocket-hijacking" class="headerlink" title="Lab: Cross-site WebSocket hijacking"></a>Lab: Cross-site WebSocket hijacking</h5></blockquote>
+<p>和之前一样，去到 Live Chat 界面，抓包发包</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/CSRFWebSocketBag.png" class="">
+
+<p>毕竟是 CSRF 嘛，去到 Port 提供的第三方服务器，exploit server，并使用 Burp Collaborator。</p>
+<p>在 Exploit Server 中构造 payload</p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/Exploit.png" class="">
+
+<p>再 Deliver to victim，在 Burp Collaborator 界面点击 <code>Poll now</code></p>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/BurpDNSCatch.png" class="">
+
+<ul>
+<li>去找到泄露的信息</li>
+</ul>
+<img src="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/BurpDNSInformationLeak.png" class="">
+
+<p>去到  MyAccout 下登录即可 ~</p>
+<h2 id="0x04-基于-WebSocket-的一系列漏洞的防御措施"><a href="#0x04-基于-WebSocket-的一系列漏洞的防御措施" class="headerlink" title="0x04 基于 WebSocket 的一系列漏洞的防御措施"></a>0x04 基于 WebSocket 的一系列漏洞的防御措施</h2><ul>
+<li>1.使用 wss 协议（WebSockets over TLS）。</li>
+<li>2.对 WebSockets 端点的 URL 进行硬编码，此处要注意业务点，和用户的输入数据区分开，不要讲用户的输入数据也硬编码了。</li>
+<li>3.保护 WebSocket 握手消息免受 CSRF 的攻击，以避免跨站点 WebSockets 劫持漏洞。</li>
+<li>4.将通过 WebSocket 接收的数据视为在两个方向上都不受信任。在服务器端和客户端安全地处理数据，以防止基于输入的漏洞，如 SQL 注入和 CSRF</li>
+</ul>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">PortSwigger-基于WebSocket的漏洞</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-04-09 16:38:46</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/04/09/PortSwigger-基于WebSocket的漏洞/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/web%E5%AE%89%E5%85%A8/">#web安全</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/04/10/XS%E6%B3%84%E9%9C%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">XS泄露漏洞学习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8B)/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-04-身份认证缺陷(下)</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PortSwigger-%E5%9F%BA%E4%BA%8E-WebSocket-%E7%9A%84%E6%BC%8F%E6%B4%9E"><span class="nav-text">PortSwigger-基于 WebSocket 的漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%80%E4%B9%88%E6%98%AF-WebSocket"><span class="nav-text">0x01 什么是 WebSocket</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket"><span class="nav-text">WebSocket</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket-%E4%B8%8E-HTTP"><span class="nav-text">WebSocket 与 HTTP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%9F%BA%E4%BA%8E-WebSocket-%E7%9A%84%E6%BC%8F%E6%B4%9E%E8%AF%A6%E8%A7%A3"><span class="nav-text">0x02 基于 WebSocket 的漏洞详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%B0%9D%E8%AF%95%E4%BF%AE%E6%94%B9-WebSocket-%E7%9A%84%E5%8F%91%E9%80%81%E5%86%85%E5%AE%B9%EF%BC%8C%E9%80%A0%E6%88%90-XSS-%E6%94%BB%E5%87%BB"><span class="nav-text">1. 尝试修改 WebSocket 的发送内容，造成 XSS 攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Manipulating-WebSocket-messages-to-exploit-vulnerabilities"><span class="nav-text">Lab: Manipulating WebSocket messages to exploit vulnerabilities</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%93%8D%E7%BA%B5-WebSocket-%E7%9A%84%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B%E5%88%A9%E7%94%A8%E6%BC%8F%E6%B4%9E"><span class="nav-text">2. 操纵 WebSocket 的握手过程利用漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Manipulating-the-WebSocket-handshake-to-exploit-vulnerabilities"><span class="nav-text">Lab: Manipulating the WebSocket handshake to exploit vulnerabilities</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%9F%BA%E4%BA%8E-WebSocket-%E7%9A%84-CSRF"><span class="nav-text">0x03 基于 WebSocket 的 CSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%9F%BA%E4%BA%8E-WebSocket-%E7%9A%84-CSRF-%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-text">1. 基于 WebSocket 的 CSRF 的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%B7%A8%E7%AB%99%E7%82%B9-WebSocket-%E5%8A%AB%E6%8C%81%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="nav-text">2. 跨站点 WebSocket 劫持的危害</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%B6%8A%E6%9D%83"><span class="nav-text">(1) 越权</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%B3%84%E9%9C%B2%E6%95%B0%E6%8D%AE"><span class="nav-text">(2) 泄露数据</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%9E%E7%8E%B0%E8%B7%A8%E7%AB%99%E7%82%B9%E7%9A%84-WebSocket-%E5%8A%AB%E6%8C%81%E6%94%BB%E5%87%BB"><span class="nav-text">3. 实现跨站点的 WebSocket 劫持攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Cross-site-WebSocket-hijacking"><span class="nav-text">Lab: Cross-site WebSocket hijacking</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%9F%BA%E4%BA%8E-WebSocket-%E7%9A%84%E4%B8%80%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E7%9A%84%E9%98%B2%E5%BE%A1%E6%8E%AA%E6%96%BD"><span class="nav-text">0x04 基于 WebSocket 的一系列漏洞的防御措施</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

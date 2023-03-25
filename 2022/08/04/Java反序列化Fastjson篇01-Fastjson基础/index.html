@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java反序列化Fastjson篇01-FastJson基础 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java反序列化Fastjson篇01-FastJson基础</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-08-04 22:02:24</span>
+        <span class="mobile">2022-08-04 22:02</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:40:09</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.8k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>15 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="Java反序列化-Fastjson-篇-01-Fastjson-基础"><a href="#Java反序列化-Fastjson-篇-01-Fastjson-基础" class="headerlink" title="Java反序列化 Fastjson 篇 01-Fastjson 基础"></a>Java反序列化 Fastjson 篇 01-Fastjson 基础</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><ul>
+<li>原本是打算尝试用一下 fastjson 开发的，但是发现教程不多，而且真正贴合进项目还是用的 jackson 多一点，就先不看具体的开发了。</li>
+</ul>
+<h2 id="0x02-Fastjson-简介"><a href="#0x02-Fastjson-简介" class="headerlink" title="0x02 Fastjson 简介"></a>0x02 Fastjson 简介</h2><p>Fastjson 是 Alibaba 开发的 Java 语言编写的高性能 JSON 库，用于将数据在 JSON 和 Java Object 之间互相转换。</p>
+<p>提供两个主要接口来分别实现序列化和反序列化操作。</p>
+<p><code>JSON.toJSONString</code> 将 Java 对象转换为 json 对象，序列化的过程。</p>
+<p><code>JSON.parseObject/JSON.parse</code> 将 json 对象重新变回 Java 对象；反序列化的过程</p>
+<ul>
+<li>所以可以简单的把 json 理解成是一个字符串。</li>
+</ul>
+<h2 id="0x03-代码-demo"><a href="#0x03-代码-demo" class="headerlink" title="0x03 代码 demo"></a>0x03 代码 demo</h2><h3 id="1-序列化代码实现"><a href="#1-序列化代码实现" class="headerlink" title="1. 序列化代码实现"></a>1. 序列化代码实现</h3><p>这里通过 Demo 了解下如何使用 Fastjson 进行序列化和反序列化，以及其中的一些特性之间的区别等等。</p>
+<p>首先，pom.xml 里面导入 Fastjson 的依赖，这里先导入 1.2.24 的。</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>  
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.alibaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>  
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>fastjson<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>  
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.2.24<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>定义一个 Student 类，代码如下<br><strong>Student.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Student</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">String</span> name<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token keyword">int</span> age<span class="token punctuation">;</span>  
+  
+ <span class="token keyword">public</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"构造函数"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setName</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"setName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">getAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getAge"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> age<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setAge</span><span class="token punctuation">(</span><span class="token keyword">int</span> age<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"setAge"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">this</span><span class="token punctuation">.</span>age <span class="token operator">=</span> age<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>然后写序列化的代码，调用 <code>JSON.toJsonString()</code> 来序列化 Student 类对象 ：<br>StudentSerialize.java</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>serializer<span class="token punctuation">.</span></span><span class="token class-name">SerializerFeature</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 最开始的序列化 demopublic class StudentSerialize &#123;  </span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Student</span> student <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ student<span class="token punctuation">.</span><span class="token function">setName</span><span class="token punctuation">(</span><span class="token string">"Drunkbaby"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token comment">//        student.setAge(6);  </span>
+ <span class="token class-name">String</span> jsonString <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span>student<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature<span class="token punctuation">.</span>WriteClassName</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这个地方，序列化的逻辑我们可以稍微调试看一下。</p>
+<p>首先会进到 JSON 这个类，然后进到它的 <code>toJSONString()</code> 的函数里面，new 了一个 <code>SerializeWriter</code> 对象。我们的序列化这一步在这里就已经是完成了。</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SerializeWriter.png" class="">
+
+<p>在进到 JSON 这个类里面的时候多出了个 static 的变量，写着 “members of JSON”，这里要特别注意一个值 <code>DEFAULT_TYPE_KEY</code> 为 “@type”，这个挺重要的。</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/static.png" class="">
+
+<p>里面定义了一些初值，赋值给 out 变量，这个 out 变量后续作为 <code>JSONSerializer</code> 类构造的参数。</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SerializeWriterData.png" class="">
+
+<p>继续往下面走，就是显示的部分了，<code>toString()</code> 方法，最后的运行结果。</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/BasicRunResult.png" class="">
+
+<p>很明显这句语句是关键的。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> jsonString <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">toJSONString</span><span class="token punctuation">(</span>student<span class="token punctuation">,</span> <span class="token class-name">SerializerFeature<span class="token punctuation">.</span>WriteClassName</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>我们关注于它的参数<br>第一个参数是 student，是一个对象，就不多说了；<br>第二个参数是 <code>SerializerFeature.WriteClassName</code>，是 <code>JSON.toJSONString()</code> 中的一个设置属性值，设置之后在序列化的时候会多写入一个@type，即写上被序列化的类名，type 可以指定反序列化的类，并且调用其 <code>getter</code>&#x2F;<code>setter</code>&#x2F;<code>is</code> 方法。</p>
+<ul>
+<li>Fastjson 接受的 JSON 可以通过@type字段来指定该JSON应当还原成何种类型的对象，在反序列化的时候方便操作。</li>
+</ul>
+<p>输出如下：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">// 设置了SerializerFeature.WriteClassName</span>
+构造函数
+setName
+setAge
+getAge
+getName
+<span class="token punctuation">&#123;</span><span class="token string">"@type"</span><span class="token operator">:</span><span class="token string">"org.example.Student"</span><span class="token punctuation">,</span><span class="token string">"age"</span><span class="token operator">:</span><span class="token number">6</span><span class="token punctuation">,</span><span class="token string">"name"</span><span class="token operator">:</span><span class="token string">"John"</span><span class="token punctuation">&#125;</span>
+ 
+<span class="token comment">// 未设置SerializerFeature.WriteClassName</span>
+构造函数
+setName
+setAge
+getAge
+getName
+<span class="token punctuation">&#123;</span><span class="token string">"age"</span><span class="token operator">:</span><span class="token number">6</span><span class="token punctuation">,</span><span class="token string">"name"</span><span class="token operator">:</span><span class="token string">"John"</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="2-反序列化代码实现"><a href="#2-反序列化代码实现" class="headerlink" title="2. 反序列化代码实现"></a>2. 反序列化代码实现</h3><p>调用 <code>JSON.parseObject()</code>，代码如下</p>
+<p><strong>StudentUnserialize01.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>parser<span class="token punctuation">.</span></span><span class="token class-name">Feature</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">StudentUnserialize</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">String</span> jsonString <span class="token operator">=</span> <span class="token string">"&#123;\"@type\":\"Student\",\"age\":6,\"name\":\"Drunkbaby\"&#125;"</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Student</span> student <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">,</span> <span class="token class-name">Student</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token class-name">Feature<span class="token punctuation">.</span>SupportNonPublicField</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>student<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>student<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>运行结果如图</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/Unserialize.png" class="">
+
+<blockquote>
+<p>至此，代码 demo 结束</p>
+</blockquote>
+<h2 id="0x04-另外一些基础知识"><a href="#0x04-另外一些基础知识" class="headerlink" title="0x04 另外一些基础知识"></a>0x04 另外一些基础知识</h2><ul>
+<li>fastjson 这里还有一些比较重要的知识，我不知道该归到哪一堆里面，又不想起太多目录，就全部放到这里了。</li>
+</ul>
+<blockquote>
+<p>感觉可以先看第三点的一句话概括，再看前面两点</p>
+</blockquote>
+<h3 id="1-反序列化时的-Feature-SupportNonPublicField-参数"><a href="#1-反序列化时的-Feature-SupportNonPublicField-参数" class="headerlink" title="1. 反序列化时的 Feature.SupportNonPublicField 参数"></a>1. 反序列化时的 Feature.SupportNonPublicField 参数</h3><p>前文我们在反序列化代码运行的时候，发现我们并不能获取到 “age” 这个值，因为它是私有属性的。</p>
+<ul>
+<li>如果要还原出 private 的属性的话，还需要在JSON.parseObject&#x2F;JSON.parse中加上Feature.SupportNonPublicField参数。</li>
+</ul>
+<p>这里改下Student类，将私有属性age的setAge()函数注释掉（一般没人会给私有属性加setter方法，加了就没必要声明为private了）：</p>
+<p>整个输出如下，我直接把加了参和没有加参的直接放一起</p>
+<pre class="line-numbers language-none"><code class="language-none">&#x2F;&#x2F; 未加上参数的，会看到获取不到私有变量age的值而是被设置为0
+构造函数
+setName
+Student@4459eb14
+Student
+getName
+getAge
+Drunkbaby 0
+
+&#x2F;&#x2F; 加上参数的了，再输出就能成功还原出age这个私有变量的值了
+构造函数
+setName
+Student@4459eb14
+Student
+getName
+getAge
+Drunkbaby 6<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>也就是说，若想让传给JSON.parseObject()进行反序列化的JSON内容指向的对象类中的私有变量成功还原出来，则需要在调用JSON.parseObject()时加上Feature.SupportNonPublicField这个属性设置才行。</p>
+<h3 id="2-只进行-JSON-parseObject-jsonString"><a href="#2-只进行-JSON-parseObject-jsonString" class="headerlink" title="2. 只进行 JSON.parseObject(jsonString)"></a>2. 只进行 JSON.parseObject(jsonString)</h3><p>再来看下parseObject()的指定或不指定反序列化类型之间的差异。</p>
+<p>由于Fastjson反序列化漏洞的利用只和包含了@type的JSON数据有关，因此这里我们只对序列化时设置了SerializerFeature.WriteClassName即含有@type指定反序列化类型的JSON数据进行反序列化；对于未包含@type的情况这里不做探讨，可自行测试。</p>
+<p>修改Student类，添加两个private成员变量，且所有的私有成员变量都不定义setter方法（既然是private也没必要定义）：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Student</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">String</span> name<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token keyword">int</span> age<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token class-name">String</span> address<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token class-name">Properties</span> properties<span class="token punctuation">;</span>  
+  
+ <span class="token keyword">public</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"构造函数"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setName</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"setName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">getAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getAge"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> age<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+<span class="token comment">//    public void setAge(int age) &#123;  </span>
+<span class="token comment">//        System.out.println("setAge");  </span>
+<span class="token comment">//        this.age = age;  </span>
+<span class="token comment">//    &#125;  </span>
+  
+ <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getAddress</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getAddress"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> address<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">Properties</span> <span class="token function">getProperties</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getProperties"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> properties<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>修改反序列化的 demo 文件，先是默认调用parseObject()不带指定类型的参数：也就是只有 <code>JSON.parseObject(jsonstring)</code></p>
+<p>代码如下<br><strong>StudentUnserialize02.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">StudentUnserialize02</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">String</span> jsonString <span class="token operator">=</span><span class="token string">"&#123;\"@type\":\"Student\",\"age\":6,"</span> <span class="token operator">+</span>  
+                <span class="token string">"\"name\":\"Drunkbaby\",\"address\":\"china\",\"properties\":&#123;&#125;&#125;"</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Object</span> obj <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 或以下语句，输出结果一致  </span>
+ <span class="token comment">//JSONObject obj = JSON.parseObject(jsonString);  </span>
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>输出看到，调用了Student类的构造函数、所有属性的getter方法、JSON里面非私有属性的setter方法，其中getProperties()调用了两次；无论定义的对象是Object还是JSONObject，最后反序列化得到的都是JSONObject类对象，可以看到是未反序列化成功的：</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/NotDefinedAnyClass.png" class="">
+
+<p>接着在StudentUnserialize02.java中修改反序列化代码语句如下，加上指定反序列化得到的类型为Object.class或Student.class，这样就是成功反序列化的回显。</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/StudentClassPara.png" class="">
+
+<hr>
+<h3 id="3-parse与parseObject区别"><a href="#3-parse与parseObject区别" class="headerlink" title="3. parse与parseObject区别"></a>3. parse与parseObject区别</h3><p>前面的demo都是用<code>parseObject()</code>演示的，还没说到<code>parse()</code>。两者主要的区别就是<code>parseObject()</code>返回的是JSONObject而<code>parse()</code>返回的是实际类型的对象，当在没有对应类的定义的情况下，一般情况下都会使用<code>JSON.parseObject()</code>来获取数据。</p>
+<blockquote>
+<p>FastJson中的 <code>parse()</code> 和 <code>parseObject()</code> 方法都可以用来将JSON字符串反序列化成Java对象，<code>parseObject()</code> 本质上也是调用 <code>parse()</code> 进行反序列化的。但是 <code>parseObject()</code> 会额外的将Java对象转为 JSONObject对象，即 <code>JSON.toJSON()</code>。所以进行反序列化时的细节区别在于，<code>parse()</code> 会识别并调用目标类的 <code>setter</code> 方法及某些特定条件的 <code>getter</code> 方法，而 <code>parseObject()</code> 由于多执行了 <code>JSON.toJSON(obj)</code>，所以在处理过程中会调用反序列化目标类的所有 <code>setter</code> 和 <code>getter</code> 方法。</p>
+</blockquote>
+<p>也就是说，我们用<code>parse()</code>反序列化会直接得到特定的类，而无需像<code>parseObject()</code>一样返回的是JSONObject类型的对象、还可能需要去设置第二个参数指定返回特定的类。</p>
+<p>修改反序列化语句中的<code>parseObject()</code>为<code>parse()</code>：</p>
+<p><strong>StudentUnserialize03.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>parser<span class="token punctuation">.</span></span><span class="token class-name">Feature</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">StudentUnserialize03</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">String</span> jsonString <span class="token operator">=</span><span class="token string">"&#123;\"@type\":\"Student\",\"age\":6,"</span> <span class="token operator">+</span>  
+                <span class="token string">"\"name\":\"Drunkbaby\",\"address\":\"china\",\"properties\":&#123;&#125;&#125;"</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Object</span> obj <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">,</span> <span class="token class-name">Feature<span class="token punctuation">.</span>SupportNonPublicField</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token comment">// 或以下语句，输出结果一致  </span>
+ <span class="token comment">//JSONObject obj = JSON.parseObject(jsonString);  </span>
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/Result03.png" class="">
+<h3 id="4-一句话概括"><a href="#4-一句话概括" class="headerlink" title="4. 一句话概括"></a>4. 一句话概括</h3><p> 一句话概括上面两点</p>
+<p>这里写的有点啰嗦了，我觉得就一句话就可以概括了，我们的反序列化的语句应该这么写</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> jsonString <span class="token operator">=</span><span class="token string">"&#123;\"@type\":\"Student\",\"age\":6,"</span> <span class="token operator">+</span>  
+        <span class="token string">"\"name\":\"Drunkbaby\",\"address\":\"china\",\"properties\":&#123;&#125;&#125;"</span><span class="token punctuation">;</span>  
+<span class="token class-name">Object</span> obj <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">,</span> <span class="token class-name">Student</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>要用 <code>parseObject</code>，里面的参数需要是 <code>Object.class</code></p>
+<h2 id="0x05-fastjson-反序列化漏洞原理"><a href="#0x05-fastjson-反序列化漏洞原理" class="headerlink" title="0x05 fastjson 反序列化漏洞原理"></a>0x05 fastjson 反序列化漏洞原理</h2><blockquote>
+<p>感觉这里废话有点多，我先总结一下。</p>
+</blockquote>
+<p>fastjson 在反序列化的时候会去找我们在 <code>@type</code> 中规定的类是哪个类，然后在反序列化的时候会自动调用这些 setter 与 getter 方法的调用，注意！并不是所有的 setter 和 getter 方法。</p>
+<p><strong>下面直接引用结论，Fastjson会对满足下列要求的setter&#x2F;getter方法进行调用：</strong></p>
+<p>满足条件的setter：</p>
+<ul>
+<li>非静态函数</li>
+<li>返回类型为void或当前类</li>
+<li>参数个数为1个</li>
+</ul>
+<p>满足条件的getter：</p>
+<ul>
+<li>非静态方法</li>
+<li>无参数</li>
+<li><strong>返回值类型继承自Collection或Map或AtomicBoolean或AtomicInteger或AtomicLong</strong></li>
+</ul>
+<p>我个人理解 fastjson 的利用攻击其实是蛮简单的，因为没有那么多复杂的链子，也不需要反射修改值，直接在 json 串里面赋值就好了。</p>
+<h3 id="1-漏洞原理"><a href="#1-漏洞原理" class="headerlink" title="1. 漏洞原理"></a>1. 漏洞原理</h3><p>由前面知道，Fastjson是自己实现的一套序列化和反序列化机制，不是用的Java原生的序列化和反序列化机制。无论是哪个版本，Fastjson反序列化漏洞的原理都是一样的，只不过不同版本是针对不同的黑名单或者利用不同利用链来进行绕过利用而已。</p>
+<p>通过Fastjson反序列化漏洞，攻击者可以传入一个恶意构造的JSON内容，程序对其进行反序列化后得到恶意类并执行了恶意类中的恶意函数，进而导致代码执行。</p>
+<h4 id="那么如何才能够反序列化出恶意类呢？"><a href="#那么如何才能够反序列化出恶意类呢？" class="headerlink" title="那么如何才能够反序列化出恶意类呢？"></a><strong>那么如何才能够反序列化出恶意类呢？</strong></h4><p>由前面demo知道，Fastjson使用<code>parseObject()</code>&#x2F;<code>parse()</code>进行反序列化的时候可以指定类型。如果指定的类型太大，包含太多子类，就有利用空间了。例如，如果指定类型为Object或JSONObject，则可以反序列化出来任意类。例如代码写<code>Object o = JSON.parseObject(poc,Object.class)</code>就可以反序列化出Object类或其任意子类，而Object又是任意类的父类，所以就可以反序列化出所有类。</p>
+<h4 id="接着，如何才能触发反序列化得到的恶意类中的恶意函数呢？"><a href="#接着，如何才能触发反序列化得到的恶意类中的恶意函数呢？" class="headerlink" title="接着，如何才能触发反序列化得到的恶意类中的恶意函数呢？"></a><strong>接着，如何才能触发反序列化得到的恶意类中的恶意函数呢？</strong></h4><p>由前面知道，在某些情况下进行反序列化时会将反序列化得到的类的构造函数、<code>getter</code>方法、<code>setter</code>方法执行一遍，如果这三种方法中存在危险操作，则可能导致反序列化漏洞的存在。换句话说，就是攻击者传入要进行反序列化的类中的构造函数、<code>getter</code>方法、<code>setter</code>方法中要存在漏洞才能触发。</p>
+<p>我们到<code>DefaultJSONParser.parseObject(Map object, Object fieldName)</code>中看下，JSON中以@type形式传入的类的时候，调用<code>deserializer.deserialize()</code>处理该类，并去调用这个类的<code>setter</code>和<code>getter</code>方法：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token class-name">Object</span> <span class="token function">parseObject</span><span class="token punctuation">(</span><span class="token keyword">final</span> <span class="token class-name">Map</span> object<span class="token punctuation">,</span> <span class="token class-name">Object</span> fieldName<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token comment">// JSON.DEFAULT_TYPE_KEY即@type</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>key <span class="token operator">==</span> JSON<span class="token punctuation">.</span>DEFAULT_TYPE_KEY <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>lexer<span class="token punctuation">.</span><span class="token function">isEnabled</span><span class="token punctuation">(</span><span class="token class-name">Feature<span class="token punctuation">.</span>DisableSpecialKeyDetect</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+        <span class="token class-name">ObjectDeserializer</span> deserializer <span class="token operator">=</span> config<span class="token punctuation">.</span><span class="token function">getDeserializer</span><span class="token punctuation">(</span>clazz<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> deserializer<span class="token punctuation">.</span><span class="token function">deserialze</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> clazz<span class="token punctuation">,</span> fieldName<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>整个解析过程相当复杂，知道结论就ok了。</p>
+<h4 id="小结一下"><a href="#小结一下" class="headerlink" title="小结一下"></a><strong>小结一下</strong></h4><p>若反序列化指定类型的类如<code>Student obj = JSON.parseObject(text, Student.class);</code>，该类本身的构造函数、<code>setter</code>方法、<code>getter</code>方法存在危险操作，则存在Fastjson反序列化漏洞；</p>
+<p>若反序列化未指定类型的类如<code>Object obj = JSON.parseObject(text, Object.class);</code>，该若该类的子类的构造方法、<code>setter</code>方法、<code>getter</code>方法存在危险操作，则存在Fastjson反序列化漏洞；</p>
+<h3 id="2-PoC-写法"><a href="#2-PoC-写法" class="headerlink" title="2. PoC 写法"></a>2. PoC 写法</h3><p>一般的，Fastjson反序列化漏洞的PoC写法如下，@type指定了反序列化得到的类</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token punctuation">&#123;</span>
+<span class="token string">"@type"</span><span class="token operator">:</span><span class="token string">"xxx.xxx.xxx"</span><span class="token punctuation">,</span>
+<span class="token string">"xxx"</span><span class="token operator">:</span><span class="token string">"xxx"</span><span class="token punctuation">,</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>关键是要找出一个特殊的在目标环境中已存在的类，满足如下两个条件：</p>
+<ol>
+<li>该类的构造函数、<code>setter</code>方法、<code>getter</code>方法中的某一个存在危险操作，比如造成命令执行；</li>
+<li>可以控制该漏洞函数的变量（一般就是该类的属性）；</li>
+</ol>
+<h3 id="3-漏洞Demo"><a href="#3-漏洞Demo" class="headerlink" title="3. 漏洞Demo"></a>3. 漏洞Demo</h3><p>由前面比较的案例知道，当反序列化指定的类型是Object.class，即代码为<code>Object obj = JSON.parseObject(jsonstring, Object.class, Feature.SupportNonPublicField);</code>时，反序列化得到的类的构造函数、所有属性的<code>setter</code>方法、properties私有属性的<code>getter</code>方法都会被调用，因此我们这里直接做最简单的修改，将Student类中会被调用的<code>getter</code>方法添加漏洞代码，这里修改<code>getProperties()</code>作为演示：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Properties</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Student</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">String</span> name<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token keyword">int</span> age<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token class-name">String</span> address<span class="token punctuation">;</span>  
+ <span class="token keyword">private</span> <span class="token class-name">Properties</span> properties<span class="token punctuation">;</span>  
+  
+ <span class="token keyword">public</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"构造函数"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setName</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"setName"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">getAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getAge"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> age<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+<span class="token comment">//    public void setAge(int age) &#123;  </span>
+<span class="token comment">//        System.out.println("setAge");  </span>
+<span class="token comment">//        this.age = age;  </span>
+<span class="token comment">//    &#125;  </span>
+  
+ <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getAddress</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getAddress"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> address<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">Properties</span> <span class="token function">getProperties</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"getProperties"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> properties<span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>然后在反序列化的代码当中修改如下(我这里是新建了一个文件)<br><strong>FastjsonEasyPoC.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span>JSON<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span></span><span class="token class-name">JSONObject</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>parser<span class="token punctuation">.</span></span><span class="token class-name">Feature</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FastjsonEasyPoC</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">String</span> jsonString <span class="token operator">=</span><span class="token string">"&#123;\"@type\":\"Student\",\"age\":6,\"name\":\"Drunkbaby\",\"address\":\"china\",\"properties\":&#123;&#125;&#125;"</span><span class="token punctuation">;</span>  
+  
+ <span class="token class-name">Object</span> obj <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>jsonString<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>运行结果如图</li>
+</ul>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SuccessCalc.png" class="">
+
+<p>很明显，前面的Demo中反序列化的类是一个Object类，该类是任意类的父类，其子类Student存在Fastjson反序列化漏洞，当@type指向Student类是反序列化就会触发漏洞。</p>
+<p>对于另一种反序列化指定类的情景，是该指定类本身就存在漏洞，比如我们将上述Demo中反序列化那行代码改成直接反序列化得到Student类而非Object类，这样就是另一个触发也是最直接的触发场景：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Student</span> obj <span class="token operator">=</span> JSON<span class="token punctuation">.</span><span class="token function">parseObject</span><span class="token punctuation">(</span>jsonstring<span class="token punctuation">,</span> <span class="token class-name">Student</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token class-name">Feature<span class="token punctuation">.</span>SupportNonPublicField</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="4-调试分析漏洞"><a href="#4-调试分析漏洞" class="headerlink" title="4. 调试分析漏洞"></a>4. 调试分析漏洞</h3><blockquote>
+<p>就还是 debug 一下，看一下内部运行逻辑</p>
+</blockquote>
+<p>这个地方的命令执行</p>
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/CommandExec.png" class="">
+
+<p>其实也好理解吧，毕竟 fastjson 这里很简单，就和我们当初讲反序列化入门的时候差不多。</p>
+<h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>总体来说入门确实不难，但是对于基础会有点要求。</p>
+<p>总结一下漏洞发生在反序列化的点，也就是 <code>Obj.parse</code> 和 <code>Obj.parseObject</code> 这里。必须的是传参要带入 class 的参数，最好带上 Feature.SupportNonPublicField</p>
+<p>PoC 是通过 String 传进去的，要以 <code>@type</code> 打头。</p>
+<p>漏洞的原因是反序列化的时候去调用了 getter 和 setter 的方法。其余就没什么了，比较简单。</p>
+<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/fastjson%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e6%bc%8f%e6%b4%9e1-%e5%9f%ba%e6%9c%ac%e5%8e%9f%e7%90%86/">Fastjson反序列化漏洞(1)——基本原理 – JohnFrod’s Blog</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/11/03/Fastjson%E7%B3%BB%E5%88%97%E4%B8%80%E2%80%94%E2%80%94%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/">Fastjson系列一——反序列化漏洞基本原理 [ Mi1k7ea ]</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java反序列化Fastjson篇01-FastJson基础</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-08-04 22:02:24</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/08/04/Java反序列化Fastjson篇01-Fastjson基础/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化Fastjson篇02-Fastjson-1.2.24版本漏洞分析</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化之JNDI学习</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-Fastjson-%E7%AF%87-01-Fastjson-%E5%9F%BA%E7%A1%80"><span class="nav-text">Java反序列化 Fastjson 篇 01-Fastjson 基础</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Fastjson-%E7%AE%80%E4%BB%8B"><span class="nav-text">0x02 Fastjson 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E4%BB%A3%E7%A0%81-demo"><span class="nav-text">0x03 代码 demo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">1. 序列化代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">2. 反序列化代码实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8F%A6%E5%A4%96%E4%B8%80%E4%BA%9B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-text">0x04 另外一些基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%97%B6%E7%9A%84-Feature-SupportNonPublicField-%E5%8F%82%E6%95%B0"><span class="nav-text">1. 反序列化时的 Feature.SupportNonPublicField 参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8F%AA%E8%BF%9B%E8%A1%8C-JSON-parseObject-jsonString"><span class="nav-text">2. 只进行 JSON.parseObject(jsonString)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-parse%E4%B8%8EparseObject%E5%8C%BA%E5%88%AB"><span class="nav-text">3. parse与parseObject区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%A6%82%E6%8B%AC"><span class="nav-text">4. 一句话概括</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-text">0x05 fastjson 反序列化漏洞原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-text">1. 漏洞原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%82%A3%E4%B9%88%E5%A6%82%E4%BD%95%E6%89%8D%E8%83%BD%E5%A4%9F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%87%BA%E6%81%B6%E6%84%8F%E7%B1%BB%E5%91%A2%EF%BC%9F"><span class="nav-text">那么如何才能够反序列化出恶意类呢？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A5%E7%9D%80%EF%BC%8C%E5%A6%82%E4%BD%95%E6%89%8D%E8%83%BD%E8%A7%A6%E5%8F%91%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%BE%97%E5%88%B0%E7%9A%84%E6%81%B6%E6%84%8F%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%81%B6%E6%84%8F%E5%87%BD%E6%95%B0%E5%91%A2%EF%BC%9F"><span class="nav-text">接着，如何才能触发反序列化得到的恶意类中的恶意函数呢？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93%E4%B8%80%E4%B8%8B"><span class="nav-text">小结一下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-PoC-%E5%86%99%E6%B3%95"><span class="nav-text">2. PoC 写法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%BC%8F%E6%B4%9EDemo"><span class="nav-text">3. 漏洞Demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90%E6%BC%8F%E6%B4%9E"><span class="nav-text">4. 调试分析漏洞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x06 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x07-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">0x07 参考资料</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            WebGoat代码审计-03-目录遍历漏洞 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">WebGoat代码审计-03-目录遍历漏洞</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-03-22 14:36:57</span>
+        <span class="mobile">2022-03-22 14:36</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:57:22</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>1.5k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>5 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="WebGoat代码审计-03-目录遍历"><a href="#WebGoat代码审计-03-目录遍历" class="headerlink" title="WebGoat代码审计-03-目录遍历"></a>WebGoat代码审计-03-目录遍历</h1><p>目录遍历攻击主要分为两块</p>
+<ul>
+<li>一、利用目录遍历的文件上传</li>
+<li>二、利用目录遍历的信息泄露<h2 id="0x01-Path-Traversal-PageLesson2"><a href="#0x01-Path-Traversal-PageLesson2" class="headerlink" title="0x01 Path Traversal PageLesson2"></a>0x01 Path Traversal PageLesson2</h2><h3 id="靶场部分"><a href="#靶场部分" class="headerlink" title="靶场部分"></a>靶场部分</h3>靶场界面如图所示</li>
+</ul>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravel.png" class="">
+
+<ul>
+<li>题目的要求，让我们讲图片上传至非本目录下。</li>
+<li>本来要上传的目录是：&#x2F;PathTraversal&#x2F;user&#x2F;tests 下，我们能够通过目录遍历的方式，将要上传的图片上传至其他目录</li>
+</ul>
+<p>这种情况我们一般想到的是 <code>..</code>，回忆一下在 Linux 中，返回上一级目录时的命令：<code>cd ..</code>，在目录遍历漏洞中也通用。</p>
+<p>利用 Burpsuite 抓包，将 “test” 修改为 “..&#x2F;test”，也就是 &#x2F;test 目录的上一级目录。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUpload.png" class="">
+
+<p>如图，修改成功，将头像上传至 &#x2F;PathTraversal&#x2F;user 目录下了。</p>
+<h3 id="代码审计部分"><a href="#代码审计部分" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><p>查看源代码</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadCode.png" class="">
+
+<p>很显然，上传点在红框中，获取 POST 表单当中的 UploadedFile 与 fullName，接下来，我们回到之前抓的包，查看一下 uploadedFile 与 fullName 是什么。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadUploadedFile.png" class="">
+
+<p>uploadedFile 是图片的内容</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadfullName.png" class="">
+
+<p>fullName 是我们文件名，也就是 test，这里就是由于 fullName 没有做好过滤才导致文件上传的目录遍历。换句话说，也就是刚刚我们的操作，将文件上传到了上级文件夹当中。</p>
+<p>代码审计继续往下读，发现一行代码</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">return</span> <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span>file<span class="token punctuation">,</span> fullName<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>选择查看父类 ———— ProfileUploadBase，并关注几行重点语句</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadCodeSuper.png" class="">
+
+<p>先是判断传进来的 file 是否为空。接着下面语句，规定了目录 &#x2F;PathTraversal&#x2F;UserName</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">var</span> uploadDirectory <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">File</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>webGoatHomeDirectory<span class="token punctuation">,</span> <span class="token string">"/PathTraversal/"</span> <span class="token operator">+</span> webSession<span class="token punctuation">.</span><span class="token function">getUserName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>继续往下看我们的代码，<strong>mkdir</strong>，也就是在 &#x2F;PathTraversal&#x2F;UserName 目录下创建一个新的文件夹，主要是以 fullname 的名字来命名，就是这里也就是没有对 fullname 传进来的参数进行一个过滤才导致目录穿越。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">uploadDirectory<span class="token punctuation">.</span><span class="token function">mkdirs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 创建一个文件夹 文件夹名字为fullname，这里应该对fullname进行一个过滤</span>
+<span class="token keyword">var</span> uploadedFile <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">File</span><span class="token punctuation">(</span>uploadDirectory<span class="token punctuation">,</span> fullName<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 直接进行文件夹的创建</span>
+uploadedFile<span class="token punctuation">.</span><span class="token function">createNewFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">FileCopyUtils</span><span class="token punctuation">.</span><span class="token function">copy</span><span class="token punctuation">(</span>file<span class="token punctuation">.</span><span class="token function">getBytes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> uploadedFile<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h2 id="0x02-Path-Traversal-PageLesson3"><a href="#0x02-Path-Traversal-PageLesson3" class="headerlink" title="0x02 Path Traversal PageLesson3"></a>0x02 Path Traversal PageLesson3</h2><h3 id="靶场部分-1"><a href="#靶场部分-1" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravel.png" class="">
+
+<ul>
+<li>靶场提示说，..&#x2F; 的目录遍历方式已经行不通了，但是还是存在目录遍历的漏洞，让我们寻找寻找。</li>
+</ul>
+<p>先头铁，试一试上一题  ..&#x2F; 的目录遍历攻击。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FailedTravel.png" class="">
+
+<p>果不其然，失败了。<br>我们尝试使用 <code>..././</code> 复写的方式替代 <code>../</code> 进行目录遍历攻击</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravelUpload.png" class="">
+
+<p>没想到直接成功了，本以为还需要其他的方式进行绕过。</p>
+<h3 id="代码审计部分-1"><a href="#代码审计部分-1" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravelCode.png" class="">
+
+<p>我们看到 WebGoat 对 ..&#x2F; 的目录遍历攻击进行了防御，但是只是最简单的，将 ..&#x2F; 替换成了 空白。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">return</span> <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span>file<span class="token punctuation">,</span> fullName <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">?</span> fullName<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token string">"../"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>其余没有进行任何过滤，使用复写绕过，…&#x2F;.&#x2F; 中的 ..&#x2F; 被解析成了’’，那么就变成了 ..&#x2F;，成功目录遍历攻击。</p>
+<h2 id="0x03-Path-Traversal-PageLesson4"><a href="#0x03-Path-Traversal-PageLesson4" class="headerlink" title="0x03 Path Traversal PageLesson4"></a>0x03 Path Traversal PageLesson4</h2><h3 id="靶场部分-2"><a href="#靶场部分-2" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面如图所示</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixTravel.png" class="">
+
+<p>还是同之前的步骤一样，先抓包看看。并进行简单的目录遍历攻击</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixFailed.png" class="">
+
+<p>当使用上一题的复写攻击也失败了，思考新的攻击手段。尝试换一个目录遍历的攻击点，之前我们的攻击点一直是在目录上，也就是源代码里的 “fullName”，现在转到文件名上，也就是源代码里的 “UploadedFile”</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixSucc.png" class="">
+<p>我们将原本的 “logo.png”，修改为 “..&#x2F;logo.png”，成功实现了目录遍历攻击。</p>
+<h3 id="代码审计部分-2"><a href="#代码审计部分-2" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/Filebase.png" class="">
+
+<p>这里比较简单，并未对 “uploadedFile” 进行过滤</p>
+<h2 id="0x04-Path-Traversal-PageLesson5"><a href="#0x04-Path-Traversal-PageLesson5" class="headerlink" title="0x04 Path Traversal PageLesson5"></a>0x04 Path Traversal PageLesson5</h2><ul>
+<li>题意，让我们用其他方式访问 path-traversal-secret.jpg</li>
+</ul>
+<p>那莫非意思是，直接访问 &#x2F;path-traversal-secret.jpg 不通，只能通过目录遍历的方式访问？</p>
+<p>我这里尝试了直接遍历 .jpg 的文件，以及通过带参请求 .jpg 文件，均得到 400 的返回。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/Retrive404.png" class="">
+
+<p>感觉没什么思路了，直接看源码吧，根据源码来找思路，前面一段代码是产生随机数，用来调用文件夹里面的静态图片的代码，这里就不贴了。</p>
+<p>重点关注后面一段代码</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveCode.png" class="">
+
+<p>首席按是第 85 行这里，代码是通过传进去的 GET 请求参数 <code>?id</code> 进行判断。86 行，创建了一个新的文件类型的变量，再返回到上文去看。这里尝试在 &#x2F;random-picture&#x2F; 的接口下对 id 进行目录遍历的设置，即 <code>?id=../</code>，可是被过滤了。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveDou.png" class="">
+
+<p>第 81 行规定了，参数中不允许存在 .. 或 &#x2F; ，如果存在就 400</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/idFailed.png" class="">
+
+<p>由于后端在获取参数值之后会进行一次 url 编码，所以我们可以利用 url 编码对 <code>../</code> 进行编码，从而实现绕过。</p>
+<ul>
+<li>也就是说，我们的 payload<pre class="line-numbers language-none"><code class="language-none">?id&#x3D;%2e%2e%2f<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></li>
+</ul>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/SeemSucc.png" class="">
+
+<p>成功的绕过，看到了一丝曙光<br>但是我们发现，这里并没有我们要找的那个文件  path-traversal-secret.jp，所以继续往上一级目录寻找。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveSucc.png" class="">
+
+<p>这边成功获取到了对应的文，最后一步的 payload</p>
+<pre class="line-numbers language-none"><code class="language-none">?id&#x3D;%2e%2e%2f%2e%2e%2fpath-traversal-secret<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/wuhu.png" class="">
+
+<h2 id="0x05-Path-Traversal-PageLesson7"><a href="#0x05-Path-Traversal-PageLesson7" class="headerlink" title="0x05 Path Traversal PageLesson7"></a>0x05 Path Traversal PageLesson7</h2><h3 id="靶场部分-3"><a href="#靶场部分-3" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面如图所示</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravel.png" class="">
+
+<ul>
+<li>题意：上传一个 Zip 文件，而这一个 Zip 文件能够替换头像；也就是使用 Zip 覆盖当前图像。</li>
+</ul>
+<p>直接上传一个 Zip 文件夹即可通过靶场</p>
+<h3 id="代码审计部分-3"><a href="#代码审计部分-3" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravelCode.png" class="">
+
+<p>这里，由 Zip 结尾的文件可以上传。</p>
+<p>因为 Zip 文件当中可以存在 ..&#x2F; 的文件内容，因此 Zip 的上传也会导致目录遍历漏洞，这种问题一般存在于 Android 开发上。</p>
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravelCode.png" class="">
+
+<h2 id="0x06-目录遍历的防御手段"><a href="#0x06-目录遍历的防御手段" class="headerlink" title="0x06 目录遍历的防御手段"></a>0x06 目录遍历的防御手段</h2><ol>
+<li>对文件上传方面进行严格限制，不允许存在 <code>../</code> 的上传。</li>
+<li>限制用户输入的路径在某一个范围内。</li>
+<li>当用户请求访问文件&#x2F;目录时，构造文件&#x2F;目录（若存在）所在的的完整路径，并标准化所有字符（如<code>%20</code>转为空格）；</li>
+</ol>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">WebGoat代码审计-03-目录遍历漏洞</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-03-22 14:36:57</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/03/22/WebGoat代码审计-03-目录遍历漏洞/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/03/22/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">从0到1完全掌握目录遍历漏洞</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/03/22/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1-SQL-%E6%B3%A8%E5%85%A5/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">从0到1完全掌握 SQL 注入</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86"><span class="nav-text">WebGoat代码审计-03-目录遍历</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-Path-Traversal-PageLesson2"><span class="nav-text">0x01 Path Traversal PageLesson2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86"><span class="nav-text">靶场部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E9%83%A8%E5%88%86"><span class="nav-text">代码审计部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Path-Traversal-PageLesson3"><span class="nav-text">0x02 Path Traversal PageLesson3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86-1"><span class="nav-text">靶场部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E9%83%A8%E5%88%86-1"><span class="nav-text">代码审计部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-Path-Traversal-PageLesson4"><span class="nav-text">0x03 Path Traversal PageLesson4</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86-2"><span class="nav-text">靶场部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E9%83%A8%E5%88%86-2"><span class="nav-text">代码审计部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-Path-Traversal-PageLesson5"><span class="nav-text">0x04 Path Traversal PageLesson5</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Path-Traversal-PageLesson7"><span class="nav-text">0x05 Path Traversal PageLesson7</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86-3"><span class="nav-text">靶场部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E9%83%A8%E5%88%86-3"><span class="nav-text">代码审计部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E7%9A%84%E9%98%B2%E5%BE%A1%E6%89%8B%E6%AE%B5"><span class="nav-text">0x06 目录遍历的防御手段</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

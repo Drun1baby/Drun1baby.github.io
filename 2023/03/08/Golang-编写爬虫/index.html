@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Golang 编写爬虫 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Golang 编写爬虫</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-03-08 16:29:20</span>
+        <span class="mobile">2023-03-08 16:29</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-03-13 10:40:15</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91-%E7%BC%96%E5%86%99/">工具开发&amp;编写</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91-%E7%BC%96%E5%86%99/">工具开发&amp;编写</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>4.6k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>20 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>学习用 golang 编写爬虫，先从一些简单的知识开始，再学习如何编写爬虫。文章大部分内容是参考自 <a target="_blank" rel="noopener" href="https://strconv.com/posts/">https://strconv.com/posts/</a></p>
+<p>所有代码可以在这里浏览 </p>
+<h2 id="0x02-基础爬取"><a href="#0x02-基础爬取" class="headerlink" title="0x02 基础爬取"></a>0x02 基础爬取</h2><h3 id="爬取豆瓣-Top250-基础代码"><a href="#爬取豆瓣-Top250-基础代码" class="headerlink" title="爬取豆瓣 Top250 基础代码"></a>爬取豆瓣 Top250 基础代码</h3><p>尝试爬取一下豆瓣 Top250 的</p>
+<p>Golang 语言的 HTTP 请求库不需要使用第三方的库，标准库就内置了足够好的支持：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"fmt"</span>
+    <span class="token string">"net/http"</span>
+    <span class="token string">"io/ioutil"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> fetch <span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token builtin">string</span> <span class="token punctuation">&#123;</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Fetch Url"</span><span class="token punctuation">,</span> url<span class="token punctuation">)</span>
+    client <span class="token operator">:=</span> <span class="token operator">&amp;</span>http<span class="token punctuation">.</span>Client<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    req<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>
+    req<span class="token punctuation">.</span>Header<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"User-Agent"</span><span class="token punctuation">,</span> <span class="token string">"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"</span><span class="token punctuation">)</span>
+    resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Http get err:"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token string">""</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> resp<span class="token punctuation">.</span>StatusCode <span class="token operator">!=</span> <span class="token number">200</span> <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Http status code:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>StatusCode<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token string">""</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    body<span class="token punctuation">,</span> err <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadAll</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Read error"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token string">""</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token function">string</span><span class="token punctuation">(</span>body<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>发送 HTTP 请求实际上就这一句：</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">req<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>通过 <code>body, err := ioutil.ReadAll(resp.Body)</code> 读取 response 的 body 内容，最后用 <code>string(body)</code> 转化为字符串，后续能够被我们所解析</p>
+<p>接着就是解析页面的部分，本质还是根据 HTML 标签来抓取的</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"regexp"</span>
+    <span class="token string">"strings"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    body <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    body <span class="token operator">=</span> strings<span class="token punctuation">.</span><span class="token function">Replace</span><span class="token punctuation">(</span>body<span class="token punctuation">,</span> <span class="token string">"\n"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+    rp <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;div class="hd">(.*?)&lt;/div>`</span><span class="token punctuation">)</span>
+    titleRe <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;span class="title">(.*?)&lt;/span>`</span><span class="token punctuation">)</span>
+    idRe <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;a href="https://movie.douban.com/subject/(\d+)/"`</span><span class="token punctuation">)</span>
+    items <span class="token operator">:=</span> rp<span class="token punctuation">.</span><span class="token function">FindAllStringSubmatch</span><span class="token punctuation">(</span>body<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> item <span class="token operator">:=</span> <span class="token keyword">range</span> items <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>idRe<span class="token punctuation">.</span><span class="token function">FindStringSubmatch</span><span class="token punctuation">(</span>item<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            titleRe<span class="token punctuation">.</span><span class="token function">FindStringSubmatch</span><span class="token punctuation">(</span>item<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这篇文章我们主要体验用标准库完成页面的解析，也就是用正则表达式包regexp来完成。不过要注意需要用 <code>strings.Replace(body, &quot;\n&quot;, &quot;&quot;, -1)</code> 这步把 body 内容中的回车符去掉，要不然下面的正则表达式<code>.*</code>就不符合了。<code>FindAllStringSubmatch</code> 方法会把符合正则表达式的结果都解析出来（一个列表），而 <code>FindStringSubmatch</code> 是找第一个符合的结果。</p>
+<p>因为是 Top250 的页面，所有电影是需要进行翻页爬取的，而豆瓣的第二页是 <code>start=25</code>，第三页是 <code>start=50</code>，我们只需要写个循环，让 <code>i*25</code> 作为后面的参数即可。用到的函数是 <code>strconv.Itoa</code>，这个函数可以将数值转换为字符串</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+   start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+   <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>  
+      <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span> <span class="token operator">+</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>  
+   <span class="token punctuation">&#125;</span>  
+   elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>  
+   fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>完整代码如下</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">package</span> main  
+  
+<span class="token keyword">import</span> <span class="token punctuation">(</span>  
+   <span class="token string">"fmt"</span>  
+   <span class="token string">"io/ioutil"</span>   <span class="token string">"net/http"</span>   <span class="token string">"regexp"</span>   <span class="token string">"strconv"</span>   <span class="token string">"strings"</span>   <span class="token string">"time"</span><span class="token punctuation">)</span>  
+  
+<span class="token keyword">func</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token builtin">string</span> <span class="token punctuation">&#123;</span>  
+   fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Fetch Url"</span><span class="token punctuation">,</span> url<span class="token punctuation">)</span>  
+   client <span class="token operator">:=</span> <span class="token operator">&amp;</span>http<span class="token punctuation">.</span>Client<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>  
+   req<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>  
+   req<span class="token punctuation">.</span>Header<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"User-Agent"</span><span class="token punctuation">,</span> <span class="token string">"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)"</span><span class="token punctuation">)</span>  
+   resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>  
+   <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>  
+      fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Http get err:"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>  
+      <span class="token keyword">return</span> <span class="token string">""</span>  
+   <span class="token punctuation">&#125;</span>  
+   <span class="token keyword">if</span> resp<span class="token punctuation">.</span>StatusCode <span class="token operator">!=</span> <span class="token number">200</span> <span class="token punctuation">&#123;</span>  
+      fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Http status code:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>StatusCode<span class="token punctuation">)</span>  
+      <span class="token keyword">return</span> <span class="token string">""</span>  
+   <span class="token punctuation">&#125;</span>  
+   <span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+   body<span class="token punctuation">,</span> err <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadAll</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>  
+   <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>  
+      fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Read error"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>  
+      <span class="token keyword">return</span> <span class="token string">""</span>  
+   <span class="token punctuation">&#125;</span>  
+   <span class="token keyword">return</span> <span class="token function">string</span><span class="token punctuation">(</span>body<span class="token punctuation">)</span>  
+<span class="token punctuation">&#125;</span>  
+  
+<span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+   body <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>  
+   body <span class="token operator">=</span> strings<span class="token punctuation">.</span><span class="token function">Replace</span><span class="token punctuation">(</span>body<span class="token punctuation">,</span> <span class="token string">"\n"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>  
+   rp <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;div class="hd">(.*?)&lt;/div>`</span><span class="token punctuation">)</span>  
+   titleRe <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;span class="title">(.*?)&lt;/span>`</span><span class="token punctuation">)</span>  
+   idRe <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">`&lt;a href="https://movie.douban.com/subject/(\d+)/"`</span><span class="token punctuation">)</span>  
+   items <span class="token operator">:=</span> rp<span class="token punctuation">.</span><span class="token function">FindAllStringSubmatch</span><span class="token punctuation">(</span>body<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>  
+   <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> item <span class="token operator">:=</span> <span class="token keyword">range</span> items <span class="token punctuation">&#123;</span>  
+      fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>idRe<span class="token punctuation">.</span><span class="token function">FindStringSubmatch</span><span class="token punctuation">(</span>item<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  
+         titleRe<span class="token punctuation">.</span><span class="token function">FindStringSubmatch</span><span class="token punctuation">(</span>item<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  
+   <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>  
+  
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+   start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  
+   <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>  
+      <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span> <span class="token operator">+</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>  
+   <span class="token punctuation">&#125;</span>  
+   elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>  
+   fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/03/08/Golang-%E7%BC%96%E5%86%99%E7%88%AC%E8%99%AB/crawl.png" class="">
+
+<h3 id="增加并发功能"><a href="#增加并发功能" class="headerlink" title="增加并发功能"></a>增加并发功能</h3><p>并发功能是由 goalng 的 <code>goroutine</code> 库来完成的</p>
+<p>上面我们写的爬虫是一个串行的爬虫，效率很低，所以我们在这一环节将它改成并发的。由于这个程序只抓取 10 个页面，大概 1s 多就完成了，为了对比我们先给之前的 <code>doubanCrawler1.go</code> 加一点Sleep的代码，让它跑的慢一些，当然增加抓取的网页也可以。</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token operator">...</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>现在我们运行一下，总耗时明显变长了</p>
+<img src="/2023/03/08/Golang-%E7%BC%96%E5%86%99%E7%88%AC%E8%99%AB/sleepRuntime.png" class="">
+
+<p>接着我们通过并发开始让它变得更快</p>
+<h4 id="goroutine-的错误用法"><a href="#goroutine-的错误用法" class="headerlink" title="goroutine 的错误用法"></a>goroutine 的错误用法</h4><p>先修改成用 Go 原生支持的并发方案 goroutine 来做。在 Golang 中使用 goroutine 非常方便，直接使用 go 关键字就可以，我们看一个版本：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span> <span class="token operator">+</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>就是在 <code>parseUrls</code> 函数前加了go 关键字。但其实这样就是不对的，运行的话不会抓取到任何结果。因为协程刚生成，整个程序就结束了，goroutine 还没抓完呢。怎么办呢？可以结束前 Sleep 一个时间，这个时间应该要大于所有 goroutine 执行最慢的那个，这样就保证了全部协程都能正常运行完再结束</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span> <span class="token operator">+</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">4</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在for循环后加了Sleep 4秒。运行一下：</p>
+<ul>
+<li>首先是并发</li>
+</ul>
+<img src="/2023/03/08/Golang-%E7%BC%96%E5%86%99%E7%88%AC%E8%99%AB/goRoutine.png" class="">
+
+<p>最终运行时间</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">Took <span class="token number">4</span><span class="token punctuation">.</span>0063611s
+Process finished with the exit code <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>这比起之前来说是快了很多了</p>
+<p>当然这个 Sleep 的时间不好控制，假设某次请求花的时间超了，总体时间超过 4s 程序结束了但这个协程其实还没运行结束；而假如全部 goroutine 都在 3 秒（2秒固定Sleep+1秒程序运行）结束，那么多Sleep的一秒就浪费了（当然自己一些小工具的开发可能并不会涉及这些东西，但是这是很基础的业务型编程思维</p>
+<h4 id="goroutine-的正确用法"><a href="#goroutine-的正确用法" class="headerlink" title="goroutine 的正确用法"></a>goroutine 的正确用法</h4><p>那怎么用 goroutine 呢？有没有像 Python 多进程&#x2F;线程的那种等待子进&#x2F;线程执行完的 join 方法呢？当然是有的，可以让 Go 协程之间信道（channel）进行通信：从一端发送数据，另一端接收数据，信道需要发送和接收配对，否则会被阻塞：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token operator">...</span>
+    ch <span class="token operator">&lt;-</span> <span class="token boolean">true</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ch <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span><span class="token operator">+</span>strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> ch<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token operator">&lt;-</span>ch
+    <span class="token punctuation">&#125;</span>
+
+    elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在上面的改法中，parseUrls 都是在 goroutine 中执行，但是注意函数签名改了，多接收了信道参数ch。当函数逻辑执行结束会给信道 ch 发送一个布尔值。</p>
+<p>而在 main 函数中，在用一个 for 循环，<code>&lt;- ch</code> 会等待接收数据（这里只是接收，相当于确认任务完成）。这样的流程就实现了一个更好的并发方案：</p>
+<p>最终运行结果如图，快了很多</p>
+<img src="/2023/03/08/Golang-%E7%BC%96%E5%86%99%E7%88%AC%E8%99%AB/successGoRoutine.png" class="">
+
+<h4 id="sync-WaitGroup"><a href="#sync-WaitGroup" class="headerlink" title="sync.WaitGroup"></a>sync.WaitGroup</h4><p>还有一个好的方案 <code>sync.WaitGroup</code>。我们这个程序只是打印抓到的对应内容，所以正好用 WaitGroup：等待一组并发操作完成</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token operator">...</span>
+    <span class="token string">"sync"</span>
+<span class="token punctuation">)</span>
+<span class="token operator">...</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    start <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">var</span> wg sync<span class="token punctuation">.</span>WaitGroup
+    wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>i <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span><span class="token operator">+</span>strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    wg<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    elapsed <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">Since</span><span class="token punctuation">(</span>start<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"Took %s"</span><span class="token punctuation">,</span> elapsed<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>一开始我们给调用 <code>wg.Add</code> 添加要等待的 goroutine 量，我们的页面总数就是 10，所以这里可以直接写出来。</p>
+<p>另外这里使用了 defer 关键字来调用 <code>wg.Done</code>，以确保在退出 goroutine 的闭包之前，向 WaitGroup表明了我们已经退出。由于要执行 <code>wg.Done</code> 和 parseUrls2 件事，所以不能直接用 go 关键字，需要把语句包一下。不过要注意，在闭包中需要把参数i作为 func 的参数传入，要不然 i 会使用最后一次循环的那个值：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// 错误代码👇</span>
+<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token function">parseUrls</span><span class="token punctuation">(</span><span class="token string">"https://movie.douban.com/top250?start="</span><span class="token operator">+</span>strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span><span class="token number">25</span><span class="token operator">*</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+❯ <span class="token keyword">go</span> run crawler<span class="token operator">/</span>doubanCrawler5<span class="token punctuation">.</span><span class="token keyword">go</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">75</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">250</span>
+Fetch Url https<span class="token punctuation">:</span><span class="token operator">/</span><span class="token operator">/</span>movie<span class="token punctuation">.</span>douban<span class="token punctuation">.</span>com<span class="token operator">/</span>top250?start<span class="token operator">=</span><span class="token number">200</span>
+<span class="token operator">...</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在这样的用法中，WaitGroup 相当于是一个协程安全的并发计数器：调用 Add 增加计数，调用 Done 减少计数。调用 Wait 会阻塞并等待至计数器归零。这样也实现了并发和等待全部 goroutine 执行完成：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">Took <span class="token number">2</span><span class="token punctuation">.</span>2960197s
+Process finished with the exit code <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h2 id="0x03-使用-goquery"><a href="#0x03-使用-goquery" class="headerlink" title="0x03 使用 goquery"></a>0x03 使用 goquery</h2><p>在写爬虫的时候，想要对 HTML 内容进行选择和查找匹配时通常是不直接写正则表达式的：因为正则表达式可读性和可维护性比较差。用 Python 写爬虫这方面可选择的方案非常多了，其中有一个被开发者常用的库 pyquery，而 Golang 也有对应的 goquery，可以说 goquery 是 jQuery 的 Golang 版本实现。借用jQueryCSS选择器的语法可以非常方便的实现内容匹配和查找。</p>
+<h3 id="安装-goquerys"><a href="#安装-goquerys" class="headerlink" title="安装 goquerys"></a>安装 goquerys</h3><ul>
+<li>goquery 是第三方库，需要手动安装：</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">go get github.com/PuerkitoBio/goquery<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>当然在 Goland 里面导入也可</p>
+<h3 id="创建文档"><a href="#创建文档" class="headerlink" title="创建文档"></a>创建文档</h3><p>goquery 向外暴露的结构主要是 <code>goquery.Document</code>，一般是由2种方法创建的：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">doc<span class="token punctuation">,</span> <span class="token builtin">error</span> <span class="token operator">:=</span> goquery<span class="token punctuation">.</span><span class="token function">NewDocumentFromReader</span><span class="token punctuation">(</span>reader io<span class="token punctuation">.</span>Reader<span class="token punctuation">)</span>
+doc<span class="token punctuation">,</span> <span class="token builtin">error</span> <span class="token operator">:=</span> goquery<span class="token punctuation">.</span><span class="token function">NewDocument</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>第二种直接传入了 url，但是往往我们会对请求做很多定制（如添加头信息、设置 Cookie 等），所以常用的是第一种方法，我们的代码也要做对应的改动</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"fmt"</span>
+    <span class="token string">"log"</span>
+    <span class="token string">"net/http"</span>
+    <span class="token string">"strconv"</span>
+    <span class="token string">"time"</span>
+
+    <span class="token string">"github.com/PuerkitoBio/goquery"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">*</span>goquery<span class="token punctuation">.</span>Document <span class="token punctuation">&#123;</span>
+    <span class="token operator">...</span>
+    <span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    doc<span class="token punctuation">,</span> err <span class="token operator">:=</span> goquery<span class="token punctuation">.</span><span class="token function">NewDocumentFromReader</span><span class="token punctuation">(</span>res<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> doc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>之前是把 <code>res.Body</code> 转成字符返回，现在直接返回 <code>goquery.Document</code> 类型的 doc 了</p>
+<h3 id="CSS-选择器"><a href="#CSS-选择器" class="headerlink" title="CSS 选择器"></a>CSS 选择器</h3><ul>
+<li>关于 CSS 选择器的语法可以看这个链接 <a target="_blank" rel="noopener" href="https://www.w3school.com.cn/cssref/css_selectors.asp">https://www.w3school.com.cn/cssref/css_selectors.asp</a></li>
+</ul>
+<p>这里说 CSS 选择器的原因是因为 <code>doc.find</code>，也就是 <code>goquery.Document.find()</code> 其中的参数就是需要通过 CSS 选择器来完成的，我们可以先来看一下豆瓣 TOP250 单个条目的源代码</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ol</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>grid_view<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>info<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://movie.douban.com/subject/1292052/<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>肖申克的救赎<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>/<span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>The Shawshank Redemption<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>other<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>/<span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>月黑高飞(港)  /  刺激1995(台)<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>playable<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>[可播放]<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  ....
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ol</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们这里需要的元素只是电影名，所以如果要用 CSS 选择器的话就要这样写 <code>doc.find()</code> 的语句</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    doc <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    doc<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"ol.grid_view li"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">".hd"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Each</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>index <span class="token builtin">int</span><span class="token punctuation">,</span> ele <span class="token operator">*</span>goquery<span class="token punctuation">.</span>Selection<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        movieUrl<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> ele<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"a"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Attr</span><span class="token punctuation">(</span><span class="token string">"href"</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>strings<span class="token punctuation">.</span><span class="token function">Split</span><span class="token punctuation">(</span>movieUrl<span class="token punctuation">,</span> <span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span> ele<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">".title"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Eq</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Text</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    ch <span class="token operator">&lt;-</span> <span class="token boolean">true</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>doc.Find()</code> 的参数就是 css 选择器，而且 <code>Find</code> 支持链式调用。这里的代码含义是先找 ”grid_view” 的所有 ol 下的 li 元素，然后再找 li 元素里面以 hd 为名字的元素（看上面的HTML 可以知道是 div）。Find 找到的结果是列表，需要使用 Each 方法循环获得，可以传递一个包含索引 index 和子元素 ele 参数的函数，获得具体内容的逻辑就在这个函数中。</p>
+<p>在上面的例子中，类名叫做 title 的 <code>span</code> 一共有2个，所以需要取第一个（用 <code>Eq(0)</code>），Text 方法可以获得元素的内容。而获得条目 ID 的方法是先拿到条目页面链接（用 Attr 获得 href 属性，注意，它返回2个参数，第一个是属性值，第二是是否存在这个属性）。这样就拿到了 ID 和标题了</p>
+<p>PS：其实爬虫练习的目的已经达到了，获得更多内容就是多写些逻辑罢了。</p>
+<h2 id="0x04-使用-soup"><a href="#0x04-使用-soup" class="headerlink" title="0x04 使用 soup"></a>0x04 使用 soup</h2><p>这个库实际上就是类似于 Python 的 BS4 库 ———— BeautifulSoup</p>
+<p>我们也来尝试写一下 golang 里面的 Soup 库</p>
+<h3 id="安装-soup"><a href="#安装-soup" class="headerlink" title="安装 soup"></a>安装 soup</h3><p>soup 是第三方库，需要手动安装：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">go get github.com/anaskhan96/soup<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>同样，也可以在 Goland 里面安装</p>
+<h3 id="使用-soup"><a href="#使用-soup" class="headerlink" title="使用 soup"></a>使用 soup</h3><p>我们可以先写一个最简单的 GET 请求，大致代码如下</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"fmt"</span>
+    <span class="token string">"log"</span>
+    <span class="token string">"strconv"</span>
+    <span class="token string">"strings"</span>
+    <span class="token string">"time"</span>
+
+    <span class="token string">"github.com/anaskhan96/soup"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> soup<span class="token punctuation">.</span>Root <span class="token punctuation">&#123;</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Fetch Url"</span><span class="token punctuation">,</span> url<span class="token punctuation">)</span>
+    soup<span class="token punctuation">.</span>Headers <span class="token operator">=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">&#123;</span>
+        <span class="token string">"User-Agent"</span><span class="token punctuation">:</span> <span class="token string">"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+
+    source<span class="token punctuation">,</span> err <span class="token operator">:=</span> soup<span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    doc <span class="token operator">:=</span> soup<span class="token punctuation">.</span><span class="token function">HTMLParse</span><span class="token punctuation">(</span>source<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> doc
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这次不再用内置的 <code>net/http</code> 这个包了。soup 支持直接设置 Headers（以及 Cookies）的值，也可以实现自定义头信息和 Cookie，然后就可以 <code>soup.Get(url)</code> 了，然后用 <code>soup.HTMLParse</code> 就可以获得文档对象了，这其实也就是 goquery 中的 doc</p>
+<p>相比起 goquery 不同的是，这里我们要将代码逻辑修改为应用 soup 库的，所以大体上还是差不多的。</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    doc <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> root <span class="token operator">:=</span> <span class="token keyword">range</span> doc<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"ol"</span><span class="token punctuation">,</span> <span class="token string">"class"</span><span class="token punctuation">,</span> <span class="token string">"grid_view"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">FindAll</span><span class="token punctuation">(</span><span class="token string">"div"</span><span class="token punctuation">,</span> <span class="token string">"class"</span><span class="token punctuation">,</span> <span class="token string">"hd"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        movieUrl<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> root<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"a"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Attrs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token string">"href"</span><span class="token punctuation">]</span>
+        title <span class="token operator">:=</span> root<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"span"</span><span class="token punctuation">,</span> <span class="token string">"class"</span><span class="token punctuation">,</span> <span class="token string">"title"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Text</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>strings<span class="token punctuation">.</span><span class="token function">Split</span><span class="token punctuation">(</span>movieUrl<span class="token punctuation">,</span> <span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span> title<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    ch <span class="token operator">&lt;-</span> <span class="token boolean">true</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>可以感受到和 goquery 都用了 Find 这个方法名字，但是参数形式不一样，需要传递三个：「标签名」、「类型」、「具体值」。如果有多个可以使用 <code>FindAll</code> (Find是找第一个)。如果不是很多可以使用多次的 Find，或者循环。如果想要找属性的值需要用 <code>Attrs</code> 方法，从 <code>map</code> 里面获得。</p>
+<p>获得文本还是用 Text 方法。另外它内有 goquery 那样的 Each 方法，需要手动写一个 <code>for range</code> 格式的循环。</p>
+<h2 id="0x05-使用-XPath"><a href="#0x05-使用-XPath" class="headerlink" title="0x05 使用 XPath"></a>0x05 使用 XPath</h2><p>在这个系列文章里面已经介绍了 BeautifulSoup 的替代库 soup 和 Pyquery 的替代库goquery，但其实很多人写 Python 爬虫最愿意用的页面解析组合是 <code>lxml+XPath</code> 。为什么呢？先分别说一下 lxml 和 XPath 的优势吧</p>
+<h3 id="lxml"><a href="#lxml" class="headerlink" title="lxml"></a>lxml</h3><p>lxml 是 HTML&#x2F;XML 的解析器，它用 C 语言实现的 libxml2 和l ibxslt 的Python 绑定。除了效率高，还有一个特点是文档容错能力强。</p>
+<h3 id="XPath"><a href="#XPath" class="headerlink" title="XPath"></a>XPath</h3><ul>
+<li>最早我自己写 Python 爬虫接触的就是这个，搞了好久才搞懂（当时巨菜无比）；刚接触时会感觉无比难，现在回过头来看感觉还行</li>
+</ul>
+<p>XPath全称<code>XML Path Language</code>，也就是<code>XML路径语言</code>，是一门在XML文档中查找信息的语言，最初是用来搜寻XML文档的，但是它同样适用于HTML文档的搜索。通过编写对应的路径表达式或者使用内置的标准函数，可以方便的直接获取到想要的任何内容，不用像soup和goquery那样要用Find方法链式的找节点再用Text之类的方法或者对应的值（<strong>也就是一句代码就拿到结果了</strong>），这就是它的特点和优势，而lxml正好支持XPath，所以lxml+XPath一直是我写爬虫的首选。</p>
+<p>XPath与BeautifulSoup(soup)、Pyquery(goquery)相比，学习曲线要高一些，但是学会它是非常有价值的，你会爱上它。你看我现在，原来用Python写爬虫学会了XPath，现在可以直接找支持XPath的库直接用了。</p>
+<p>另外说一点，如果你非常喜欢 BeautifulSoup，一定要选择 BeautifulSoup+lxml 这个组合，因为 BeautifulSoup 默认的 HTML 解析器用的是 Python 标准库中的 <code>html.parser</code>，虽然文档容错能力也很强，但是效率会差很多。</p>
+<p>我学习XPath是通过w3school，参考链接 <a target="_blank" rel="noopener" href="https://www.w3school.com.cn/xpath/xpath_intro.asp">https://www.w3school.com.cn/xpath/xpath_intro.asp</a></p>
+<h3 id="Golang-中的-Xpath-库"><a href="#Golang-中的-Xpath-库" class="headerlink" title="Golang 中的 Xpath 库"></a>Golang 中的 Xpath 库</h3><p>用 Golang 写的 Xpath 库是很多的，由于我还没有什么实际开发经验，所以能搜到的几个库都试用一下，然后再出结论吧。</p>
+<p>首先把豆瓣 Top250 的部分 HTML 代码贴出来</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ol</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>grid_view<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>item<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>info<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>hd<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://movie.douban.com/subject/1292052/<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>肖申克的救赎<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>title<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>/<span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>The Shawshank Redemption<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>other<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>/<span class="token entity named-entity" title="&nbsp;">&amp;nbsp;</span>月黑高飞(港)  /  刺激 1995(台)<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>playable<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>[可播放]<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">></span></span>
+  ....
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ol</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>还是原来的需求：获得条目 ID 和标题</p>
+<h4 id="github-com-x2F-lestrrat-go-x2F-libxml2"><a href="#github-com-x2F-lestrrat-go-x2F-libxml2" class="headerlink" title="github.com&#x2F;lestrrat-go&#x2F;libxml2"></a>github.com&#x2F;lestrrat-go&#x2F;libxml2</h4><p><code>lestrrat-go/libxml2</code> 是一个 <code>libxml2</code> 的 Golang 绑定库</p>
+<p>我们先用 <code>lestrrat-go/libxml2</code> 写一段简单的 HTTP 发包</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+        <span class="token string">"log"</span>
+        <span class="token string">"time"</span>
+        <span class="token string">"strings"</span>
+        <span class="token string">"strconv"</span>
+        <span class="token string">"net/http"</span>
+
+        <span class="token string">"github.com/lestrrat-go/libxml2"</span>
+        <span class="token string">"github.com/lestrrat-go/libxml2/types"</span>
+        <span class="token string">"github.com/lestrrat-go/libxml2/xpath"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> types<span class="token punctuation">.</span>Document <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Fetch Url"</span><span class="token punctuation">,</span> url<span class="token punctuation">)</span>
+        client <span class="token operator">:=</span> <span class="token operator">&amp;</span>http<span class="token punctuation">.</span>Client<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+        req<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>
+        req<span class="token punctuation">.</span>Header<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"User-Agent"</span><span class="token punctuation">,</span> <span class="token string">"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"</span><span class="token punctuation">)</span>
+        resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span><span class="token string">"Http get err:"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">if</span> resp<span class="token punctuation">.</span>StatusCode <span class="token operator">!=</span> <span class="token number">200</span> <span class="token punctuation">&#123;</span>
+                log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span><span class="token string">"Http status code:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>StatusCode<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        doc<span class="token punctuation">,</span> err <span class="token operator">:=</span> libxml2<span class="token punctuation">.</span><span class="token function">ParseHTMLReader</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> doc
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>fetch 函数和之前的整体一致，doc 是用 <code>libxml2.ParseHTMLReader(resp.Body)</code> 获得的。parseUrls 的改动比较大：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        doc <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+        <span class="token keyword">defer</span> doc<span class="token punctuation">.</span><span class="token function">Free</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        nodes <span class="token operator">:=</span> xpath<span class="token punctuation">.</span><span class="token function">NodeList</span><span class="token punctuation">(</span>doc<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">`//ol[@class="grid_view"]/li//div[@class="hd"]`</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> node <span class="token operator">:=</span> <span class="token keyword">range</span> nodes <span class="token punctuation">&#123;</span>
+                urls<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> node<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">"./a/@href"</span><span class="token punctuation">)</span>
+                titles<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> node<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span><span class="token string">`.//span[@class="title"]/text()`</span><span class="token punctuation">)</span>
+                log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>strings<span class="token punctuation">.</span><span class="token function">Split</span><span class="token punctuation">(</span>urls<span class="token punctuation">.</span><span class="token function">NodeList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">TextContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                        titles<span class="token punctuation">.</span><span class="token function">NodeList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">TextContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+        ch <span class="token operator">&lt;-</span> <span class="token boolean">true</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>可以说是经典的 XPath 写法了，看到就菊花一紧（bushi</li>
+</ul>
+<h4 id="github-com-x2F-antchfx-x2F-htmlquery"><a href="#github-com-x2F-antchfx-x2F-htmlquery" class="headerlink" title="github.com&#x2F;antchfx&#x2F;htmlquery"></a>github.com&#x2F;antchfx&#x2F;htmlquery</h4><p>htmlquery 如其名，是一个对 HTML 文档做 XPath 查询的包。它的核心是 <a target="_blank" rel="noopener" href="https://github.com/antchfx/xpath">antchfx&#x2F;xpath</a>，项目更新频繁，文档也比较完整。</p>
+<p>接着按需求修改：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"log"</span>
+    <span class="token string">"time"</span>
+    <span class="token string">"strings"</span>
+    <span class="token string">"strconv"</span>
+    <span class="token string">"net/http"</span>
+
+    <span class="token string">"golang.org/x/net/html"</span>
+    <span class="token string">"github.com/antchfx/htmlquery"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">*</span>html<span class="token punctuation">.</span>Node <span class="token punctuation">&#123;</span>
+    log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Fetch Url"</span><span class="token punctuation">,</span> url<span class="token punctuation">)</span>
+    client <span class="token operator">:=</span> <span class="token operator">&amp;</span>http<span class="token punctuation">.</span>Client<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    req<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> http<span class="token punctuation">.</span><span class="token function">NewRequest</span><span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> url<span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>
+    req<span class="token punctuation">.</span>Header<span class="token punctuation">.</span><span class="token function">Set</span><span class="token punctuation">(</span><span class="token string">"User-Agent"</span><span class="token punctuation">,</span> <span class="token string">"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"</span><span class="token punctuation">)</span>
+    resp<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span><span class="token string">"Http get err:"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> resp<span class="token punctuation">.</span>StatusCode <span class="token operator">!=</span> <span class="token number">200</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span><span class="token string">"Http status code:"</span><span class="token punctuation">,</span> resp<span class="token punctuation">.</span>StatusCode<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">defer</span> resp<span class="token punctuation">.</span>Body<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    doc<span class="token punctuation">,</span> err <span class="token operator">:=</span> htmlquery<span class="token punctuation">.</span><span class="token function">Parse</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>Body<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> doc
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>fetch 函数主要就是修改 <code>htmlquery.Parse(resp.Body)</code> 和函数返回值类型 <code>*html.Node</code>。再看看 <code>parseUrls</code>：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">parseUrls</span><span class="token punctuation">(</span>url <span class="token builtin">string</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    doc <span class="token operator">:=</span> <span class="token function">fetch</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span>
+    nodes <span class="token operator">:=</span> htmlquery<span class="token punctuation">.</span><span class="token function">Find</span><span class="token punctuation">(</span>doc<span class="token punctuation">,</span> <span class="token string">`//ol[@class="grid_view"]/li//div[@class="hd"]`</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> node <span class="token operator">:=</span> <span class="token keyword">range</span> nodes <span class="token punctuation">&#123;</span>
+        url <span class="token operator">:=</span> htmlquery<span class="token punctuation">.</span><span class="token function">FindOne</span><span class="token punctuation">(</span>node<span class="token punctuation">,</span> <span class="token string">"./a/@href"</span><span class="token punctuation">)</span>
+        title <span class="token operator">:=</span> htmlquery<span class="token punctuation">.</span><span class="token function">FindOne</span><span class="token punctuation">(</span>node<span class="token punctuation">,</span> <span class="token string">`.//span[@class="title"]/text()`</span><span class="token punctuation">)</span>
+        log<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>strings<span class="token punctuation">.</span><span class="token function">Split</span><span class="token punctuation">(</span>htmlquery<span class="token punctuation">.</span><span class="token function">InnerText</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            htmlquery<span class="token punctuation">.</span><span class="token function">InnerText</span><span class="token punctuation">(</span>title<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    ch <span class="token operator">&lt;-</span> <span class="token boolean">true</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>antchfx/htmlquery</code> 的体验比 <code>lestrrat-go/libxml2</code> 要好，Find 是选符合的节点列表，FindOne 是找符合的第一个节点。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Golang 编写爬虫</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-03-08 16:29:20</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/03/08/Golang-编写爬虫/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91-%E7%BC%96%E5%86%99/">#工具开发&amp;编写</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/03/08/HTB-%E9%9D%B6%E6%9C%BA-Precious/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">HTB 靶机 Precious</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java Struts2 系列 S2-002</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%9F%BA%E7%A1%80%E7%88%AC%E5%8F%96"><span class="nav-text">0x02 基础爬取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%88%AC%E5%8F%96%E8%B1%86%E7%93%A3-Top250-%E5%9F%BA%E7%A1%80%E4%BB%A3%E7%A0%81"><span class="nav-text">爬取豆瓣 Top250 基础代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0%E5%B9%B6%E5%8F%91%E5%8A%9F%E8%83%BD"><span class="nav-text">增加并发功能</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#goroutine-%E7%9A%84%E9%94%99%E8%AF%AF%E7%94%A8%E6%B3%95"><span class="nav-text">goroutine 的错误用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#goroutine-%E7%9A%84%E6%AD%A3%E7%A1%AE%E7%94%A8%E6%B3%95"><span class="nav-text">goroutine 的正确用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sync-WaitGroup"><span class="nav-text">sync.WaitGroup</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E4%BD%BF%E7%94%A8-goquery"><span class="nav-text">0x03 使用 goquery</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-goquerys"><span class="nav-text">安装 goquerys</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3"><span class="nav-text">创建文档</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CSS-%E9%80%89%E6%8B%A9%E5%99%A8"><span class="nav-text">CSS 选择器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E4%BD%BF%E7%94%A8-soup"><span class="nav-text">0x04 使用 soup</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-soup"><span class="nav-text">安装 soup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-soup"><span class="nav-text">使用 soup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E4%BD%BF%E7%94%A8-XPath"><span class="nav-text">0x05 使用 XPath</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#lxml"><span class="nav-text">lxml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XPath"><span class="nav-text">XPath</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Golang-%E4%B8%AD%E7%9A%84-Xpath-%E5%BA%93"><span class="nav-text">Golang 中的 Xpath 库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#github-com-x2F-lestrrat-go-x2F-libxml2"><span class="nav-text">github.com&#x2F;lestrrat-go&#x2F;libxml2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#github-com-x2F-antchfx-x2F-htmlquery"><span class="nav-text">github.com&#x2F;antchfx&#x2F;htmlquery</span></a></li></ol></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

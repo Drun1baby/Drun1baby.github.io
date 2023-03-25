@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            CTF平台之CTFm的搭建过程 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">CTF平台之CTFm的搭建过程</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-05-21 21:27:12</span>
+        <span class="mobile">2022-05-21 21:27</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:33:31</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">环境搭建</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">环境搭建</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>1.2k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>4 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="CTF-平台之-CTFm-的搭建过程"><a href="#CTF-平台之-CTFm-的搭建过程" class="headerlink" title="CTF 平台之 CTFm 的搭建过程"></a>CTF 平台之 CTFm 的搭建过程</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>感谢 <a target="_blank" rel="noopener" href="https://ieki.xyz/">EkiXu</a> 师傅<br>感谢 <a href="shinenet.cnhttps://www.shinenet.cn/">火柴</a> 师傅</p>
+<p>说一说为什么要用 CTFm 吧。</p>
+<p>CTFm 相对于 CTFd 更加稳定，而且更加集成，那些 <code>frpc.ini</code>，<code>frps.ini</code> 都不需要自己手动配置的。</p>
+<h2 id="0x02-环境准备"><a href="#0x02-环境准备" class="headerlink" title="0x02 环境准备"></a>0x02 环境准备</h2><p>这里很感谢火柴师傅帮我避了很多坑，要不然我会崩溃的吧😭😭</p>
+<h3 id="1-机器型号"><a href="#1-机器型号" class="headerlink" title="1. 机器型号"></a>1. 机器型号</h3><p>Ubuntu 20.04</p>
+<h3 id="2-工具准备"><a href="#2-工具准备" class="headerlink" title="2. 工具准备"></a>2. 工具准备</h3><h4 id="node-的安装"><a href="#node-的安装" class="headerlink" title="node 的安装"></a>node 的安装</h4><p>这里必须是 node16 的版本，不能是 node18 的。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">curl</span> -fsSL https://deb.nodesource.com/setup_16.x <span class="token operator">|</span> <span class="token function">sudo</span> -E <span class="token function">bash</span> -
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> -y nodejs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>这里在安装 node16 的时候很可能在装完之后输入 <code>node -v</code> 之后没反应的，这里需要使用的安装命令为，我记得 Ubuntu 会提示你的，按照提示的来就可以，好像是加上 <code>--fix</code> 的参数。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> -y nodejs --fix<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>再安装 yarn，这里对 yarn 没有版本需求</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> --global <span class="token function">yarn</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="docker-及一系列东西的安装"><a href="#docker-及一系列东西的安装" class="headerlink" title="docker 及一系列东西的安装"></a>docker 及一系列东西的安装</h4><p>首先安装 docker</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> update
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">docker</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>安装 docker-compose，这里挺坑的，要安装最新版本的 docker-compose，不然到后面容易踩坑。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">wget</span> -O /usr/local/bin/docker-compose <span class="token string">"https://github.com/docker/compose/releases/latest/download/docker-compose-https://github.com/docker/compose/releases/latest/download/docker-compose-<span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> -s<span class="token variable">)</span></span>-<span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> -m<span class="token variable">)</span></span>"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>再进行授权与验证</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">chmod</span> a+x /usr/local/bin/docker-compose
+
+//验证
+<span class="token function">docker-compose</span> --version<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="0x03-开始搭建"><a href="#0x03-开始搭建" class="headerlink" title="0x03 开始搭建"></a>0x03 开始搭建</h2><h3 id="1-创建-docker-swarm"><a href="#1-创建-docker-swarm" class="headerlink" title="1. 创建 docker-swarm"></a>1. 创建 docker-swarm</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> swarm init<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="2-标记节点"><a href="#2-标记节点" class="headerlink" title="2. 标记节点"></a>2. 标记节点</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token function">node</span> <span class="token function">ls</span> <span class="token comment">#检查节点 ID</span>
+<span class="token function">docker</span> <span class="token function">node</span> update --label-add <span class="token assign-left variable">name</span><span class="token operator">=</span>linux-1 <span class="token operator">&lt;</span>节点 ID<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="3-拉取代码"><a href="#3-拉取代码" class="headerlink" title="3. 拉取代码"></a>3. 拉取代码</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">git</span> clone https://github.com/EkiXu/CTFm
+<span class="token builtin class-name">cd</span> CTFm
+<span class="token comment">#拉取子模块</span>
+<span class="token function">git</span> submodule update --init --recursive
+<span class="token comment">#创建log文件夹</span>
+<span class="token function">mkdir</span> backend/log/
+<span class="token builtin class-name">cd</span> backend/log/
+<span class="token function">chmod</span> <span class="token number">777</span> log -R    // 这个很重要，不然会踩坑的<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这一步如果卡的话，多操作几次，或者开代理。我搭建的时候代理一直配不起来。</p>
+<h3 id="4-创建相关-secret"><a href="#4-创建相关-secret" class="headerlink" title="4. 创建相关 secret"></a>4. 创建相关 secret</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">echo</span> -n <span class="token string">"Z3brFdddeh2F37G2rTB"</span> <span class="token operator">></span> <span class="token string">"./secrets/DB_PASSWORD"</span>
+
+<span class="token builtin class-name">echo</span> -n <span class="token string">"r1vMTdppMcdvvPFk7bB"</span> <span class="token operator">></span> <span class="token string">"./secrets/REDIS_PASSWORD"</span>
+
+<span class="token builtin class-name">echo</span> -n <span class="token string">"o1bGorxEMZdXsq2WuJZ"</span> <span class="token operator">></span> <span class="token string">"./secrets/SECRET_KEY"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里用随机的就可以，和我一样也可以。</p>
+<h3 id="5-前端代码生成-可选"><a href="#5-前端代码生成-可选" class="headerlink" title="5. 前端代码生成(可选)"></a>5. 前端代码生成(可选)</h3><ul>
+<li>5,6 两步我都没有进行部署</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">cd</span> frontend
+<span class="token function">yarn</span> <span class="token function">install</span>
+<span class="token function">yarn</span> build<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="6-中台代码生成-可选"><a href="#6-中台代码生成-可选" class="headerlink" title="6. 中台代码生成(可选)"></a>6. 中台代码生成(可选)</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">cd</span> dashboard
+<span class="token function">yarn</span> <span class="token function">install</span>
+<span class="token function">yarn</span> build<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="7-使用docker-compose编排启动"><a href="#7-使用docker-compose编排启动" class="headerlink" title="7. 使用docker-compose编排启动"></a>7. 使用docker-compose编排启动</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker-compose</span> up -d --build<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="8-数据库和管理员账号初始化"><a href="#8-数据库和管理员账号初始化" class="headerlink" title="8. 数据库和管理员账号初始化"></a>8. 数据库和管理员账号初始化</h3><ul>
+<li>这里的管理员账号不要输错，不然挺麻烦的。</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker-compose</span> <span class="token builtin class-name">exec</span> ctfm /bin/bash 
+python manage.py migrate
+python manage.py createsuperuser<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>至此，已经可以访问了，默认的是 80 端口</p>
+</blockquote>
+<h2 id="0x04-一些其他设置"><a href="#0x04-一些其他设置" class="headerlink" title="0x04 一些其他设置"></a>0x04 一些其他设置</h2><h3 id="1-关于recaptcha验证码"><a href="#1-关于recaptcha验证码" class="headerlink" title="1. 关于recaptcha验证码"></a>1. 关于recaptcha验证码</h3><p>这是一定要配的，如果不配的话无法完成注册，不过是要付费的。</p>
+<p>需要自行到<a target="_blank" rel="noopener" href="https://www.google.com/recaptcha/">https://www.google.com/recaptcha/</a>获取客户端密钥和服务端密钥。</p>
+<p>这里的密钥版本是 v2 的，不要踩坑去弄了 v3 的。关于密钥的位置在这个地方获取，当时我也是找了一会儿。</p>
+<img src="/2022/05/21/CTF%E5%B9%B3%E5%8F%B0%E4%B9%8BCTFm%E7%9A%84%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B/recaptcha1.png" class="">
+
+<p>进去之后要先自己创建项目的，这些都挺简单的，密钥的话在这里。</p>
+<img src="/2022/05/21/CTF%E5%B9%B3%E5%8F%B0%E4%B9%8BCTFm%E7%9A%84%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B/recaptcha2.png" class="">
+
+<p>客户端密钥存放在 <code>frontend/.env</code> 下</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">VUE_APP_BASE_API <span class="token operator">=</span> <span class="token string">'/api/v1'</span>
+VUE_APP_RECAPTCHA_PUBLIC_KEY <span class="token operator">=</span> <span class="token string">'&lt;your RECAPTCHA_CLIENT_KEY>'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>并重新生成前端</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">yarn</span> build<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在服务端设置中添加</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#backend/CTFm_backend/settings.py // 文件位置</span>
+DRF_RECAPTCHA_SECRET_KEY <span class="token operator">=</span> <span class="token string">"&lt;your RECAPTCHA_SERVER_KEY>"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="2-关于邮件验证功能"><a href="#2-关于邮件验证功能" class="headerlink" title="2. 关于邮件验证功能"></a>2. 关于邮件验证功能</h3><p>这里如果是小比赛不需要配，像校内的比赛就不需要了。</p>
+<p>我这里就略过了，如果需要配的师傅们可以去官方文档这里看<a target="_blank" rel="noopener" href="https://github.com/EkiXu/CTFm/blob/master/README.zh.md">CTFm&#x2F;README.zh.md at master · EkiXu&#x2F;CTFm (github.com)</a></p>
+<p>邮箱验证自己的小比赛不需要是因为可以在 admin 下修改 user 权限</p>
+<h3 id="3-CTFd-Whale-插件的配置"><a href="#3-CTFd-Whale-插件的配置" class="headerlink" title="3. CTFd-Whale 插件的配置"></a>3. CTFd-Whale 插件的配置</h3><p>CTFm 真的比 CTFd 方便快捷太多了，这里都不需要进行配置，直接集成就有了。在起完项目 docker 服务之后，以管理员账号登入，在左侧的 Dashboard 下点 admin，进行 Whale 配置。</p>
+<img src="/2022/05/21/CTF%E5%B9%B3%E5%8F%B0%E4%B9%8BCTFm%E7%9A%84%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B/WhaleSetting.png" class="">
+
+<p><strong><font color=red>几点注意事项说一说，以防踩坑</font></strong></p>
+<p>Frp HTTP Domain Suffix 可以不填的，就空在那儿。</p>
+<p>Frp Config 这里，是把 <code>frpc.ini</code> 的全部内容粘贴进来的，当时我这里也踩坑了。</p>
+<p>Frp Direct IP address 就填服务器 IP 即可。</p>
+<p>如果一直弄不起来的话，检查一下 <code>frpc.ini</code> 与 <code>frps.ini</code> 的token，最好不要随机，写一个大致 8 位长的密钥即可，要两个一致。</p>
+<h2 id="0x05-题目设置"><a href="#0x05-题目设置" class="headerlink" title="0x05 题目设置"></a>0x05 题目设置</h2><p>主要是 Web 类的题目，如果要使用 <code>dynamic container</code> 的话，并且不是使用域名的情况下，设置应当注意一下这个。</p>
+<img src="/2022/05/21/CTF%E5%B9%B3%E5%8F%B0%E4%B9%8BCTFm%E7%9A%84%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B/TCP.png" class="">
+
+<p>如果使用了域名，需要选择 HTTP 80 端口</p>
+<h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>官方文档的内容还是比较少，我这里基本把所有的坑都踩了一遍。</p>
+<p>像我这么粗心的人的话，搭建 CTFd 对我来说太难了，我个人强推 CTFm</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">CTF平台之CTFm的搭建过程</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-05-21 21:27:12</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/05/21/CTF平台之CTFm的搭建过程/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">#环境搭建</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/05/23/Java%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java基础知识</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/05/20/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-02-Java%E5%8F%8D%E5%B0%84%E4%B8%8EURLDNS%E9%93%BE%E5%88%86%E6%9E%90/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化基础篇-02-Java反射与URLDNS链分析</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CTF-%E5%B9%B3%E5%8F%B0%E4%B9%8B-CTFm-%E7%9A%84%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B"><span class="nav-text">CTF 平台之 CTFm 的搭建过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-text">0x02 环境准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9C%BA%E5%99%A8%E5%9E%8B%E5%8F%B7"><span class="nav-text">1. 机器型号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%B7%A5%E5%85%B7%E5%87%86%E5%A4%87"><span class="nav-text">2. 工具准备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#node-%E7%9A%84%E5%AE%89%E8%A3%85"><span class="nav-text">node 的安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#docker-%E5%8F%8A%E4%B8%80%E7%B3%BB%E5%88%97%E4%B8%9C%E8%A5%BF%E7%9A%84%E5%AE%89%E8%A3%85"><span class="nav-text">docker 及一系列东西的安装</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BA"><span class="nav-text">0x03 开始搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%9B%E5%BB%BA-docker-swarm"><span class="nav-text">1. 创建 docker-swarm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%A0%87%E8%AE%B0%E8%8A%82%E7%82%B9"><span class="nav-text">2. 标记节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%8B%89%E5%8F%96%E4%BB%A3%E7%A0%81"><span class="nav-text">3. 拉取代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%88%9B%E5%BB%BA%E7%9B%B8%E5%85%B3-secret"><span class="nav-text">4. 创建相关 secret</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%89%8D%E7%AB%AF%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90-%E5%8F%AF%E9%80%89"><span class="nav-text">5. 前端代码生成(可选)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E4%B8%AD%E5%8F%B0%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90-%E5%8F%AF%E9%80%89"><span class="nav-text">6. 中台代码生成(可选)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E4%BD%BF%E7%94%A8docker-compose%E7%BC%96%E6%8E%92%E5%90%AF%E5%8A%A8"><span class="nav-text">7. 使用docker-compose编排启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%AE%A1%E7%90%86%E5%91%98%E8%B4%A6%E5%8F%B7%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">8. 数据库和管理员账号初始化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E4%B8%80%E4%BA%9B%E5%85%B6%E4%BB%96%E8%AE%BE%E7%BD%AE"><span class="nav-text">0x04 一些其他设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8Erecaptcha%E9%AA%8C%E8%AF%81%E7%A0%81"><span class="nav-text">1. 关于recaptcha验证码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%85%B3%E4%BA%8E%E9%82%AE%E4%BB%B6%E9%AA%8C%E8%AF%81%E5%8A%9F%E8%83%BD"><span class="nav-text">2. 关于邮件验证功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-CTFd-Whale-%E6%8F%92%E4%BB%B6%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-text">3. CTFd-Whale 插件的配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E9%A2%98%E7%9B%AE%E8%AE%BE%E7%BD%AE"><span class="nav-text">0x05 题目设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x06 小结</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

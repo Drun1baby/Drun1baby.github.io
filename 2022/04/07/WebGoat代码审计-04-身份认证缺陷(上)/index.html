@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            WebGoat代码审计-04-身份认证缺陷(上) |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">WebGoat代码审计-04-身份认证缺陷(上)</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-04-07 10:04:57</span>
+        <span class="mobile">2022-04-07 10:04</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:57:55</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>2.3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>9 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="WebGoat代码审计-04-身份认证缺陷-上"><a href="#WebGoat代码审计-04-身份认证缺陷-上" class="headerlink" title="WebGoat代码审计-04-身份认证缺陷(上)"></a>WebGoat代码审计-04-身份认证缺陷(上)</h1><h2 id="0x01-写在前面"><a href="#0x01-写在前面" class="headerlink" title="0x01 写在前面"></a>0x01 写在前面</h2><ul>
+<li>换了一种思维，先看代码，从代码里面找漏洞，然后去做题，代码审计也应该是这样一个思路。</li>
+</ul>
+<h2 id="0x02-Authentication-Bypasses"><a href="#0x02-Authentication-Bypasses" class="headerlink" title="0x02 Authentication Bypasses"></a>0x02 Authentication Bypasses</h2><h3 id="1-Authentication-Bypasses-PageLesson2-2FA-验证方式"><a href="#1-Authentication-Bypasses-PageLesson2-2FA-验证方式" class="headerlink" title="1. Authentication Bypasses PageLesson2 2FA 验证方式"></a>1. Authentication Bypasses PageLesson2 2FA 验证方式</h3><blockquote>
+<p>讲的是 2FA 的密码重置方式</p>
+</blockquote>
+<h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>打开源代码，优先去找 <code>return success</code> 的代码模块</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/2FAPassCode.png" class="">
+
+<p>说实话这一块看不懂，关键点应该是这一块代码，很明显是继承</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">if</span> <span class="token punctuation">(</span>verificationHelper<span class="token punctuation">.</span><span class="token function">verifyAccount</span><span class="token punctuation">(</span><span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>userId<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">HashMap</span><span class="token punctuation">)</span> submittedAnswers<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>而在第 60 行这里</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">AccountVerificationHelper</span> verificationHelper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AccountVerificationHelper</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>进入 AccoutVerificationHelper 看看，并移步到 AccoutVerificationHelper.verifyAccout 下。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/2FAsecQuestion.png" class="">
+
+<p>return true 的条件：</p>
+<ul>
+<li>①：UserId 相同</li>
+<li>②：第一个密保问题，即 secQuestion0 和上文中的 “作弊” 答案不一致</li>
+<li>③：第二个密保问题，即 secQuestion1 和上文中的 “作弊” 答案不一致</li>
+</ul>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Key.png" class="">
+
+<p>上框为 “作弊” 答案，下框的意思是，密码问题的参数是 “secQuestion0” 与 “secQuestion1”。只需包含这个参数即可进行判断。</p>
+<h4 id="靶场部分"><a href="#靶场部分" class="headerlink" title="靶场部分"></a>靶场部分</h4><p>于是想到绕过手段，构造 payload 成功绕过 ~</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Succ2FABypass.png" class="">
+
+<h2 id="0x03-JWT-Tokens"><a href="#0x03-JWT-Tokens" class="headerlink" title="0x03 JWT Tokens"></a>0x03 JWT Tokens</h2><h3 id="1-JWT-Tokens-PageLesson3-简单理解-JWT"><a href="#1-JWT-Tokens-PageLesson3-简单理解-JWT" class="headerlink" title="1. JWT Tokens PageLesson3 简单理解 JWT"></a>1. JWT Tokens PageLesson3 简单理解 JWT</h3><ul>
+<li>打开源码，去找 JWT 那一块，代码很简单，简单判断了 “$user” 是否等于 user</li>
+</ul>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/EasyDecodingCode.png" class="">
+
+<p>对 JWT 进行 base64 编码解密，轻松过</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/DecodingIndex.png" class="">
+
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/EasyDecoding.png" class="">
+
+<h3 id="2-JWT-Tokens-PageLesson5-替换-payload-绕过"><a href="#2-JWT-Tokens-PageLesson5-替换-payload-绕过" class="headerlink" title="2. JWT Tokens PageLesson5 替换 payload 绕过"></a>2. JWT Tokens PageLesson5 替换 payload 绕过</h3><ul>
+<li>题意，通过 JWT Token 的问题，获得 admin 权限，从而修改这些 Vote 的内容&#x2F;样子。</li>
+<li>如果只是普通的 Guest 或者其他人的用户，是无法删除或者对投票界面进行更改操作的。</li>
+</ul>
+<h4 id="源码部分-1"><a href="#源码部分-1" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
+<li>打开文件 “JWTVotesEndPoint.java”，首先第一个函数，构造 Vote 界面</li>
+</ul>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteInitCode.png" class="">
+
+<p>这里对应的就是四个投票界面，在前端界面如图所示</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteInitIndex.png" class="">
+
+<p>这里有一段语句要单独拿出来讲一下，因为和 JWT 的代码原理密不可分。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTInitCode.png" class="">
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> token <span class="token operator">=</span> <span class="token class-name">Jwts</span><span class="token punctuation">.</span><span class="token function">builder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment">// 创建 JWT 对象</span>
+        <span class="token punctuation">.</span><span class="token function">setClaims</span><span class="token punctuation">(</span>claims<span class="token punctuation">)</span>      <span class="token comment">//  设置主题(声明信息)</span>
+        <span class="token punctuation">.</span><span class="token function">signWith</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">io<span class="token punctuation">.</span>jsonwebtoken<span class="token punctuation">.</span></span>SignatureAlgorithm</span><span class="token punctuation">.</span>HS512<span class="token punctuation">,</span> JWT_PASSWORD<span class="token punctuation">)</span> <span class="token comment">// 设置安全密钥(生成签名所需的密钥和算法)</span>
+        <span class="token punctuation">.</span><span class="token function">compact</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 生成token（1.编码 Header 和 Payload 2.生成签名 3.拼接字符串）</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>寻找一下何处可以绕过 admin 验证的，第 163 - 184 行</p>
+</blockquote>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteAdminCode.png" class="">
+
+<h5 id="逐行分析，代码审计"><a href="#逐行分析，代码审计" class="headerlink" title="逐行分析，代码审计"></a><strong>逐行分析，代码审计</strong></h5><p>前面的 166 - 168 行这里，判断 <strong>“accessToken”</strong> 是否为空，若为空，则返回 failed；若不为空，则进入 else 语句</p>
+<p>第 169 - 178 行，核心的判断语句。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteJudge.png" class="">
+<p>170 行的语句，验证 token</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Jwt</span> jwt <span class="token operator">=</span> <span class="token class-name">Jwt</span><span class="token punctuation">.</span><span class="token function">paraser</span><span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment">// 创建解析对象</span>
+<span class="token punctuation">.</span><span class="token function">setSigningKey</span><span class="token punctuation">(</span>JWT_PASSWORD<span class="token punctuation">)</span><span class="token comment">// 设置安全密钥（生成签名所需的密钥和算法）</span>
+<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>accessToken<span class="token punctuation">)</span>  <span class="token comment">// 解析token</span>
+<span class="token class-name">Claims</span> claims <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Claims</span><span class="token punctuation">)</span> jwt<span class="token punctuation">.</span><span class="token function">getBody</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取 payload 部分内容</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>第 172 行解读一下，中间是空格就可以了； <code>claims.get(&quot;admin&quot;)</code> 这句语句得到的是 JWT 的 Payload 信息，数据类型是 String，通过 Boolean.valueOf(String)，将其转变为 Boolean 的数据类型；判断依据则是 Payload 的值是否等于 admin；若等于 admin，则为 True，反之为 False</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">boolean</span> isAdmin <span class="token operator">=</span> <span class="token class-name">Boolean</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> claims<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"admin"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<ul>
+<li>代码解读到这里，师傅们应该也能看懂原理了吧，我们加快分析进度~</li>
+</ul>
+<p>第 173 - 178 行，判断 isAdmin 是否为 admin，若为 admin 时，将 vote 的值还原，并且返回 success 的消息。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">votes<span class="token punctuation">.</span><span class="token function">values</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span>vote <span class="token operator">-></span> vote<span class="token punctuation">.</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 四个 vote 的值还原到最开始</span>
+<span class="token keyword">return</span> <span class="token function">success</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h4 id="靶场部分-1"><a href="#靶场部分-1" class="headerlink" title="靶场部分"></a>靶场部分</h4><ul>
+<li>根据上面的代码审计分析，其实我们只需要抓一个 JWT 的包，并且将 JWT 当中的 Payload 修改为 “Admin”，再发包即可。</li>
+</ul>
+<p>点击删除时抓包，如图所示</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTVoteSolved.png" class="">
+
+<p>将这一串 token 拿出来，base64 解码一下。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Token64.png" class="">
+
+<p>那这里，我们发包的时候将 <code>&quot;admin&quot;:&quot;false&quot;</code> 修改为 <code>&quot;admin&quot;:&quot;true&quot;</code> 即可，再发包。</p>
+<p>这里推荐一个 JWT 在线生成的工具，不要想着用 base64 去弄，我这里踩坑花了大概半个小时才解决，不信邪的小伙伴们可以试一试。<br>工具网站：<a target="_blank" rel="noopener" href="https://jwt.io/">JSON Web Tokens - jwt.io</a></p>
+<p>JWT token 是</p>
+<p>eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOiIxNjQ5NzUwMzg1IiwiYWRtaW4iOiJ0cnVlIiwidXNlciI6IlRvbSJ9.</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTVoteGet.png" class="">
+
+<h3 id="3-JWT-Tokens-PageLesson7-parseClaimsJws-与-parse"><a href="#3-JWT-Tokens-PageLesson7-parseClaimsJws-与-parse" class="headerlink" title="3. JWT Tokens PageLesson7 parseClaimsJws 与 parse"></a>3. JWT Tokens PageLesson7 parseClaimsJws 与 parse</h3><p>这里虽然是两道选择题，但是还是有必要提一嘴</p>
+<p>放进 Burpsuite 当中比较一下两段代码</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Compare.png" class="">
+
+<ul>
+<li>对于 parseClaimsJws 来说，alg 为 none 则直接抛出异常</li>
+<li>对于 parse 来说，alg 为 none 则是判断是否为某个身份的依据。这里的 alg 如果被设置成 none，可以很好的绕过</li>
+</ul>
+<p>综上，parseCliamsJws 的防御能力能强<br>答案是 1，3</p>
+<h3 id="4-JWT-Tokens-PageLesson8-Secret-Key"><a href="#4-JWT-Tokens-PageLesson8-Secret-Key" class="headerlink" title="4. JWT Tokens PageLesson8 Secret Key"></a>4. JWT Tokens PageLesson8 Secret Key</h3><ul>
+<li>题意：让我们通过爆破的手段找出 JWT 当中的 Secret Key</li>
+</ul>
+<p>一旦拥有了一个JWT token，我们可以尝试离线暴力破解或字典攻击。</p>
+<h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4><img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTIntruderCode.png" class="">
+<h5 id="代码审计"><a href="#代码审计" class="headerlink" title="代码审计"></a><strong>代码审计</strong></h5><p>查看源码，第 85 行，返回成功的条件</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">if</span> <span class="token punctuation">(</span>WEBGOAT_USER<span class="token punctuation">.</span><span class="token function">equalsIgnoreCase</span><span class="token punctuation">(</span>user<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>再返回去看上面的判断条件</p>
+<p>最后爆得 <strong>“Secret Key”</strong> 的值为 shipping(做题时每个人是不一样的)，也可以使用 hashcat </p>
+<h3 id="5-JWT-Tokens-PageLesson10-Refresh-a-token"><a href="#5-JWT-Tokens-PageLesson10-Refresh-a-token" class="headerlink" title="5. JWT Tokens PageLesson10 Refresh a token"></a>5. JWT Tokens PageLesson10 Refresh a token</h3><p>题目是 Refreshing a token，那总归是要先探究为什么要 Refreshing a token。</p>
+<p>token类型分为两种：access token 和 refreshing token</p>
+<p>为什么需要refreshing token？</p>
+<ul>
+<li><p>为了避免多次验证access token(超时或是浪费资源)</p>
+</li>
+<li><p>refreshing token 由server生成并存储在server的数据库里，验证时对比即可。</p>
+</li>
+</ul>
+<p>个人感觉就是 session cookie 和 set-cookie 差不多</p>
+<blockquote>
+<p>题目要求我们，让 Tom 付钱</p>
+</blockquote>
+<h4 id="源码部分-3"><a href="#源码部分-3" class="headerlink" title="源码部分"></a>源码部分</h4><p>源码部分如图所示，直接看如何才能成功的部分</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshTokenCode.png" class="">
+
+<p>第 106 行，这里比对了 Tom 是否为 user。但是一番抓包之后一无所获，甚至连 Tom 是谁，token 是啥全然不知。</p>
+<p>回到题目界面，查看一下 logs.txt，发现了 Tom 的 token，丢到 jwt.io 中去验证一下。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/RefreshTomToken.png" class="">
+
+<p>应该是没这么简单的，回到源代码中看一看其他的接口</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshNewToken.png" class="">
+
+<p>这里是关键点了，之前尝试了使用 logs.txt 中的 JWT 登录，最终失败了，个人的一点猜测是这样的：之前 Tom 购买时是很早之前的记录了，所以对于我们来说，这时候的 JWT 其实已经是失效了的，但如果我们需要让 Tom 来付款，必须要临时给 Tom 创建一个新的 JWT，或者把 Tom 的 access_token 找出来。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshNewTokenController.png" class="">
+
+<p><strong>逐行代码审计又来了</strong></p>
+<blockquote>
+<p>第 137 - 146 行，当 user 与 refreshToken 都存在，不为空的时候，JWT 成功被 Refresh。</p>
+</blockquote>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">if</span> <span class="token punctuation">(</span>user <span class="token operator">==</span> <span class="token keyword">null</span> <span class="token operator">||</span> refreshToken <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> <span class="token class-name">ResponseEntity</span><span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token class-name">HttpStatus</span><span class="token punctuation">.</span>UNAUTHORIZED<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>validRefreshTokens<span class="token punctuation">.</span><span class="token function">contains</span><span class="token punctuation">(</span>refreshToken<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    validRefreshTokens<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>refreshToken<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">return</span> <span class="token function">ok</span><span class="token punctuation">(</span><span class="token function">createNewTokens</span><span class="token punctuation">(</span>user<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> <span class="token class-name">ResponseEntity</span><span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token class-name">HttpStatus</span><span class="token punctuation">.</span>UNAUTHORIZED<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>第 128 - 131 行，新构造出一个 JWT</p>
+</blockquote>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">try</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">Jwt</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Header</span><span class="token punctuation">,</span> <span class="token class-name">Claims</span><span class="token punctuation">></span></span> jwt <span class="token operator">=</span> <span class="token class-name">Jwts</span><span class="token punctuation">.</span><span class="token function">parser</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setSigningKey</span><span class="token punctuation">(</span>JWT_PASSWORD<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>token<span class="token punctuation">.</span><span class="token function">replace</span><span class="token punctuation">(</span><span class="token string">"Bearer "</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ user <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> jwt<span class="token punctuation">.</span><span class="token function">getBody</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ refreshToken <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> json<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"refresh_token"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里值得一提得是，最后解析 token 的参数，如果参数中存在 “Bearer” 就被替换为空格，这里感觉是有个双写绕过(?)，不清楚，一会儿试了就知道了。</p>
+<p>再明确一下攻击的方式，通过构造 JWT 中的 Header 部分，也就是 Header &#x3D; Authorization，把这一块放进 HTTP Request 当中。代码如下</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/AuthorizationCode.png" class="">
+
+<h4 id="解题-巨坑，醉了"><a href="#解题-巨坑，醉了" class="headerlink" title="解题(巨坑，醉了)"></a>解题(巨坑，醉了)</h4><p>首先是在 WebGoat 的界面下抓包，然后会抓到 &#x2F;WebGoat&#x2F;JWT&#x2F;refresh&#x2F;login 的这么一个包，接着添加 <code>Authorization</code> 的头，值为 Bearer null，目的是获取一个 access_token，再发包。</p>
+<ul>
+<li>发包完之后，注意！！！！！！！！这里巨坑！！！！！</li>
+</ul>
+<p>这个 access_token 里面的最后一个字段是签名，不要拿进来！不要拿进来！不要拿进来！不要拿进来！</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Refresh.png" class="">
+
+<p>在 JWTio 中编辑完毕后，去到 &#x2F;checkout 接口，发送前两个字段。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/RefreshDown.png" class="">
+
+
+<h3 id="6-JWT-Tokens-PageLesson11-final"><a href="#6-JWT-Tokens-PageLesson11-final" class="headerlink" title="6. JWT Tokens PageLesson11 final"></a>6. JWT Tokens PageLesson11 final</h3><ul>
+<li>题意： Jerry 想从 Twitter 上删除 Tom 的账号，算是越权吧。</li>
+</ul>
+<h4 id="源码部分-4"><a href="#源码部分-4" class="headerlink" title="源码部分"></a>源码部分</h4><img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalCode.png" class="">
+
+<p>核心部分在 89- 103 行这里。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalOriCode.png" class="">
+
+<ul>
+<li>这里我把源代码贴出来再分析分析</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Jwt</span> jwt <span class="token operator">=</span> <span class="token class-name">Jwts</span><span class="token punctuation">.</span><span class="token function">parser</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setSigningKeyResolver</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">SigningKeyResolverAdapter</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token annotation punctuation">@Override</span>  
+    <span class="token keyword">public</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">resolveSigningKeyBytes</span><span class="token punctuation">(</span><span class="token class-name">JwsHeader</span> header<span class="token punctuation">,</span> <span class="token class-name">Claims</span> claims<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token keyword">final</span> <span class="token class-name">String</span> kid <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> header<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"kid"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+         <span class="token keyword">try</span> <span class="token punctuation">(</span><span class="token keyword">var</span> connection <span class="token operator">=</span> dataSource<span class="token punctuation">.</span><span class="token function">getConnection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> 
+            <span class="token class-name">ResultSet</span> rs <span class="token operator">=</span> connection<span class="token punctuation">.</span><span class="token function">createStatement</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">executeQuery</span><span class="token punctuation">(</span><span class="token string">"SELECT key FROM jwt_keys WHERE id = '"</span> <span class="token operator">+</span> kid <span class="token operator">+</span> <span class="token string">"'"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+             <span class="token keyword">while</span> <span class="token punctuation">(</span>rs<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">return</span> <span class="token class-name">TextCodec</span><span class="token punctuation">.</span>BASE64<span class="token punctuation">.</span><span class="token function">decode</span><span class="token punctuation">(</span>rs<span class="token punctuation">.</span><span class="token function">getString</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+ <span class="token punctuation">&#125;</span>  
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">SQLException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+            errorMessage<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+        <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">parseClaimsJws</span><span class="token punctuation">(</span>token<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>前面的代码都是之前差不多，新生成一个 JWT，引人注目的是第 94 行这里的 SQL 语句，感觉是存在 SQL 注入的。<strong>再好好审一审代码</strong></p>
+<p>这次的 secret 是直接从数据库进行读取，而这个 SQL 语句查询的就是 JWT 的 secret。而因为之前使用了 parseClaimsJws 这个方法，于是无法构造 <code>&#123;&quot;alg&quot;:&quot;none&quot;&#125;</code> 来绕过。因此确定思路通过 SQL 注入来绕过。</p>
+<h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><p>先点击 Delete 抓包，抓包的接口是 &#x2F;JWT&#x2F;final&#x2F;delete?token&#x3D;</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalBag.png" class="">
+
+<p>我们看到 JWT header 当中多了一个 “kid”</p>
+<p>修改包，将 “username” 修改为 Tom，再对 kid 进行 SQL 注入。这里使用 Union 联合查询注入。</p>
+<ul>
+<li>构造 payload，这里的 bmV3X2tleQ&#x3D;&#x3D; 需要经过 base64 编码，因为 rs.next() 会执行一次 base64 的编码，所以我们要去 SELECT 的 secret key 需要先经过 base64 编码。</li>
+</ul>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token property">"kid"</span><span class="token operator">:</span> <span class="token string">"something_else' UNION SELECT 'bmV3X2tleQ==' FROM INFORMATION_SCHEMA.SYSTEM_USERS; --"</span><span class="token punctuation">,</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/KidInjection.png" class="">
+
+<p>修改 kid 进行 SQL 注入，并修改 iat 以及其他需要修改的数据，如上图所示。并修改下面的 secret key</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalSecretKey.png" class="">
+
+<ul>
+<li>不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！</li>
+<li>这里踩坑卡了好久 …………</li>
+</ul>
+<p>接着，发包即可。</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTOver.png" class="">
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">WebGoat代码审计-04-身份认证缺陷(上)</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-04-07 10:04:57</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/04/07/WebGoat代码审计-04-身份认证缺陷(上)/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8B)/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-04-身份认证缺陷(下)</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/03/31/Hexo-%E8%B8%A9%E5%9D%91%E5%90%88%E9%9B%86/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Hexo 踩坑合集</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7-%E4%B8%8A"><span class="nav-text">WebGoat代码审计-04-身份认证缺陷(上)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-text">0x01 写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Authentication-Bypasses"><span class="nav-text">0x02 Authentication Bypasses</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Authentication-Bypasses-PageLesson2-2FA-%E9%AA%8C%E8%AF%81%E6%96%B9%E5%BC%8F"><span class="nav-text">1. Authentication Bypasses PageLesson2 2FA 验证方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86"><span class="nav-text">靶场部分</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-JWT-Tokens"><span class="nav-text">0x03 JWT Tokens</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-JWT-Tokens-PageLesson3-%E7%AE%80%E5%8D%95%E7%90%86%E8%A7%A3-JWT"><span class="nav-text">1. JWT Tokens PageLesson3 简单理解 JWT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-JWT-Tokens-PageLesson5-%E6%9B%BF%E6%8D%A2-payload-%E7%BB%95%E8%BF%87"><span class="nav-text">2. JWT Tokens PageLesson5 替换 payload 绕过</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-1"><span class="nav-text">源码部分</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%90%E8%A1%8C%E5%88%86%E6%9E%90%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="nav-text">逐行分析，代码审计</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%E9%83%A8%E5%88%86-1"><span class="nav-text">靶场部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-JWT-Tokens-PageLesson7-parseClaimsJws-%E4%B8%8E-parse"><span class="nav-text">3. JWT Tokens PageLesson7 parseClaimsJws 与 parse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-JWT-Tokens-PageLesson8-Secret-Key"><span class="nav-text">4. JWT Tokens PageLesson8 Secret Key</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-2"><span class="nav-text">源码部分</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="nav-text">代码审计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-JWT-Tokens-PageLesson10-Refresh-a-token"><span class="nav-text">5. JWT Tokens PageLesson10 Refresh a token</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-3"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E9%A2%98-%E5%B7%A8%E5%9D%91%EF%BC%8C%E9%86%89%E4%BA%86"><span class="nav-text">解题(巨坑，醉了)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-JWT-Tokens-PageLesson11-final"><span class="nav-text">6. JWT Tokens PageLesson11 final</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-4"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86"><span class="nav-text">题目部分</span></a></li></ol></li></ol></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

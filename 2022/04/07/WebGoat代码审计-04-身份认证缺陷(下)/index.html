@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            WebGoat代码审计-04-身份认证缺陷(下) |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">WebGoat代码审计-04-身份认证缺陷(下)</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-04-07 16:16:14</span>
+        <span class="mobile">2022-04-07 16:16</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:57:57</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>1.3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>4 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="WebGoat代码审计-04-身份认证缺陷-下"><a href="#WebGoat代码审计-04-身份认证缺陷-下" class="headerlink" title="WebGoat代码审计-04-身份认证缺陷(下)"></a>WebGoat代码审计-04-身份认证缺陷(下)</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>续上篇 <a target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/03/24/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7/">WebGoat代码审计-04-身份认证缺陷(上))</a></p>
+<ul>
+<li>接下来讲一下其他的两种身份验证</li>
+</ul>
+<h2 id="0x02-Password-Reset-密码重置"><a href="#0x02-Password-Reset-密码重置" class="headerlink" title="0x02 Password Reset 密码重置"></a>0x02 Password Reset 密码重置</h2><ul>
+<li>密码重置这里主要也是以业务逻辑漏洞居多。</li>
+</ul>
+<h3 id="1-Password-Reset-PageLesson2-使用-WebWolf"><a href="#1-Password-Reset-PageLesson2-使用-WebWolf" class="headerlink" title="1. Password Reset PageLesson2 使用 WebWolf"></a>1. Password Reset PageLesson2 使用 WebWolf</h3><h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>源码文件是 SimpleMailAssignment.Java</p>
+<blockquote>
+<p>先看登录界面</p>
+</blockquote>
+<ul>
+<li>这里的第 56 - 67 行，简单的身份认证，当 username 和 password 都正确，则登录。</li>
+</ul>
+
+
+<p>第 58 - 60 行，基础的 Java 语法讲解</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">AttackResult</span> <span class="token function">login</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span> <span class="token class-name">String</span> email<span class="token punctuation">,</span> <span class="token annotation punctuation">@RequestParam</span> <span class="token class-name">String</span> password<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">String</span> emailAddress <span class="token operator">=</span> <span class="token function">ofNullable</span><span class="token punctuation">(</span>email<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">orElse</span><span class="token punctuation">(</span><span class="token string">"unknown@webgoat.org"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// emailAddress 等于 email，如果没有 email 这个值，则为 "unknown@webgoat.org"</span>
+ <span class="token class-name">String</span> username <span class="token operator">=</span> <span class="token function">extractUsername</span><span class="token punctuation">(</span>emailAddress<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 拦截器的作用，判断传进来的参数是否为邮箱的格式</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>看了很久都感觉没有洞，后面查了才知道这题只是让我们感受一下 WebWolf，并不是直接挖洞哈哈哈哈哈</p>
+<h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><ul>
+<li>发送一下忘记密码的邮件即可</li>
+</ul>
+
+
+<p>再登录即可，只是让我们感受一下 WebGoat 而已，晕……</p>
+<ul>
+<li>解出题目之后是不会变色的，不必在意</li>
+</ul>
+<h3 id="2-Password-Reset-PageLesson4-爆破密保"><a href="#2-Password-Reset-PageLesson4-爆破密保" class="headerlink" title="2. Password Reset PageLesson4 爆破密保"></a>2. Password Reset PageLesson4 爆破密保</h3><h4 id="源码部分-1"><a href="#源码部分-1" class="headerlink" title="源码部分"></a>源码部分</h4>
+
+<ul>
+<li>获取输入的第 56，57 行拉出来单独讲解一下 getOrDefault</li>
+</ul>
+<p><strong>参数说明：</strong></p>
+<ul>
+<li>key - 键</li>
+<li>defaultValue - 当指定的key并不存在映射关系中，则返回的该默认值</li>
+</ul>
+<blockquote>
+<p>返回值</p>
+</blockquote>
+<p>返回 key 相映射的的 value，如果给定的 key 在映射关系中找不到，则返回指定的默认值。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> securityQuestion <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> json<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"securityQuestion"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 获取当前参数的 "securityQuestion" 值，若没有 "securityQuestion"，则返回 ""</span>
+<span class="token class-name">String</span> username <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span> json<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span><span class="token string">"username"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>分析完毕，看到上面的 static 中有一些字符，直接尝试爆破</p>
+<h4 id="题目部分-1"><a href="#题目部分-1" class="headerlink" title="题目部分"></a>题目部分</h4><p>抓包，并将颜色部分添加 dollar 符，进行爆破</p>
+
+
+<p>再发包，成功。</p>
+
+
+<ul>
+<li>这也给我们的渗透攻击提供了一些思路，在实际的渗透测试当中，对于回答密保问题来验证身份，也可使用爆破。</li>
+<li>正确的防御手法应该是添加验证码。</li>
+</ul>
+<h3 id="3-Password-Reset-PageLesson5-关于密保的小-tips"><a href="#3-Password-Reset-PageLesson5-关于密保的小-tips" class="headerlink" title="3. Password Reset PageLesson5 关于密保的小 tips"></a>3. Password Reset PageLesson5 关于密保的小 tips</h3><p>这里让我们写密保时，不要写真实的答案，不然会被社工。<br>选 favorite color</p>
+<h3 id="4-Password-Reset-PageLesson6-修改重置密码的链接-Creating-the-password-reset-link"><a href="#4-Password-Reset-PageLesson6-修改重置密码的链接-Creating-the-password-reset-link" class="headerlink" title="4. Password Reset PageLesson6 修改重置密码的链接 Creating the password reset link"></a>4. Password Reset PageLesson6 修改重置密码的链接 Creating the password reset link</h3><ul>
+<li>题意是让我们创建一个密码重置的链接，这种情景需要先行理解一下。</li>
+</ul>
+<p>我们邮箱中收到重置密码的邮件时，通常都会发给我们另外一个 Web 地址，上面是去往密码重置的 Web 界面。</p>
+<blockquote>
+<p>在此时，若我们修改了这个密码重置的 Web 链接。<br>举个例子，Tom 的邮箱对应的地址是 10.48.244.196:8011，那么 8011 这个端口就是专门为了 Tom 设置的。</p>
+<p>假设我的账户名叫 Jerry，邮箱的地址是 10.48.244.196:8022，那么我先请求一个 <strong>“forget password”</strong> ，名字是 Tom 的邮箱，再将去到的 Host 修改为我自己的 “10.48.244.196:8022”；若后台不加以任何的限制，我们就可以越权修改 Tom 的密码。</p>
+</blockquote>
+<p>本道靶场就演示了这么一个情况。当我们输入要找回密码的邮箱时，会将链接发送道我们邮箱，点开链接才是修改密码的。</p>
+
+
+<ul>
+<li>攻击思路已经比较清楚了，我们再看一看源码</li>
+</ul>
+<h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
+<li>主要是看发送密码重置链接的源码</li>
+</ul>
+
+
+<blockquote>
+<p>总体上比较好理解，为了帮助其他小伙伴理解，还是细讲一下吧</p>
+</blockquote>
+<p>第 67 - 69 行，几个变量的定义及赋值</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">String</span> resetLink <span class="token operator">=</span> UUID<span class="token punctuation">.</span><span class="token function">randomUUID</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// resetLink 变量的值是由 UUID 产生的，至于 UUID 是一串随机数序列</span>
+<span class="token class-name">ResetLinkAssignment</span><span class="token punctuation">.</span>resetLinks<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>resetLink<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 在接口中添加 resetLinks 这一段</span>
+<span class="token class-name">String</span> host <span class="token operator">=</span> request<span class="token punctuation">.</span><span class="token function">getHeader</span><span class="token punctuation">(</span><span class="token string">"host"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// host 的值是 Request 包中的 host 值</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>后面的判断语句，判断 host 当中是否存在 WebWlof 服务对应的端口与 Host；之后再产生一个 Response 包中的 Session。</p>
+<ul>
+<li>很显然，就是这一句判断语句不够精确，所以才会导致漏洞，对应的攻击手段如下。</li>
+</ul>
+<h4 id="题目部分-2"><a href="#题目部分-2" class="headerlink" title="题目部分"></a>题目部分</h4><p>先到忘记密码的界面，输入 <code>tom@webgoat-cloud.org</code>，并抓包。<br>接着修改 Host 为 localhost:9090，也就是 WebWolf 的地址，这样子的话，原本是 Tom 忘记密码的操作就到了我们的邮箱上。</p>
+
+
+<p>再到 WebWolf 下的一个 <code>Incoming requests</code> 下，查看请求。</p>
+
+
+<p>再访问 <a target="_blank" rel="noopener" href="http://124.222.21.138:9000/WebGoat/PasswordReset/reset/change-password">http://124.222.21.138:9000/WebGoat/PasswordReset/reset/change-password</a> 即可，因为 Tom 的请求的 Host 就为此，输入密码重置即可。</p>
+<h4 id="修复方式"><a href="#修复方式" class="headerlink" title="修复方式"></a>修复方式</h4><p>固定我们的host就可以了，其实归根结底就是太相信用户的输入了，这也是很多安全问题存在的原因。</p>
+<h2 id="0x03-Secure-Passwords"><a href="#0x03-Secure-Passwords" class="headerlink" title="0x03 Secure Passwords"></a>0x03 Secure Passwords</h2><p>这里的和很多的业务逻辑漏洞是重复的，就简单过一遍靶场吧。</p>
+<h3 id="1-Secure-Passwords-PageLesson4-防爆破的密码"><a href="#1-Secure-Passwords-PageLesson4-防爆破的密码" class="headerlink" title="1.Secure Passwords PageLesson4 防爆破的密码"></a>1.Secure Passwords PageLesson4 防爆破的密码</h3><p>这里输入一传强密码即可，随意输入都可以 ~<br>我这里的答案是 <code>1!22@Misliq!39</code></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">WebGoat代码审计-04-身份认证缺陷(下)</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-04-07 16:16:14</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/04/07/WebGoat代码审计-04-身份认证缺陷(下)/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/04/09/PortSwigger-%E5%9F%BA%E4%BA%8EWebSocket%E7%9A%84%E6%BC%8F%E6%B4%9E/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">PortSwigger-基于WebSocket的漏洞</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-04-身份认证缺陷(上)</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7-%E4%B8%8B"><span class="nav-text">WebGoat代码审计-04-身份认证缺陷(下)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Password-Reset-%E5%AF%86%E7%A0%81%E9%87%8D%E7%BD%AE"><span class="nav-text">0x02 Password Reset 密码重置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Password-Reset-PageLesson2-%E4%BD%BF%E7%94%A8-WebWolf"><span class="nav-text">1. Password Reset PageLesson2 使用 WebWolf</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86"><span class="nav-text">题目部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Password-Reset-PageLesson4-%E7%88%86%E7%A0%B4%E5%AF%86%E4%BF%9D"><span class="nav-text">2. Password Reset PageLesson4 爆破密保</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-1"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86-1"><span class="nav-text">题目部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Password-Reset-PageLesson5-%E5%85%B3%E4%BA%8E%E5%AF%86%E4%BF%9D%E7%9A%84%E5%B0%8F-tips"><span class="nav-text">3. Password Reset PageLesson5 关于密保的小 tips</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Password-Reset-PageLesson6-%E4%BF%AE%E6%94%B9%E9%87%8D%E7%BD%AE%E5%AF%86%E7%A0%81%E7%9A%84%E9%93%BE%E6%8E%A5-Creating-the-password-reset-link"><span class="nav-text">4. Password Reset PageLesson6 修改重置密码的链接 Creating the password reset link</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%83%A8%E5%88%86-2"><span class="nav-text">源码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E9%83%A8%E5%88%86-2"><span class="nav-text">题目部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E5%BC%8F"><span class="nav-text">修复方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-Secure-Passwords"><span class="nav-text">0x03 Secure Passwords</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Secure-Passwords-PageLesson4-%E9%98%B2%E7%88%86%E7%A0%B4%E7%9A%84%E5%AF%86%E7%A0%81"><span class="nav-text">1.Secure Passwords PageLesson4 防爆破的密码</span></a></li></ol></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

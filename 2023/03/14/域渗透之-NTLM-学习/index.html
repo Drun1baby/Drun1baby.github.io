@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            域渗透之 NTLM 学习 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://github.com/Drun1baby/CVE_Pentest/blob/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"/images/avatar.svg","font_size":"16px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">域渗透之 NTLM 学习</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/avatar.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-03-14 11:06:48</span>
+        <span class="mobile">2023-03-14 11:06</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-03-16 10:09:34</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/%E5%86%85%E7%BD%91/">内网</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E5%86%85%E7%BD%91/">内网</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>2.2k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>8 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>总算是要开始内网学习了，也是拖了很久了吧</p>
+<ul>
+<li>刚开始学习内网不免会涉及到很多概念性的东西，这些东西我会用我自己的理解方式帮师傅们认识一遍。</li>
+</ul>
+<h2 id="0x02-NTLM"><a href="#0x02-NTLM" class="headerlink" title="0x02 NTLM"></a>0x02 NTLM</h2><ul>
+<li>很多文章都没有特别说清楚关于 NTLM 的这一些基础东西，我这里再重新书写一下</li>
+</ul>
+<h3 id="NTLM-是什么"><a href="#NTLM-是什么" class="headerlink" title="NTLM 是什么"></a>NTLM 是什么</h3><blockquote>
+<p>用一句话概括一下 NTLM 是什么</p>
+</blockquote>
+<p>NTLM 是一种认证协议，它使用挑战&#x2F;响应（challenge&#x2F;response）协议来交换消息，并通过加密的密码 hash 来验证用户身份。它在 Windows NT 和 Windows 2000 Server（或更高版本）的工作组环境中使用。</p>
+<ul>
+<li>NTLM 中的挑战&#x2F;响应（challenge&#x2F;response）协议是什么意思呢，我们可以用这一个例子来说明一下</li>
+</ul>
+<p>1、客户端向服务器发送一个包含明文登录用户名的请求（Type 1 message）<br>2、服务器生成一个 16 位的随机数（Challenge），明文发送回客户端（Type 2 message）<br>3、客户端使用自己的密码哈希对 Challenge 进行加密，生成一个响应（Response），并发送给服务器（Type 3 message）<br>4、服务器验证客户端发送的 Response 是否正确，如果正确则认证成功，否则认证失败</p>
+<p>第二步生成的随机数是用来防止重放攻击的，挑战&#x2F;响应（challenge&#x2F;response）协议也同样防止了重放攻击。</p>
+<h3 id="NTLM-本地认证流程"><a href="#NTLM-本地认证流程" class="headerlink" title="NTLM 本地认证流程"></a>NTLM 本地认证流程</h3><p>在 Windows 登录界面当中，实际上电脑调用了 <code>winlogon.exe</code> 这个程序，<code>winlogon.exe</code> 即 Windows Logon Process，是 Windows NT 用户登陆程序，用于管理用户登录和退出。</p>
+<p>1、当用户注销、重启、锁屏后，操作系统会让 <code>winlogon.exe</code> 显示登陆界面<br>2、当 <code>winlogon.exe</code> 接收到账号密码输入之后，会将密码交给 <code>lsass</code> 进程，<code>LSASS</code> 进程用于微软 Windows 系统的安全机制。它用于本地安全和登陆策略。<br>3、将明文密码加密成 NTLM Hash<br>4、与 SAM 数据库比较认证</p>
+<p>这一个认证过程实际上是将用户的输入进行某种加密算法，最后得到一个 hash 值，这个 hash 值会与电脑上的 hash 值相比较。所以我们电脑上存储的都是 hash 值，因为这样就算电脑被攻击，攻击者得到的也是 hash 值，难以进行复原。</p>
+<h3 id="获取存储的-hash"><a href="#获取存储的-hash" class="headerlink" title="获取存储的 hash"></a>获取存储的 hash</h3><p>作为攻击者的角度，我们需要了解 hash 存放的地址，本机用户的密码文件自然是存放在 SAM 文件中。</p>
+<p>文件位置在：<code>%SystemRoot%\system32\config\SAM</code></p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/SAMFile.png" class="">
+
+<p>在注册表中的存储位置为 <code>hklm\sam\sam\domains\account\users\</code> 下(必须使用 SYSTEM 权限才能看到)</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/samNotGet.png" class="">
+
+<p>我这里无法获取到 SYSTEM 权限，并且实际情况当中获取 SYSTEM 权限的难度比较大，所以我们可以通过到处注册表的方式来获取 <code>sam</code>、<code>system</code> 数据库的备份</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">reg save hklm<span class="token punctuation">\</span>sam sam.save
+reg save hklm<span class="token punctuation">\</span>system system.save
+reg save hklm<span class="token punctuation">\</span>security security.save<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/outputSAM.png" class="">
+
+<p>我们可以使用<a target="_blank" rel="noopener" href="https://github.com/fortra/impacket/blob/master/examples/secretsdump.py"> <code>impacket-secretdump.py</code> 脚本</a>来导出密码存储哈希(当然也可以直接使用 <code>mimikatz</code> 或 <code>LaZagne</code> 等工具)</p>
+<h4 id="用-impacket-读"><a href="#用-impacket-读" class="headerlink" title="用 impacket 读"></a>用 impacket 读</h4><p>命令如下，注意这个 py 文件被调用需要是在 <code>impacket/examples</code> 下，另外一个文件夹里面的脚本跑不通；并且在运行之前需要将 <code>system.save</code> 等这一类文件放到同目录下。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">python3 secretsdump.py -system system.save -sam sam.save -security security.save LOCAL<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/secretsdump.png" class="">
+
+<p>这里我们可以发现存储用户的密码的格式为: <code>uid:rid:lmhash:nthash</code>，关于 <strong><code>lmhash</code></strong> 和 <strong><code>nthash</code></strong> 会在后面进行详细介绍</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>UID 即 Windows 的登录用户名，这个很好理解。RID 则是 SID 的一部分，500-999 为保留，一般是 Windows 内置的，标准用户 RID 从 1000 开始。</p>
+<h4 id="用-Mimikatz-读"><a href="#用-Mimikatz-读" class="headerlink" title="用 Mimikatz 读"></a>用 Mimikatz 读</h4><p><strong>使用注意事项：</strong></p>
+<ul>
+<li>需要管理员权限</li>
+<li>当机器安装了KB2871997补丁或者系统版本大于 windows server 2012 时，系统的内存中就不再保存明文的密码，这样利用 mimikatz 就不能从内存中读出明文密码了。</li>
+</ul>
+<p>爆密码的命令如下</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">mimikatz.exe <span class="token string">""</span>privilege::debug<span class="token string">""</span> <span class="token string">""</span>sekurlsa::logonpasswords<span class="token string">""</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/mimikatzPassword.png" class="">
+
+<p>其中 NTLM 值与后文用到的 python 脚本运行生成的值一样</p>
+<h3 id="LM-Hash"><a href="#LM-Hash" class="headerlink" title="LM Hash"></a>LM Hash</h3><p><code>LM Hash</code> 全称 <code>LAN Manager Hash</code> 是 Windows 使用的最古老的密码存储，其历史可追溯到 1980 年代的 OS &#x2F; 2；LM Hash 将密码分成两个 7 个字符的部分，然后对每个部分进行散列，得到一个 16 字节的哈希值。LM Hash 的安全性很低，因为它不区分大小写，也不使用盐值或迭代。</p>
+<p>由于 LM Hash 存在的问题微软在 1993 年引入了 NT Hash。在 Windows 2000 版本至 2003 的版本系统默认使用 LM Hash，当密码超过 14 位时，则使用 NT Hash 进行存储。而在 Windows Visita 后，默认情况下只存储 NT Hash，LM Hash 则不再使用。如果用户密码为空或者不存储 LM Hash 的话，我们抓到的 LM Hash 是 <code>AAD3B435B51404EEAAD3B435B51404EE</code></p>
+<ul>
+<li>这里我们可以回顾一下之前通过 <code>impacket</code> 抓包解析的 hash 内容，LM Hash 为 <code>aad3b435b51404eeaad3b435b51404ee</code>，这并没有价值。</li>
+</ul>
+<p>部分工具的参数需要填写固定格式 <code>LM hash:NT hash</code>，可以将 LM hash 填0 (LM hash 可以为任意值)，即<code>00000000000000000000000000000000:NT hash</code></p>
+<ul>
+<li>相关策略配置: 本地组策略→本地策略→安全选项→网络安全（不同 Windows 版本可能有一些差异）</li>
+</ul>
+<p>在下一次更改密码时不存储 LAN 管理器哈希值</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/LANotStored.png" class="">
+
+<p>注册表位置: <code>HKLM\SYSTEM\CurrentControlSet\Control\Lsa\NoLmHash</code></p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NoLmHash.png" class="">
+
+<h3 id="NTLM-Hash"><a href="#NTLM-Hash" class="headerlink" title="NTLM Hash"></a>NTLM Hash</h3><p>Vista 之后 Windows 系统使用的 Hash，它的前身是 LM Hash，两者相差不大，只是使用的加密算法不同。在 Visita 系统后默认使用。</p>
+<h4 id="NTLM-Hash-加密方法"><a href="#NTLM-Hash-加密方法" class="headerlink" title="NTLM Hash 加密方法"></a>NTLM Hash 加密方法</h4><p>1、将用户输入的密码转换成十六进制。假设用户密码为 root，则转换后为 <code>726f6f74</code><br>2、将其转换为 unicode 格式即为：<code>277c740c8fdae5dd75e47312b56af866</code><br>3、使用 md4 加密值为<code>329153f560eb329c0e1deea55e88a1e9</code></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> binascii  
+<span class="token keyword">import</span> hashlib  
+  
+password <span class="token operator">=</span> <span class="token builtin">input</span><span class="token punctuation">(</span><span class="token string">"Your Password:"</span><span class="token punctuation">)</span>  
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Your password is : "</span> <span class="token operator">+</span> password<span class="token punctuation">)</span>  
+<span class="token builtin">hash</span> <span class="token operator">=</span> hashlib<span class="token punctuation">.</span>new<span class="token punctuation">(</span><span class="token string">'md4'</span> <span class="token punctuation">,</span> password<span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token string">"utf-16le"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>digest<span class="token punctuation">(</span><span class="token punctuation">)</span>  
+hash_hex <span class="token operator">=</span> binascii<span class="token punctuation">.</span>hexlify<span class="token punctuation">(</span><span class="token builtin">hash</span><span class="token punctuation">)</span>  
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"NTLM answer is : "</span> <span class="token operator">+</span> <span class="token builtin">str</span><span class="token punctuation">(</span>hash_hex<span class="token punctuation">,</span> <span class="token string">'UTF-8'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/encryptHash.png" class="">
+
+<h3 id="Net-NTLM-hash"><a href="#Net-NTLM-hash" class="headerlink" title="Net-NTLM hash"></a>Net-NTLM hash</h3><p>Net-NTLM Hash 通常是指在网络环境中在 NTLM 认证过程 Type3（响应阶段）中的 Response（NTProofStr）、Blob 和 Type2 阶段（质询阶段）的 ServerChallenge、用户名、请求的域名拼接而成的值。  </p>
+<p>格式为（Net-NTLM v2）：</p>
+<pre class="line-numbers language-NET-NTLM" data-language="NET-NTLM"><code class="language-NET-NTLM">username::domain:server challenge:response(HMAC-MD5):blob<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>但 Response 通常有以下几种类型:</p>
+<ul>
+<li>LM Response， 早期使用的响应类型</li>
+<li>LMv2 Response，在启用 NTLM v2 系统上将替换 LM 响应。</li>
+<li>NTLM v1 Response，基于 Windows NT 客户端，如 Windows 2000 、XP。</li>
+<li>NTLM v2 Response，Windows NT Service Pack 4 引入的响应类型，在 NTLMv2 启用的系统上将替换 NTLM 响应。</li>
+<li>NTLM2 Session Response， 用于在没有 NTLMv2 身份验证的情况下协商 NTLM2 会话安全性时，此方案会更改 LM NTLM 响应的语义。</li>
+<li>Anonymous Response，当匿名上下文正在建立时使用; 没有提供实际的证书，也没有真正的身份验证。“存根”字段显示在类型 3 消息中。</li>
+</ul>
+<p>这些响应可以在本地安全策略→本地策略→安全选项→网络安全：LAN 管理器身份验证级别中配置。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/LManager.png" class="">
+
+<p>注册表位置为：<code>HKLM\SYSTEM\CurrentControlSet\Control\Lsa\LmCompatibilityLevel</code></p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/registerLManager.png" class="">
+
+
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Options</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>发送 LM NTLM 响应</td>
+<td>客户端使用 LM 和 NTLM 身份验证，而决不会使用 NTLMv2 会话安全；域控制器接受 LM、NTLM 和 NTLMv2 身份验证。</td>
+</tr>
+<tr>
+<td>1</td>
+<td>发送 LM 和 NTLM - 如果已协商，则使用 NTLMv2 会话安全</td>
+<td>客户端使用 LM 和 NTLM 身份验证并在服务器支持时使用 NTLMv2 会话安全。 域控制器接受 LM、NTLM 和 NTLMv2 身份验证。</td>
+</tr>
+<tr>
+<td>2</td>
+<td>仅发送 NTLM 响应</td>
+<td>客户端只使用 NTLM 身份验证并在服务器支持时使用 NTLMv2 会话安全。 域控制器接受 LM、NTLM 和 NTLMv2 身份验证。</td>
+</tr>
+<tr>
+<td>3</td>
+<td>仅发送 NTLMv2 响应</td>
+<td>客户端只使用 NTLMv2 身份验证并在服务器支持时使用 NTLMv2 会话安全。 域控制器接受 LM、NTLM 和 NTLMv2 身份验证。</td>
+</tr>
+<tr>
+<td>4</td>
+<td>仅发送 NTLMv2 响应/拒绝 LM</td>
+<td>客户端只使用 NTLMv2 身份验证并在服务器支持时使用 NTLMv2 会话安全。 域控制器拒绝 LM，而只接受 NTLM 和 NTLMv2 身份验证。</td>
+</tr>
+<tr>
+<td>5</td>
+<td>仅发送 NTLMv2 响应/拒绝 LM 和 NTLM</td>
+<td>客户端只使用 NTLMv2 身份验证并在服务器支持时使用 NTLMv2 会话安全。 域控制器拒绝 LM 和 NTLM，而只接受 NTLMv2 身份验证。</td>
+</tr>
+</tbody></table>
+
+<p>各系统的默认值为：</p>
+<ul>
+<li>Windows 2000 以及 Windows XP: 发送 <code>LM &amp; NTLM</code> 响应</li>
+<li>Windows Server 2003: 仅发送 NTLM 响应</li>
+<li>Windows Vista、Windows Server 2008、Windows 7 以及 Windows Server 2008 R2 及以上: 仅发送 NTLMv2 响应</li>
+</ul>
+<h2 id="0x03-NTLM-身份认证流量分析"><a href="#0x03-NTLM-身份认证流量分析" class="headerlink" title="0x03 NTLM 身份认证流量分析"></a>0x03 NTLM 身份认证流量分析</h2>
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">域渗透之 NTLM 学习</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-03-14 11:06:48</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/03/14/域渗透之-NTLM-学习/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/%E5%86%85%E7%BD%91/">#内网</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java Shiro 权限绕过多漏洞分析</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/03/13/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-JDK7u21-%E5%8E%9F%E7%94%9F%E9%93%BE/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java反序列化之 JDK7u21 原生链</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-NTLM"><span class="nav-text">0x02 NTLM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">NTLM 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%9C%AC%E5%9C%B0%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-text">NTLM 本地认证流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AD%98%E5%82%A8%E7%9A%84-hash"><span class="nav-text">获取存储的 hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-impacket-%E8%AF%BB"><span class="nav-text">用 impacket 读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-Mimikatz-%E8%AF%BB"><span class="nav-text">用 Mimikatz 读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LM-Hash"><span class="nav-text">LM Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-Hash"><span class="nav-text">NTLM Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NTLM-Hash-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="nav-text">NTLM Hash 加密方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Net-NTLM-hash"><span class="nav-text">Net-NTLM hash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-NTLM-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">0x03 NTLM 身份认证流量分析</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
