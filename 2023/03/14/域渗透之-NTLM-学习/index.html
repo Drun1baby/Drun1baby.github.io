@@ -218,7 +218,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-03-26 10:48:51</span>
+        <span class="pc">2023-04-07 15:44:30</span>
     </span>
     
     
@@ -249,12 +249,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>2.2k 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>2.6k 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>8 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>10 分钟</span>
         </span>
     
     
@@ -272,7 +272,9 @@
             <div class="article-content keep-markdown-body">
                 
 
-                <span id="more"></span>
+                <p>总算是要开始内网学习了，也是拖了很久了吧</p>
+<span id="more"></span>
+
 <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>总算是要开始内网学习了，也是拖了很久了吧</p>
 <ul>
 <li>刚开始学习内网不免会涉及到很多概念性的东西，这些东西我会用我自己的理解方式帮师傅们认识一遍。</li>
@@ -421,7 +423,47 @@ hash_hex <span class="token operator">=</span> binascii<span class="token punctu
 <li>Windows Server 2003: 仅发送 NTLM 响应</li>
 <li>Windows Vista、Windows Server 2008、Windows 7 以及 Windows Server 2008 R2 及以上: 仅发送 NTLMv2 响应</li>
 </ul>
-<h2 id="0x03-NTLM-身份认证流量分析"><a href="#0x03-NTLM-身份认证流量分析" class="headerlink" title="0x03 NTLM 身份认证流量分析"></a>0x03 NTLM 身份认证流量分析</h2>
+<h2 id="0x03-NTLM-身份认证流量分析"><a href="#0x03-NTLM-身份认证流量分析" class="headerlink" title="0x03 NTLM 身份认证流量分析"></a>0x03 NTLM 身份认证流量分析</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>最开始环境搭建的时候看其他师傅文章很不准确，导致踩坑踩了很久。。。</p>
+<p>需要的虚拟机是 Win2012 以及一台 Win7</p>
+<p>首先两台虚拟机都需要桥接，然后配置 IP，因为 Win2012 是域服务器，所以需要让 Win7 指向&#x2F;归于 Win2012。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/BridgeMode.png" class="">
+
+<p>设置 IP 需要是和物理机处于同一网段下，这里之前被坑死了。</p>
+<p>Win2012 （DC 域控）配置如下</p>
+<p>IP：192.168.5.157<br>子网掩码：255.255.255.0<br>默认网关：192.168.5.1</p>
+<p>首选 DNS：192.168.5.157<br>备用 DNS：8.8.8.8</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/Win2012IPConfig.png" class="">
+
+<p>Win7 （域内普通主机）配置如下</p>
+<p>IP：192.168.5.158<br>子网掩码：255.255.255.0<br>默认网关：192.168.5.1</p>
+<p>首选 DNS：192.168.5.157<br>备用 DNS：8.8.8.8</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/Win7IPConfig.png" class="">
+
+<p>至此，用 Win7 是可以 ping 通 Win2012 的</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/pingSuccess.png" class="">
+
+<p>配置完毕 IP 之后，在 win2012 的机器上添加 Windows 功能</p>
+<ul>
+<li>Active Directory 域服务</li>
+<li>DNS 服务器</li>
+</ul>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/addNewRole.png" class="">
+
+<p>安装完成后可以在左侧找到 AD DS 服务</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/ADDS.png" class="">
+
+<p>接着下一步，安装，然后点 AD DS 这里，有一个 “将此服务器提升为域控制器”</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/updateToAD.png" class="">
+
+<p>添加新林：</p>
+<p>将根域名设置为 <strong>drunkbaby.com</strong></p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/ConfireADRoot.png" class="">
+
+<p>再自行设置域的还原密码，我这里是 root123!</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/SetADPassword.png" class="">
+
+<p>之后一路保持默认即可，安装完毕后，系统会自动重启。接下来创建 AD 用户</p>
+
             </div>
 
             
@@ -593,7 +635,7 @@ hash_hex <span class="token operator">=</span> binascii<span class="token punctu
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-NTLM"><span class="nav-text">0x02 NTLM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">NTLM 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%9C%AC%E5%9C%B0%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-text">NTLM 本地认证流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AD%98%E5%82%A8%E7%9A%84-hash"><span class="nav-text">获取存储的 hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-impacket-%E8%AF%BB"><span class="nav-text">用 impacket 读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-Mimikatz-%E8%AF%BB"><span class="nav-text">用 Mimikatz 读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LM-Hash"><span class="nav-text">LM Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-Hash"><span class="nav-text">NTLM Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NTLM-Hash-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="nav-text">NTLM Hash 加密方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Net-NTLM-hash"><span class="nav-text">Net-NTLM hash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-NTLM-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">0x03 NTLM 身份认证流量分析</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-NTLM"><span class="nav-text">0x02 NTLM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">NTLM 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%9C%AC%E5%9C%B0%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-text">NTLM 本地认证流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AD%98%E5%82%A8%E7%9A%84-hash"><span class="nav-text">获取存储的 hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-impacket-%E8%AF%BB"><span class="nav-text">用 impacket 读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-Mimikatz-%E8%AF%BB"><span class="nav-text">用 Mimikatz 读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LM-Hash"><span class="nav-text">LM Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-Hash"><span class="nav-text">NTLM Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NTLM-Hash-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="nav-text">NTLM Hash 加密方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Net-NTLM-hash"><span class="nav-text">Net-NTLM hash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-NTLM-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">0x03 NTLM 身份认证流量分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a></li></ol></li></ol>
     </div>
 </div>
 

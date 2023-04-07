@@ -218,7 +218,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-03-27 19:47:39</span>
+        <span class="pc">2023-04-07 11:17:16</span>
     </span>
     
     
@@ -249,12 +249,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>5.7k 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>9.1k 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>22 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>36 分钟</span>
         </span>
     
     
@@ -272,7 +272,8 @@
             <div class="article-content keep-markdown-body">
                 
 
-                <span id="more"></span>
+                <p>Java Shiro 权限绕过多漏洞分析</p>
+<span id="more"></span>
 <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>之前被面试也有问过这些问题，感觉自己还没有复现过这类漏洞，但因为之前也学过 shiro 的使用，今天就看一下这几个洞。</p>
 <h3 id="Shiro-权限绕过漏洞"><a href="#Shiro-权限绕过漏洞" class="headerlink" title="Shiro 权限绕过漏洞"></a>Shiro 权限绕过漏洞</h3><table>
 <thead>
@@ -283,6 +284,11 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>CVE-2010-3863</td>
+<td>未能对传入的 url 编码进行 decode 解码</td>
+<td>shrio &lt;=1.0.0</td>
+</tr>
 <tr>
 <td>CVE-2016-6802</td>
 <td>Context Path 路径标准化导致绕过</td>
@@ -312,6 +318,11 @@
 <td>CVE-2020-17523</td>
 <td>Shiro 匹配鉴权路径时会对分隔的 token 进行 trim 操作 导致的使用 "%20" 的绕过</td>
 <td>Shiro &lt;1.7.1</td>
+</tr>
+<tr>
+<td>CVE-2021-41303</td>
+<td>Shiro 匹配鉴权路径时会经过多重比较</td>
+<td>Shiro =1.7.1</td>
 </tr>
 </tbody>
 </table>
@@ -780,13 +791,15 @@ filterMap<span class="token punctuation">.</span><span class="token function">pu
 <ul>
 <li>当然经测试，shiro 最新版本，也就是 1.11.0 版本当中，并不存在这一 bypass（要不然就是 0day 了哈哈，这么简单的洞也轮不到我发现</li>
 </ul>
-<h2 id="0x06-Shiro682"><a href="#0x06-Shiro682" class="headerlink" title="0x06 Shiro682"></a>0x06 Shiro682</h2><ul>
+<h2 id="0x06-CVE-2020-1957-与-Shiro682"><a href="#0x06-CVE-2020-1957-与-Shiro682" class="headerlink" title="0x06 CVE-2020-1957 与 Shiro682"></a>0x06 CVE-2020-1957 与 Shiro682</h2><p>Shiro 权限绕过漏洞在 SpringBoot 高版本下的表现</p>
+<p>整个环境我已搭建完毕 </p>
+<ul>
 <li>在看后续漏洞之前我觉得有必要在这个地方提一提 Shiro682 这个洞</li>
 </ul>
-<h3 id="漏洞详情-3"><a href="#漏洞详情-3" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p>在 Spring 中，<code>/drunkbaby/xx</code> 与 <code>/drunkbaby/xx/</code> 都会被处理成 <code>/drunkbaby/xx</code>。<br>而在 Shiro 中，<code>/drunkbaby/xx</code> 与 <code>/drunkbaby/xx/</code> 被视为不同的路径，所以在 Spring 集成 Shiro 时，只需要在访问路径后添加 <code>/</code> 就存在绕过权限校验的可能。</p>
-<h3 id="漏洞影响版本-3"><a href="#漏洞影响版本-3" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>Shiro &lt; 1.5.0</p>
-<h3 id="环境搭建-3"><a href="#环境搭建-3" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>环境同最开始 Shiro 流程分析的环境，修改一下 Shiro 版本即可。</p>
-<h3 id="漏洞复现与分析-2"><a href="#漏洞复现与分析-2" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>直接访问 <code>authc</code> 路径，302</p>
+<h3 id="关于-Shiro-682"><a href="#关于-Shiro-682" class="headerlink" title="关于 Shiro 682"></a>关于 Shiro 682</h3><h4 id="漏洞详情-3"><a href="#漏洞详情-3" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>在 Spring 中，<code>/drunkbaby/xx</code> 与 <code>/drunkbaby/xx/</code> 都会被处理成 <code>/drunkbaby/xx</code>。<br>而在 Shiro 中，<code>/drunkbaby/xx</code> 与 <code>/drunkbaby/xx/</code> 被视为不同的路径，所以在 Spring 集成 Shiro 时，只需要在访问路径后添加 <code>/</code> 就存在绕过权限校验的可能。</p>
+<h4 id="漏洞影响版本-3"><a href="#漏洞影响版本-3" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.5.0</p>
+<h4 id="环境搭建-3"><a href="#环境搭建-3" class="headerlink" title="环境搭建"></a>环境搭建</h4><p>环境同最开始 Shiro 流程分析的环境，修改一下 Shiro 版本即可。</p>
+<h4 id="漏洞复现与分析-2"><a href="#漏洞复现与分析-2" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><h4 id="Shiro682-的攻击方式"><a href="#Shiro682-的攻击方式" class="headerlink" title="Shiro682 的攻击方式"></a>Shiro682 的攻击方式</h4><p>直接访问 <code>authc</code> 路径，302</p>
 <img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682302.png" class="">
 
 <p>修改 url，也就是在最后面加上 <code>/</code>，成功 bypass</p>
@@ -797,6 +810,259 @@ filterMap<span class="token punctuation">.</span><span class="token function">pu
 </ul>
 <p>Shiro 的 uri 处理还是在 <code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain()</code>，spring 对于 uri 中结尾带 <code>/</code> 的处理是在这里 <code>org.springframework.web.servlet.mvc.condition.PatternsRequestCondition#getMatchingPatterns()</code>；这里先做 Shiro 的鉴权，再做 spring 的 uri 识别。</p>
 <p>Shiro 的鉴权，不会把 <code>/user/add</code> 识别为 <code>/user/add/</code>，如图</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682ShiroRecongnize.png" class="">
+
+<p>跟进 <code>pathMatches()</code> 方法，最终是返回 false</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682doMatch.png" class="">
+
+<ul>
+<li>接着我们来看 Spring 的处理，spring 在分发请求时 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code>，会根据我们请求的 URI 选择一个最合适的 handler，其实就是从 <code>DispatcherServlet#handlerMappings</code> 找到能匹配路径的 Handler</li>
+</ul>
+<p><code>org.springframework.web.servlet.mvc.condition.PatternsRequestCondition#getMatchingPatterns()</code></p>
+<p>整条调用栈如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">getMatchingPatterns<span class="token operator">:</span><span class="token number">236</span><span class="token punctuation">,</span> <span class="token class-name">PatternsRequestCondition</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>condition<span class="token punctuation">)</span>
+getMatchingCondition<span class="token operator">:</span><span class="token number">221</span><span class="token punctuation">,</span> <span class="token class-name">PatternsRequestCondition</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>condition<span class="token punctuation">)</span>
+getMatchingCondition<span class="token operator">:</span><span class="token number">240</span><span class="token punctuation">,</span> <span class="token class-name">RequestMappingInfo</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>method<span class="token punctuation">)</span>
+getMatchingMapping<span class="token operator">:</span><span class="token number">94</span><span class="token punctuation">,</span> <span class="token class-name">RequestMappingInfoHandlerMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>method<span class="token punctuation">)</span>
+getMatchingMapping<span class="token operator">:</span><span class="token number">58</span><span class="token punctuation">,</span> <span class="token class-name">RequestMappingInfoHandlerMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>method<span class="token punctuation">)</span>
+addMatchingMappings<span class="token operator">:</span><span class="token number">427</span><span class="token punctuation">,</span> <span class="token class-name">AbstractHandlerMethodMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>handler<span class="token punctuation">)</span>
+lookupHandlerMethod<span class="token operator">:</span><span class="token number">393</span><span class="token punctuation">,</span> <span class="token class-name">AbstractHandlerMethodMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>handler<span class="token punctuation">)</span>
+getHandlerInternal<span class="token operator">:</span><span class="token number">367</span><span class="token punctuation">,</span> <span class="token class-name">AbstractHandlerMethodMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>handler<span class="token punctuation">)</span>
+getHandlerInternal<span class="token operator">:</span><span class="token number">449</span><span class="token punctuation">,</span> <span class="token class-name">RequestMappingHandlerMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>method<span class="token punctuation">.</span>annotation<span class="token punctuation">)</span>
+getHandlerInternal<span class="token operator">:</span><span class="token number">67</span><span class="token punctuation">,</span> <span class="token class-name">RequestMappingHandlerMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>mvc<span class="token punctuation">.</span>method<span class="token punctuation">.</span>annotation<span class="token punctuation">)</span>
+getHandler<span class="token operator">:</span><span class="token number">393</span><span class="token punctuation">,</span> <span class="token class-name">AbstractHandlerMapping</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">.</span>handler<span class="token punctuation">)</span>
+getHandler<span class="token operator">:</span><span class="token number">1234</span><span class="token punctuation">,</span> <span class="token class-name">DispatcherServlet</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">)</span>
+doDispatch<span class="token operator">:</span><span class="token number">1016</span><span class="token punctuation">,</span> <span class="token class-name">DispatcherServlet</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>servlet<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SpringGetMatchingPatterns.png" class="">
+
+<p>这里其实就可以看到 <code>matches()</code> 的判断为 true</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/trueSpring.png" class="">
+
+<p>跟进 <code>matches()</code>，最终这里判断的代码其实是 <code>org.springframework.web.servlet.handler.AbstractUrlHandlerMapping#match()</code> 方法</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/endSpringMatch.png" class="">
+
+<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/pull/127/files" >Commit<i class="fas fa-external-link-alt"></i></a> 地址如链接，这是高版本用于修复 Shiro682 的补丁，本质上只是进行了尾部的 <code>/</code> 的处理，迁就了 Spring</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro682Fix.png" class="">
+
+<p>而关于 Shiro682 的处理，我们可以看到对于 Spring 不同版本实际上也有处理，但更为关键的是 Shiro 的处理。</p>
+<h3 id="关于-CVE-2020-1957-的漏洞"><a href="#关于-CVE-2020-1957-的漏洞" class="headerlink" title="关于 CVE-2020-1957 的漏洞"></a>关于 CVE-2020-1957 的漏洞</h3><h4 id="自己发现的一种-bypass，在高版本-SpringBoot-中可用"><a href="#自己发现的一种-bypass，在高版本-SpringBoot-中可用" class="headerlink" title="自己发现的一种 bypass，在高版本 SpringBoot 中可用"></a>自己发现的一种 bypass，在高版本 SpringBoot 中可用</h4><p>说是 <code>/user;/add</code> 的 bypass，虽然也有一种说法，说这一种攻击才是正统的 CVE payload（后面发现这是我自己乱搞出来的，笑死</p>
+<p>从 <code>PathMatchingFilterChainResolver.getChain()</code> 下断点，跟进到 <code>this.getPathWithinApplication()</code> 方法，这里 <code>uri = request.getRequestURI();</code> 出来的 uri 还是我们原始请求的那一个，往下走，跟进 <code>normalize(decodeAndCleanUriString(request, uri))</code> ，这个方法之前我们提到过，会处理 <code>/../</code>，<code>/./</code> 这一系列的 uri</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682IndexOf.png" class="">
+
+<p>通过 <code>indexOf()</code> 截取到了 <code>;</code> 之前的内容，所以 uri 最后返回回来的值的为 <code>/user</code>，那么后续自然而然，<code>/user</code> 与 <code>/user/add</code> 肯定不匹配，返回 false</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682ShiroFalse.png" class="">
+
+<blockquote>
+<p>下面我们去看 Spring 是怎么处理请求的，其实当时看的参考文章和我的不太一样，这里算是踩坑了，不过还是自己分析吧，也是很快的 。</p>
+</blockquote>
+<p>倒也不完全是，我发现这里很多文章写的 payload 都是 <code>/xxx/..;/user/add</code> 这一种的越权，实际测试下来发现这一种不行，有的文章里面说是因为 SpringBoot 版本太高了，既然如此，能够有这一种的方便 bypass，还是自己分析一下吧。后续会简单提一下之前的 payload 是怎么打的。</p>
+<p>这里我先把断点下在了 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch()</code> 方法处，因为这个方法是用来做 SpringBoot 的处理的，相当于是一个前端控制器。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682DispatcherServlet.png" class="">
+
+<p>往下走，第 1043 行，<code>DispatcherServlet</code> 类收到请求调用 <code>HandlerMapping</code> 处理器映射器。处理器映射器根据请求 url 找到具体的处理器，生成处理器对象 Handler 及处理器拦截器(如果有则生成)一并返回给DispatcherServlet。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682handlerMappings.png" class="">
+
+<p>这里匹配到的第一个 —— <code>RequestMappingHandlerMapping</code> 就是，我们跟进 <code>getHandler()</code> 方法看一下，一路跟进至 <code>org.springframework.web.servlet.handler.AbstractHandlerMethodMapping#getHandlerInternal</code> 方法，在这个方法里做了具体业务，当然这里我们继续跟进 <code>initLookupPath()</code> 方法。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682initLookupPath.png" class="">
+
+<p><code>initLookupPath()</code> 方法主要是做了 Uri 处理的初始化，这个 Uri 变量最终还是要经过一些处理，继续跟进 <code>removeSemicolonContent()</code> 方法。<code>removeSemicolonContent()</code> 方法的意思是判断是否需要删除分号内容，如果需要则跟进 <code>removeSemicolonContentInternal()</code> 方法，如果不需要的话就销毁此 session，将 Uri 返回，这一 Uri 就是正确的 Uri 了。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682removeSemicolonContent.png" class="">
+
+<p>这里我们需要去除分号，所以跟进 <code>removeSemicolonContentInternal(requestUri)</code> 方法</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682DeteleSemicolon.png" class="">
+
+<p>后续就是老一套的 MVC 了，这里不再赘述。</p>
+<h4 id="顺带再提一提-xxx-user-add-这个-payload"><a href="#顺带再提一提-xxx-user-add-这个-payload" class="headerlink" title="顺带再提一提 /xxx/..;/user/add 这个 payload"></a>顺带再提一提 <code>/xxx/..;/user/add</code> 这个 payload</h4><ul>
+<li>这个 payload 是有要求的，要求 SpringBoot 的版本 &lt; 2.3，是很多师傅文章里面的 payload</li>
+</ul>
+<p>流程都是一样，<code>DispatcherServlet</code> 类收到请求调用 <code>HandlerMapping</code> 处理器映射器。这里匹配到的是 <code>org.springframework.web.util.UrlPathHelper#getLookupPathForRequest</code></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">getLookupPathForRequest</span><span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span> request<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>alwaysUseFullPath<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getPathWithinApplication</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">String</span> rest <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getPathWithinServletMapping</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> <span class="token operator">!</span><span class="token string">""</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>rest<span class="token punctuation">)</span> <span class="token operator">?</span> rest <span class="token operator">:</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getPathWithinApplication</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>一整个调用栈如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">getRequestUri<span class="token operator">:</span><span class="token number">326</span><span class="token punctuation">,</span> <span class="token class-name">UrlPathHelper</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+getPathWithinApplication<span class="token operator">:</span><span class="token number">244</span><span class="token punctuation">,</span> <span class="token class-name">UrlPathHelper</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+getPathWithinServletMapping<span class="token operator">:</span><span class="token number">195</span><span class="token punctuation">,</span> <span class="token class-name">UrlPathHelper</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+getLookupPathForRequest<span class="token operator">:</span><span class="token number">171</span><span class="token punctuation">,</span> <span class="token class-name">UrlPathHelper</span> <span class="token punctuation">(</span>org<span class="token punctuation">.</span>springframework<span class="token punctuation">.</span>web<span class="token punctuation">.</span>util<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>直接跟进 <code>decodeAndCleanUriString()</code> 方法，代码如下，其实这一段在 Y4tacker 师傅 CVE-2016-6802 分析的时候也出现过</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token class-name">String</span> <span class="token function">decodeAndCleanUriString</span><span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span> request<span class="token punctuation">,</span> <span class="token class-name">String</span> uri<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">removeSemicolonContent</span><span class="token punctuation">(</span>uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">decodeRequestString</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getSanitizedPath</span><span class="token punctuation">(</span>uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> uri<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>跟进 <code>removeSemicolonContent()</code> 方法，主要问题是在这里</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">removeSemicolonContent</span><span class="token punctuation">(</span><span class="token class-name">String</span> requestUri<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>removeSemicolonContent <span class="token operator">?</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">removeSemicolonContentInternal</span><span class="token punctuation">(</span>requestUri<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">removeJsessionid</span><span class="token punctuation">(</span>requestUri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">private</span> <span class="token class-name">String</span> <span class="token function">removeSemicolonContentInternal</span><span class="token punctuation">(</span><span class="token class-name">String</span> requestUri<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">int</span> semicolonIndex <span class="token operator">=</span> requestUri<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">59</span><span class="token punctuation">)</span><span class="token punctuation">;</span> semicolonIndex <span class="token operator">!=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span> semicolonIndex <span class="token operator">=</span> requestUri<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">59</span><span class="token punctuation">,</span> semicolonIndex<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+          <span class="token keyword">int</span> slashIndex <span class="token operator">=</span> requestUri<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token number">47</span><span class="token punctuation">,</span> semicolonIndex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token class-name">String</span> start <span class="token operator">=</span> requestUri<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> semicolonIndex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+          requestUri <span class="token operator">=</span> slashIndex <span class="token operator">!=</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">?</span> start <span class="token operator">+</span> requestUri<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>slashIndex<span class="token punctuation">)</span> <span class="token operator">:</span> start<span class="token punctuation">;</span>
+      <span class="token punctuation">&#125;</span>
+
+      <span class="token keyword">return</span> requestUri<span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里分别依次调用三个方法,分别用来过滤<code>;</code>、urldecode、过滤<code>//</code>，这就导致最后返回的其实就是 <code>/admin/index</code></p>
+<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 1.5.2 版本中对其进行了<a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce#diff-98f7bc5c0391389e56531f8b3754081aR139" >修复<i class="fas fa-external-link-alt"></i></a>，获取 requestURI 的方式从 <code>request.getRequestUri</code> 直接获取的方式更改为获取 request 的 ContextPath，ServletPath，PathInfo，然后再重新拼接而成。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682Fix.png" class="">
+
+<p>输入的 <code>/xxx/..;/user/add</code>，将会被拼接为 <code>//xxx/user/add</code> 再进行 URI 路径匹配，则无法绕过拦截器。或者就返回 404，导致无法成功越权。</p>
+<h2 id="0x07-CVE-2020-11989-x2F-CVE-2020-13933"><a href="#0x07-CVE-2020-11989-x2F-CVE-2020-13933" class="headerlink" title="0x07 CVE-2020-11989&#x2F;CVE-2020-13933"></a>0x07 CVE-2020-11989&#x2F;CVE-2020-13933</h2><h3 id="CVE-2020-11989"><a href="#CVE-2020-11989" class="headerlink" title="CVE-2020-11989"></a>CVE-2020-11989</h3><h4 id="漏洞详情-4"><a href="#漏洞详情-4" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>此漏洞有两种绕过方式，一种是之前我们说的<code>/;/user/add</code> 的绕过方式，且并不局限于 context-path，因为前面自己分析过了，就不再分析了。</p>
+<p>另外一种绕过方式是关于双层编码绕过，这个场景下需要一些限制条件，首先配置文件的 <code>ant</code> 风格需要是<code>*</code>而不是<code>**</code>，测试发现，<code>?</code> 也可以<br>另外 <code>controller</code> 需要接收的 <code>request</code> 参数 (<code>@PathVariable</code>) 的类型需要是 <code>String</code>，否则将会出错。</p>
+<h4 id="漏洞影响版本-4"><a href="#漏洞影响版本-4" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><ul>
+<li>Apache Shiro &lt; 1.5.3</li>
+</ul>
+<h4 id="环境搭建-4"><a href="#环境搭建-4" class="headerlink" title="环境搭建"></a>环境搭建</h4><p>添加一个 <code>@PathVariable</code> 的接口</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@ResponseBody</span>  
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/toJsonList/&#123;name&#125;"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">namePage</span><span class="token punctuation">(</span><span class="token annotation punctuation">@PathVariable</span> <span class="token class-name">String</span> name<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> name<span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>且添加 shiro 鉴权</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">filterMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"/toJsonList/*"</span><span class="token punctuation">,</span> <span class="token string">"authc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h4 id="漏洞复现与分析-3"><a href="#漏洞复现与分析-3" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>只有 Shiro 1.5.2 版本是可以的，其他版本使用都是 400，不知道是不是我自己环境搭建的问题。访问未授权路径 302</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989_302.png" class="">
+
+<p>越权访问，payload <code>/toJsonList/r%25%32%66oot</code>，注意看。。。我当时这里被坑了</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989_200.png" class="">
+
+<p>测试发现下面四种组合只有前两组可以绕过</p>
+<pre class="line-numbers language-none"><code class="language-none">yes
+&#x2F;toJsonList&#x2F;a%25%32%66a
+&#x2F;toJsonList&#x2F;%25%32%66
+
+no
+&#x2F;toJsonList&#x2F;%25%32%66a
+&#x2F;toJsonList&#x2F;a%25%32%66<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>简单分析一下这个漏洞，因为还是老一套的断点 + 跟进，这里我就不再赘述了，直接讲最重要的部分 <code>org.apache.shiro.web.util.WebUtils#getRequestUri()</code>，我们楷爷先看一下 request 里面的 url 是什么</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989URLPreHandle.png" class="">
+
+<p>我们原本的输入先经过自动的 url 一次解码，<code>decodeAndCleanUriString()</code> 方法是用来消除 <code>;</code> 的，所以没什么影响，最后拿到的 url 是 <code>/toJsonList/r/oot</code>，那么这一个路径不是 <code>/toJsonList/*</code>，而是 <code>/toJsonList/r/*</code>，所以 shiro 鉴权变得无效了。</p>
+<p>后续通过 <code>@PathVariable</code> 注解，却会自动拼接 <code>r%2foot</code>，从而 200。</p>
+<p>观感来来说这种 bypass 非常鸡肋，我暂时想不到有什么能够利用的角度</p>
+<h4 id="漏洞修复-4"><a href="#漏洞修复-4" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/01887f645f92d276bbaf7dc644ad28ed4e82ef02" >Commit<i class="fas fa-external-link-alt"></i></a> 如链接所示</p>
+<p>可以看到，<code>shiro</code>建议使用 <code>getPathWithinApplication()</code> 方法获取路径减去上下文路径，或直接调用 <code>HttpServletRequest.getRequestURI()</code> 方法获取。</p>
+<p>在 <code>WebUtils#getPathWithinApplication</code> 方法，修改了使用 <code>RequestUri</code> 去除 <code>ContextPath</code> 的方式，改为使用 <code>getServletPath(request) + getPathInfo(request))</code>。然后使用 <code>removeSemicolon</code> 方法处理分号问题，<code>normalize</code> 方法进行路径标准化。</p>
+<p>而那一种  bypass，我觉得 Shiro 官方认为这是一种鸡肋的攻击方式，且利用条件比较苛刻，所以没有进行修复。</p>
+<h3 id="CVE-2020-13933"><a href="#CVE-2020-13933" class="headerlink" title="CVE-2020-13933"></a>CVE-2020-13933</h3><h4 id="漏洞详情-5"><a href="#漏洞详情-5" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>其实就是上文讲的鸡肋 bypass 的一种 bypass，虽然从利用角度来说很鸡肋，但是能找到这个漏洞确实是厉害。</p>
+<h4 id="漏洞影响版本-5"><a href="#漏洞影响版本-5" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>影响版本 shiro &lt; 1.6.0</p>
+<h4 id="漏洞复现与分析-4"><a href="#漏洞复现与分析-4" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>payload 比较不一样，之前是二次的 url 编码，这次是 <code>/toJsonList/%3broot</code>，访问未授权界面 302</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933_302.png" class="">
+
+<p>通过 payload bypass</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933_200bypass.png" class="">
+
+<p>关键处是在 <code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication()</code></p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933getPathWithinApplicationCode.png" class="">
+
+<p><code>removeSemicolon()</code> 方法会把分号给移除，我们跟进看一下，这里挺重要的</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933removeSemicolon.png" class="">
+
+<p>由于截取的是 <code>;</code> 所在的位置，这就导致返回的 url 其实是 <code>/toJsonList/</code>，和 shiro 鉴权比较是 false 的</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933NotMatchShiro.png" class="">
+
+<p>而在 spring 当中 <code>org.springframework.web.util.UrlPathHelper#decodeAndCleanUriString</code></p>
+<p>这里流程是先去除;再解码，因此出现了问题</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token class-name">String</span> <span class="token function">decodeAndCleanUriString</span><span class="token punctuation">(</span><span class="token class-name">HttpServletRequest</span> request<span class="token punctuation">,</span> <span class="token class-name">String</span> uri<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">removeSemicolonContent</span><span class="token punctuation">(</span>uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">decodeRequestString</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  uri <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getSanitizedPath</span><span class="token punctuation">(</span>uri<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">return</span> uri<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="漏洞修复-5"><a href="#漏洞修复-5" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/dc194fc977ab6cfbf3c1ecb085e2bac5db14af6d" >Commit<i class="fas fa-external-link-alt"></i></a> 漏洞修复如链接</p>
+<p><code>shiro</code>在<code>1.6.0</code> 版本中，<code>org.apache.shiro.spring.web#ShiroFilterFactoryBean</code> 中增加了 <code>/**</code> 的默认路径配置，使其可以全局匹配进行过滤校验。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933Fix.png" class="">
+
+<p>默认的<code>/**</code>配置对应一个全局的 <code>filter</code>：<code>InvalidRequestFilter</code>，这个类继承了 <code>AccessControlFilter</code>。用来过滤特殊字符（分号、反斜线、非ASCII码字符)，并返回 <code>400</code> 状态码。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933filter.png" class="">
+
+<h2 id="0x08-CVE-2020-17510-x2F-CVE-2020-17523"><a href="#0x08-CVE-2020-17510-x2F-CVE-2020-17523" class="headerlink" title="0x08 CVE-2020-17510&#x2F;CVE-2020-17523"></a>0x08 CVE-2020-17510&#x2F;CVE-2020-17523</h2><h3 id="CVE-2020-17510"><a href="#CVE-2020-17510" class="headerlink" title="CVE-2020-17510"></a>CVE-2020-17510</h3><h4 id="漏洞详情-6"><a href="#漏洞详情-6" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>同样是 bypass，同之前两种的 bypass 不太一样，用的是 <code>.</code> bypass</p>
+<h4 id="漏洞影响版本-6"><a href="#漏洞影响版本-6" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.7.0</p>
+<h4 id="漏洞复现与分析-5"><a href="#漏洞复现与分析-5" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>同样是 <code>@PathVariable</code> 才能打通，payload 为 <code>/toJsonList/%2e</code>，这个洞就更鸡肋了</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11633_200.png" class="">
+
+<p>我觉得这个洞更为鸡肋的一点就是，它和之前的洞不一样，之前的洞的 name 是可控的，这里完全只能是 <code>%2e</code>，或者是其他 payload，但也仅限于此。</p>
+<p>当 <code>Shiro</code> 获得的 <code>uri</code> 为 <code>/toJsonList</code> 时，是无法和 <code>/hello/*</code> 匹配的，所以就在 <code>/hello</code> 后面加上 <code>%2e</code>，这样 <code>Shiro</code> 解码之后变成 <code>/hello/.</code>，然后路径标准化成为 <code>/hello</code>，绕过身份验证。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/17510URIHandle.png" class="">
+
+<p>下面的 <code>payload</code> 都可以使用，但还是那个问题，局限性比较大</p>
+<pre class="line-numbers language-none"><code class="language-none">&#x2F;%2e
+&#x2F;%2e&#x2F;
+&#x2F;%2e%2e
+&#x2F;%2e%2e&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="漏洞修复-6"><a href="#漏洞修复-6" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在<a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6acaaee9bb3a27927b599c37fabaeb7dd6109403" >Commit<i class="fas fa-external-link-alt"></i></a>中发现 <code>org.apache.shiro.spring.web</code> 下新增了 <code>ShiroUrlPathHelper</code> 类，属于<code>UrlPathHelper</code> 的子类，重写了 <code>getPathWithinApplication</code> 和 <code>getPathWithinServletMapping</code> 两个方法</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/17510Fix.png" class="">
+
+<ul>
+<li>其实这里修复的可以说是很差，有点敷衍了事且需要打补丁，具体这里我就不详细写了，有兴趣的师傅可以看 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-42" >https://xz.aliyun.com/t/11633#toc-42<i class="fas fa-external-link-alt"></i></a></li>
+</ul>
+<h3 id="CVE-2020-17523"><a href="#CVE-2020-17523" class="headerlink" title="CVE-2020-17523"></a>CVE-2020-17523</h3><h4 id="漏洞详情-7"><a href="#漏洞详情-7" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>是 CVE-2020-17510 修复后的 bypass，这个漏洞可以使用空格 <code>%20</code> 进行绕过</p>
+<p>我们输入 payload 为 <code>http://localhost:8080/toJsonList/%20</code> 能够完成越权。</p>
+<h4 id="漏洞影响版本-7"><a href="#漏洞影响版本-7" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.7.1</p>
+<h4 id="漏洞复现与分析-6"><a href="#漏洞复现与分析-6" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>payload <code>http://localhost:8080/toJsonList/%20</code></p>
+<p>同样的问题，不再赘述了</p>
+<h4 id="漏洞修复-7"><a href="#漏洞修复-7" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 <a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab1ea4a2006f6bd6a2b5f72740b7135662f8f160#diff-ce9ba3462f7d76e68c79bec5b9a3aea9bbd0d22ffb5e738f1b621cae49037b92" >Commit<i class="fas fa-external-link-alt"></i></a>中，主要修复点 <code>AntPathMatcher.java</code>，在 <code>tokenizeToStringArray</code> 方法中加了 <code>false</code> 和 <code>true</code> 两个参数</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro171Fix.png" class="">
+
+<blockquote>
+<p>这里稍微总结一下，当然也是我自己的吐槽罢了，CVE-2020-13933 这四个类型的洞其实本质上都是同一个洞。</p>
+</blockquote>
+<h2 id="0x09-CVE-2021-41303"><a href="#0x09-CVE-2021-41303" class="headerlink" title="0x09 CVE-2021-41303"></a>0x09 CVE-2021-41303</h2><h3 id="漏洞详情-8"><a href="#漏洞详情-8" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p><code>1.8.0</code> 之前的 <code>Apache Shiro</code>，在 <code>Spring Boot</code> 中使用 <code>Apache Shiro</code> 时，特制的 <code>HTTP</code> 请求可能会导致身份验证绕过。用户应该更新到 <code>Apache Shiro 1.8.0</code></p>
+<h3 id="漏洞影响版本-8"><a href="#漏洞影响版本-8" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>Shiro &#x3D; 1.7.1</p>
+<h3 id="环境搭建-5"><a href="#环境搭建-5" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>需要 ShiroConfig 配置鉴权如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">filterMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"/toJsonList/*"</span><span class="token punctuation">,</span> <span class="token string">"authc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+filterMap<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span><span class="token string">"/toJsonList/index"</span><span class="token punctuation">,</span> <span class="token string">"authc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>Controller</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@ResponseBody</span>  
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span><span class="token string">"/toJsonList/&#123;name&#125;/index"</span><span class="token punctuation">)</span>  
+<span class="token keyword">public</span> <span class="token class-name">String</span> <span class="token function">namePage</span><span class="token punctuation">(</span><span class="token annotation punctuation">@PathVariable</span> <span class="token class-name">String</span> name<span class="token punctuation">)</span><span class="token punctuation">&#123;</span>  
+    <span class="token keyword">return</span> name<span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="漏洞复现与分析-7"><a href="#漏洞复现与分析-7" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>参考三梦师傅的文章，这里主要是配置文件的利用角度，利用上比较有局限性，且只是 Shiro 1.7.1 版本特有的存在</p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/" >https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/<i class="fas fa-external-link-alt"></i></a></p>
+<p>根据<a class="link"   target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/" >threedr3am师傅<i class="fas fa-external-link-alt"></i></a>博客提供的方向，看了一下 Shiro 1.7.1 前后 <code>PathMatchingFilterChainResolver#getChain</code> 的对比，上面的是 1.7.1 版本的，下面是 1.7.0 版本的</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/171GetChainCode.png" class="">
+
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/170GetChainCode.png" class="">
+
+<p>发现在 <code>1.7.1</code> 版本中，先是对 pathPattern 和 requestURI 进行比较，比较成功，返回：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">filterChainManager<span class="token punctuation">.</span><span class="token function">proxy</span><span class="token punctuation">(</span>originalChain<span class="token punctuation">,</span> pathPattern<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>否则对删除尾部斜线的 pathPattern 和 requestURI 进行比较，比较成功，跳出循环，返回：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">filterChainManager<span class="token punctuation">.</span><span class="token function">proxy</span><span class="token punctuation">(</span>originalChain<span class="token punctuation">,</span> requestURINoTrailingSlash<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>这就说明了其实我们如果构造两个 shiro 的鉴权，然后让它们经过处理之后能够 bypass 最终的鉴权即可。所以经过之前环境搭建那一步的铺垫，相信师傅们已经知道这个 bypass payload 了，也就是 <code>/toJsonList/xxx/index</code>，因为 shiro 的鉴权是从上往下的，先进行 <code>toJsonList/*</code> 的鉴权判断，再去做 <code>toJsonList/index</code> 的鉴权，同样不匹配，从而造成 bypass</p>
+<p>可是 Spring 还是会将 uri 解读成原本的。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/2021BypassPic.png" class="">
+
+<p>本质上还是由于鉴权出现的逻辑问题而造成的权限绕过</p>
+<h3 id="漏洞修复-8"><a href="#漏洞修复-8" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>直接将 <code>filterChainManager.proxy</code> 的第二个参数改为 <code>pathPattern</code>，直接传配置中的 <code>uri</code> 了</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/41303Fix.png" class="">
+
+<h2 id="0x10-CVE-2022-32532"><a href="#0x10-CVE-2022-32532" class="headerlink" title="0x10 CVE-2022-32532"></a>0x10 CVE-2022-32532</h2><p>比较难以利用</p>
+<h3 id="漏洞详情-9"><a href="#漏洞详情-9" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p>在 <code>1.9.1</code> 之前的 <code>Apache Shiro</code> 中，<code>RegexRequestMatcher</code> 可能会被错误配置，从而在某些 <code>servlet</code> 容器上被绕过。应用程序使用 <code>RegExPatternMatcher</code> 与 <code>.</code> 的正则表达式可能容易被授权绕过。</p>
+<h3 id="漏洞影响版本-9"><a href="#漏洞影响版本-9" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>shiro &lt; 1.9.1</p>
+<h3 id="漏洞复现与分析-8"><a href="#漏洞复现与分析-8" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>详情可以看这位师傅写的文章 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-50" >https://xz.aliyun.com/t/11633#toc-50<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x11-小结"><a href="#0x11-小结" class="headerlink" title="0x11 小结"></a>0x11 小结</h2><p>终于把一系列漏洞复现完了，前面的流程分析起来还是挺有意思的，后面的主要是为自己漏洞挖掘能够提供一些思路。</p>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633" >https://xz.aliyun.com/t/11633<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://tttang.com/archive/1592" >https://tttang.com/archive/1592<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 
@@ -841,6 +1107,21 @@ filterMap<span class="token punctuation">.</span><span class="token function">pu
 
             
                 <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Phar 反序列化学习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
                     
                     
                         <div class="article-next">
@@ -954,7 +1235,7 @@ filterMap<span class="token punctuation">.</span><span class="token function">pu
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E"><span class="nav-text">Shiro 权限绕过漏洞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Shiro-%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-text">0x02 Shiro 流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shiro-%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-text">Shiro 认证流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%AE%9E%E7%8E%B0"><span class="nav-text">过滤实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-CVE-2010-3863"><span class="nav-text">0x03 CVE-2010-3863</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-1"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-CVE-2014-0074%EF%BC%88shiro460"><span class="nav-text">0x04 CVE-2014-0074（shiro460)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-1"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-1"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-CVE-2016-6802"><span class="nav-text">0x05 CVE-2016-6802</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-2"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-2"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-2"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-1"><span class="nav-text">漏洞复现与分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%89%E7%85%A7%E7%BD%91%E4%B8%8A%E7%9A%84-payload-%E5%A4%8D%E7%8E%B0"><span class="nav-text">按照网上的 payload 复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%B7%B1%E5%8F%91%E7%8E%B0%E7%9A%84-bypass-%E7%9A%84%E5%88%86%E6%9E%90%EF%BC%8C%E5%90%8C%E6%97%B6%E4%B8%8D%E5%B8%A6-contextPath"><span class="nav-text">自己发现的 bypass 的分析，同时不带 contextPath</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-1"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-Shiro682"><span class="nav-text">0x06 Shiro682</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-3"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-3"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-3"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-2"><span class="nav-text">漏洞复现与分析</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E"><span class="nav-text">Shiro 权限绕过漏洞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Shiro-%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-text">0x02 Shiro 流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shiro-%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90"><span class="nav-text">Shiro 认证流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%AE%9E%E7%8E%B0"><span class="nav-text">过滤实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-CVE-2010-3863"><span class="nav-text">0x03 CVE-2010-3863</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-1"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-CVE-2014-0074%EF%BC%88shiro460"><span class="nav-text">0x04 CVE-2014-0074（shiro460)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-1"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-1"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-CVE-2016-6802"><span class="nav-text">0x05 CVE-2016-6802</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-2"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-2"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-2"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-1"><span class="nav-text">漏洞复现与分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%89%E7%85%A7%E7%BD%91%E4%B8%8A%E7%9A%84-payload-%E5%A4%8D%E7%8E%B0"><span class="nav-text">按照网上的 payload 复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%B7%B1%E5%8F%91%E7%8E%B0%E7%9A%84-bypass-%E7%9A%84%E5%88%86%E6%9E%90%EF%BC%8C%E5%90%8C%E6%97%B6%E4%B8%8D%E5%B8%A6-contextPath"><span class="nav-text">自己发现的 bypass 的分析，同时不带 contextPath</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-1"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-CVE-2020-1957-%E4%B8%8E-Shiro682"><span class="nav-text">0x06 CVE-2020-1957 与 Shiro682</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Shiro-682"><span class="nav-text">关于 Shiro 682</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-3"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-3"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-3"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-2"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Shiro682-%E7%9A%84%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F"><span class="nav-text">Shiro682 的攻击方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-2"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-CVE-2020-1957-%E7%9A%84%E6%BC%8F%E6%B4%9E"><span class="nav-text">关于 CVE-2020-1957 的漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%B7%B1%E5%8F%91%E7%8E%B0%E7%9A%84%E4%B8%80%E7%A7%8D-bypass%EF%BC%8C%E5%9C%A8%E9%AB%98%E7%89%88%E6%9C%AC-SpringBoot-%E4%B8%AD%E5%8F%AF%E7%94%A8"><span class="nav-text">自己发现的一种 bypass，在高版本 SpringBoot 中可用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%BA%E5%B8%A6%E5%86%8D%E6%8F%90%E4%B8%80%E6%8F%90-xxx-user-add-%E8%BF%99%E4%B8%AA-payload"><span class="nav-text">顺带再提一提 &#x2F;xxx&#x2F;..;&#x2F;user&#x2F;add 这个 payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-3"><span class="nav-text">漏洞修复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x07-CVE-2020-11989-x2F-CVE-2020-13933"><span class="nav-text">0x07 CVE-2020-11989&#x2F;CVE-2020-13933</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-11989"><span class="nav-text">CVE-2020-11989</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-4"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-4"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-4"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-3"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-4"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-13933"><span class="nav-text">CVE-2020-13933</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-5"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-5"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-4"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-5"><span class="nav-text">漏洞修复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x08-CVE-2020-17510-x2F-CVE-2020-17523"><span class="nav-text">0x08 CVE-2020-17510&#x2F;CVE-2020-17523</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-17510"><span class="nav-text">CVE-2020-17510</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-6"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-6"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-5"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-6"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-17523"><span class="nav-text">CVE-2020-17523</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-7"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-7"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-6"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-7"><span class="nav-text">漏洞修复</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x09-CVE-2021-41303"><span class="nav-text">0x09 CVE-2021-41303</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-8"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-8"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-5"><span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-7"><span class="nav-text">漏洞复现与分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-8"><span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x10-CVE-2022-32532"><span class="nav-text">0x10 CVE-2022-32532</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85-9"><span class="nav-text">漏洞详情</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC-9"><span class="nav-text">漏洞影响版本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E4%B8%8E%E5%88%86%E6%9E%90-8"><span class="nav-text">漏洞复现与分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x11-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x11 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ref"><span class="nav-text">Ref</span></a></li></ol>
     </div>
 </div>
 
