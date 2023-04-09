@@ -218,7 +218,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-04-07 15:44:30</span>
+        <span class="pc">2023-04-09 12:06:42</span>
     </span>
     
     
@@ -249,12 +249,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>2.6k 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>7.1k 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>10 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>29 分钟</span>
         </span>
     
     
@@ -442,7 +442,7 @@ hash_hex <span class="token operator">=</span> binascii<span class="token punctu
 <p>至此，用 Win7 是可以 ping 通 Win2012 的</p>
 <img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/pingSuccess.png" class="">
 
-<p>配置完毕 IP 之后，在 win2012 的机器上添加 Windows 功能</p>
+<h4 id="win2012-域环境配置"><a href="#win2012-域环境配置" class="headerlink" title="win2012 域环境配置"></a>win2012 域环境配置</h4><p>配置完毕 IP 之后，在 win2012 的机器上添加 Windows 功能</p>
 <ul>
 <li>Active Directory 域服务</li>
 <li>DNS 服务器</li>
@@ -462,7 +462,613 @@ hash_hex <span class="token operator">=</span> binascii<span class="token punctu
 <p>再自行设置域的还原密码，我这里是 root123!</p>
 <img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/SetADPassword.png" class="">
 
-<p>之后一路保持默认即可，安装完毕后，系统会自动重启。接下来创建 AD 用户</p>
+<p>之后一路保持默认即可，安装完毕后，系统会自动重启。接下来创建 AD 用户，打开服务器面板的<strong>工具</strong>——<strong>Active Directory 用户和计算机</strong></p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/toolsADUser.png" class="">
+
+<p>选择 User 右键新建用户</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/createNewUser.png" class="">
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/configureNewUser.png" class="">
+
+<p>输入密码后创建即可</p>
+<p>至此，win2012 的域控配置已经完成，密码为 root123123!，同户名为 User</p>
+<h4 id="win7-域环境配置"><a href="#win7-域环境配置" class="headerlink" title="win7 域环境配置"></a>win7 域环境配置</h4><p>配置完 IP 之后，进入到我的电脑&#x2F;系统属性的地方，进入计算机名&#x2F;域更改</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/win7Modifiy.png" class="">
+
+<p>输入之前的账号密码，即可。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/win7ConfigureSuccess.png" class="">
+
+<p>重启后，配置生效。</p>
+<p>可以看到这个时候 win7 已经加入了 <strong>drunkbaby.com</strong> 的域中</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/Win7JoinAD.png" class="">
+
+<h3 id="NTLM-流量分析"><a href="#NTLM-流量分析" class="headerlink" title="NTLM 流量分析"></a>NTLM 流量分析</h3><p>在 Win7 当中输入命令如下</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">net use <span class="token punctuation">\</span><span class="token punctuation">\</span><span class="token number">192.168</span>.5.157<span class="token punctuation">\</span>ipc$ root123123<span class="token operator">!</span> /user:User<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>在 atsud0 师傅的文章中说了如下一个场景，我觉得很好，就直接拿来用了 <a class="link"   target="_blank" rel="noopener" href="https://atsud0.me/2022/03/07/%E3%80%90%E5%9F%9F%E6%B8%97%E9%80%8F%E3%80%91%E6%B5%85%E6%B7%A1NTLM-%E5%86%85%E7%BD%91%E5%B0%8F%E7%99%BD%E7%9A%84NTLM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#%E8%AE%A4%E8%AF%81%E5%8E%9F%E7%90%86" >https://atsud0.me/2022/03/07/%E3%80%90%E5%9F%9F%E6%B8%97%E9%80%8F%E3%80%91%E6%B5%85%E6%B7%A1NTLM-%E5%86%85%E7%BD%91%E5%B0%8F%E7%99%BD%E7%9A%84NTLM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#%E8%AE%A4%E8%AF%81%E5%8E%9F%E7%90%86<i class="fas fa-external-link-alt"></i></a></p>
+<p>来假设一个场景</p>
+<p>有这么一个人，她叫”纯酱、”。她是某公司财务部的人员。某一天早晨，她登录了自己的办公电脑，正打算开始今天的工作。突然收到一封邮件。</p>
+<blockquote>
+<p>Dear ….</p>
+<p>由于近期xxx原因，微软官方于x年x月x日针对xxx发布了修复补丁。内部定义危险级别为严重，请各位员工立刻使用自己的内部帐号登录文件共享服务器10.1.1.5获取补丁进行更新。</p>
+<p>信息技术部</p>
+</blockquote>
+<p>“纯酱、”同事作为遵守公司规则制度的好员工，那肯定立刻就登录上文件共享服务器获取补丁了啊。然后”纯酱、”输入了自己的帐号密码登录 10.1.1.5 了。</p>
+<p>那么这里的认证流程及本是这样工作的。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NTLMOriginRoutine.png" class="">
+
+<p>搞了很久，最后在 Win7 机子上装了 Wireshark，版本是  wireshark-2-0-4-32-bit</p>
+<p>1、纯酱用户登录客户端电脑</p>
+<p>2、在客户端上请求服务端服务，并输入服务器要求的帐号密码。本地将会计算并缓存输入的密码的NTLM Hash。</p>
+<p>3、Type1阶段协商 客户端向服务器发送Type1消息，主要包含客户端支持和向服务器端请求的功能列表。（并不会发送明文用户名）</p>
+<p>4、Type2阶段质询 服务器收到客户端Type1消息的请求，作为回应会发送Type2消息请求给客户端，主要包含<strong>Server</strong> <strong>Challenge</strong>和服务器的功能信息。（Challenge是随机生成的16位字符串）</p>
+<p>5、Type3阶段身份验证 客户端收到服务器Type2消息后，将会从Type2消息里面提 Server Challenge，用输入的密码NTLM-hash和Server Challenge进行加密运算（根据Flags设置 加密方式亦有所不同），得到Response。然后客户端将会把Type3消息发送给服务器。</p>
+<p>6、服务器收到Type3消息后。将根据用户名来做进一步判断，如果是本地用户的话，会在SAM数据库里面拿这个用户的NTLM Hash，在客户端发送的Response字段提取相关的字段，进行和客户端几乎一样的加密运算，得出一个Response，服务器将会拿这个Response和Type3消息 客户端生成的Response进行对比，如果一致就验证通过。如果是域用户的话，服务器将会通过netlogon协议建立安全通道，将ServerChallenge、UserName、Response消息转发给域控。域控再去ntds.dit判断用户存不存在，然后DC将进行验证工作并把返回结果给服务器，服务器再根据DC的响应返回给客户端。</p>
+<p>所以请求的用户是本地用户还是域用户的区别在于Type3阶段之后服务器的处理方式。</p>
+<p>下面就是介绍三个过程中的部分细节。不感兴趣就可以忽略。</p>
+<h4 id="Type-1-协商"><a href="#Type-1-协商" class="headerlink" title="Type 1 协商"></a>Type 1 协商</h4><p>这个过程主要就是客户端向服务端发送 type1 阶段的消息，以开启 NTLM 认证，并且通过一系列选项来设置身份验证规则，如果需要，它还可以告诉服务器客户端的工作站名称以及拥有的域（绝对不会发送明文用户名）。服务器可以用这些信息来确定客户端是否符合身份验证的条件。</p>
+<p>阶段 1 的包文主要包含以下结构</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>NTLMSSP Signature</td>
+<td>Null-terminated ASCII “NTLMSSP” (0x4e544c4d53535000)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>NTLM Message Type</td>
+<td>long (0x01000000)</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Flags</td>
+<td>long</td>
+</tr>
+<tr>
+<td>(16)</td>
+<td>Supplied Domain (Optional)</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(24)</td>
+<td>Supplied Workstation (Optional)</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(32)</td>
+<td>OS Version Structure (Optional)</td>
+<td>8 bytes</td>
+</tr>
+<tr>
+<td>(32)</td>
+<td>start of data block (if required)</td>
+<td></td>
+</tr>
+</thead>
+</table>
+
+
+<p>目前抓到的流量包是通过 Win7 机子登录得到的流量包，直接用 <code>net use</code> 命令是抓不到的</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/catchNTLMPackage.png" class="">
+
+<p>奇怪的是，我和 atsud0 师傅抓到的流量包并不是很相似，atsud0 师傅抓到了一个 NTLMSSP 的包，但是我这里没有抓到，可能是因为我抓的是 Win7 的登录包，是域中服务器的包，而 atsud0 师傅抓的是 Win2012  的包，然而最后抓了 Win2012 的包还是没成功，也可能是我环境的配置有问题，就先借用 atsud0 师傅的截图来分析了</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/v1Auth.png" class="">
+
+<p>抓包信息如下：</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NTLMSSP.png" class="">
+
+<p>Signature (8 bytes): 8字节 必须包含字符数组：(‘N’, ‘T’, ‘L’, ‘M’, ‘S’, ‘S’, ‘P’, ‘\0’)</p>
+<p>MessageType (4 bytes): 表示消息类型，值必须为 <code>0x0000001</code></p>
+<p>Negotiate Flags : NEGOTIATE结构体，相关的配置选项。结构体内的每个字段详细的含义都可以在<a class="link"   target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/openspecs/windows_protocols/ms-nlmp/99d90ff4-957f-4c8a-80e4-5bfe5a9a9832" >https://docs.microsoft.com/zh-cn/openspecs/windows_protocols&#x2F;ms-nlmp&#x2F;99d90ff4-957f-4c8a-80e4-5bfe5a9a9832<i class="fas fa-external-link-alt"></i></a>和<a class="link"   target="_blank" rel="noopener" href="http://davenport.sourceforge.net/ntlm.html#theNtlmFlags" >http://davenport.sourceforge.net/ntlm.html#theNtlmFlags<i class="fas fa-external-link-alt"></i></a>了解。</p>
+<p>Version字段取决于Negotiate Flags结构中的Negotiate Version的值。如果该值为0，则不会显示Version字段，并且该字段是否存在都不影响NTLM消息的处理。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/Version.png" class="">
+
+<p>如果该值为 1，Version 字段也会在包文中出现，并且内容基本上是为 <code>winver.exe</code> 的内容。</p>
+<p>Version 字段结构</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Major Version Number</td>
+<td>1 byte</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Minor Version Number</td>
+<td>1 byte</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Build Number</td>
+<td>short</td>
+</tr>
+<tr>
+<td>4</td>
+<td>NTLMRevisionCurrent</td>
+<td>0x0000000f</td>
+</tr>
+</tbody></table>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NTLMVersion.png" class="">
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/WinVersion.png" class="">
+
+<p>还有其他的字段解释：<a class="link"   target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/openspecs/windows_protocols/ms-nlmp/b34032e5-3aae-4bc6-84c3-c6d80eadf7f2" >NEGOTIATE_MESSAGE<i class="fas fa-external-link-alt"></i></a></p>
+<p>下面是一个十六进制Type1阶段的消息（关于Flag的值可以看这里：<a class="link"   target="_blank" rel="noopener" href="http://davenport.sourceforge.net/ntlm.html#theNtlmFlags%EF%BC%89%EF%BC%9A" >http://davenport.sourceforge.net/ntlm.html#theNtlmFlags）：<i class="fas fa-external-link-alt"></i></a></p>
+<pre class="line-numbers language-none"><code class="language-none">例子：
+4e544c4d5353500001000000050288a000000000000000000000000000000000
+
+0x4e544c4d53535000 NTLMSSP签名（固定格式）
+0x01000000 消息类型，这里是阶段1的消息类型
+0x050288a0 &#x3D; 0xa0880205（以小端（低位在前）的字节排序）
+
+05&#x3D;Negotiate Unicode（0x00000001） + Request Target
+（0x00000004）
+02&#x3D;Negotiate NTLM（0x00000200）
+88&#x3D;Negotiate NTLM2 Key(NEGOTIATE_EXTENDED_SESSIONSECURITY 0x00080000) + Negotiate Target Info（0x00800000）
+a0&#x3D;Negotiate 56（0x80000000） + Negotiate 128（0x20000000）
+
+Flags的值中，没有表示设置了Negotiate Domain Supplied、Negotiate Workstation Supplied以及Version的值，所以后面没有SecurityBuffer、Version等字段
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="Type-2-质询"><a href="#Type-2-质询" class="headerlink" title="Type 2 质询"></a>Type 2 质询</h4><p>Type2 消息由服务器发送给客户端，响应Type1消息，主要<strong>包含服务器生成的Challenge</strong>，并且包含Type1消息协商时的相关信息。</p>
+<p>阶段2的包文主要包含以下结构</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>NTLMSSP Signature</td>
+<td>Null-terminated ASCII “NTLMSSP” (0x4e544c4d53535000)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>NTLM Message Type</td>
+<td>long (0x02000000)</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Target Name</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Flags</td>
+<td>long</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Challenge</td>
+<td>8 bytes</td>
+</tr>
+<tr>
+<td>(32)</td>
+<td>Context (Optional)</td>
+<td>8 bytes (two consecutive longs)</td>
+</tr>
+<tr>
+<td>(40)</td>
+<td>Target Information (Optional)</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(48)</td>
+<td>OS Version Structure (Optional)</td>
+<td>8 bytes</td>
+</tr>
+<tr>
+<td>32 (48) (56)</td>
+<td>start of data block</td>
+<td></td>
+</tr>
+</tbody></table>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/v2NTLM.png" class="">
+
+<p>Signature (8 bytes): 8字节 必须包含字符数组：(‘N’, ‘T’, ‘L’, ‘M’, ‘S’, ‘S’, ‘P’, ‘\0’)</p>
+<p>MessageType (4 bytes): 表示消息类型，值必须为0x0000002。</p>
+<p>Negotiate Flags(4 bytes) : NEGOTIATE结构体，相关的配置选项。和Type1消息的Negotiate Flags大致相同，不过是表示服务器支持的选项，如果有negotate_message则表示从客户端提供的选项做选择。</p>
+<p>Target Name 包含身份验证目标的名称，通常是响应客户端在Type1消息中Flags中的Request Target选项。</p>
+<p>ServerChallenge(8 bytes):随机生成的16位随机值。</p>
+<p>Reserved (8 bytes):发送时必须设为0，接受时必须被忽略。</p>
+<p>TargetInfoFields(8 bytes)：值的内容通常取决于NTLMSSP_NEGOTIATE_TARGET_INFO标志有没有被设置（注：除Windows NT，Windows 2000，Windows XP和Windows Server 2003之外，始终发送TargetInfo字段。）。</p>
+<p>要想理解每个字段的详细信息，还是建议去阅读：<a class="link"   target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/801a4681-8809-4be9-ab0d-61dcfe762786" >CHALLENGE_MESSAGE<i class="fas fa-external-link-alt"></i></a>以及<a class="link"   target="_blank" rel="noopener" href="http://davenport.sourceforge.net/ntlm.html#theType2Message" >The Type 2 Message<i class="fas fa-external-link-alt"></i></a><br>。</p>
+<pre class="line-numbers language-none"><code class="language-none">例子
+4e544c4d53535000020000000800080038000000050289a2dea8b919645716230000000000000000a200a200400000000601b11d0000000f4400430030003100020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80100000000
+
+0x4e544c4d53535000 NTLMSSP签名
+
+02000000 &#x3D; 00000002 消息类型
+0x0800 &#x3D; 0x0008 TargetNameLen
+
+0x0800 &#x3D; 0x0008 TargetNameMaxLen
+
+0x38000000 &#x3D; 0x00000038  TargetNameBufferOffset
+
+0x050289a2 &#x3D; 0xa2890205  NegotiateFlags
+
+05&#x3D;Negotiate Unicode（0x00000001） + Request Target（0x00000004）
+
+02&#x3D;Negotiate NTLM（0x00000200）
+
+89&#x3D;Negotiate NTLM2 Key(NEGOTIATE_EXTENDED_SESSIONSECURITY 0x00080000) + Negotiate Target Info（0x00800000）+ Target Type Domain （0x00010000）
+
+a2&#x3D;Negotiate 56（0x80000000） + Negotiate 128（0x20000000）+ Version（0x02000000）
+
+dea8b91964571623 Server Challenge（随机16位）
+
+0000000000000000 Reserved
+
+a200a20040000000 TargetInfoFields
+
+a200 &#x3D; 0x00a2  TargetInfoLen
+a200 &#x3D;0x00a2 TargetInfoMaxLen
+40000000 &#x3D; 0x00000040 TargetInfoOffset
+
+
+0601b11d0000000f Version
+
+06&#x3D;0x06 Major Version
+01&#x3D;0x01 Minor Version
+b11d&#x3D;0x1db1 Build
+000000  Reseved
+0f &#x3D; 0x0f NTLMRevisionCurrent
+
+
+4400430030003100020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd801
+.....后面接着的payload信息就是TargetName、Targetinfo的信息
+
+00000000 结束字段块<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在服务器创建Type2消息后，将会将Type2消息发送给客户端。</p>
+<h4 id="Type-3-验证"><a href="#Type-3-验证" class="headerlink" title="Type 3 验证"></a>Type 3 验证</h4><p>Type3消息是身份验证的最后一步，该步骤是客户端对Type2消息的响应，客户端将使用输入的NTLM-Hash对服务器随机生成的Challenge值进行复杂的加密运算得到Response，将其作为Type3消息发送给服务器。</p>
+<p>Response是最关键的部分是它向服务器证明了客户端知道用户的帐号密码。服务器收到客户端发送的Type3消息，会判断用户名是本地用户还是域用户名，如果是本地用户将会在SAM中找到这个用户的NTLM-Hash，并从客户端发送的Type3消息中提取相关字段，和客户端进行几乎一样的加密运算，最后得到的Response将会和客户端发送的Response进行比较，如果一致则认证通过。如果是在域用户的话，服务器会通过Netlogon安全通道，将Response、Username、ServerChallenge转发给域控，将验证工作交给去进行，DC将会返回结果给服务器，服务器再根据DC的响应返回给客户端。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>NTLMSSP Signature</td>
+<td>Null-terminated ASCII “NTLMSSP” (0x4e544c4d53535000)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>NTLM Message Type</td>
+<td>long (0x03000000)</td>
+</tr>
+<tr>
+<td>12</td>
+<td>LM/LMv2 Response</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>20</td>
+<td>NTLM/NTLMv2 Response</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Target Name</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>36</td>
+<td>User Name</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>44</td>
+<td>Workstation Name</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(52)</td>
+<td>Session Key (optional)</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(60)</td>
+<td>Flags(optional)</td>
+<td>security buffer</td>
+</tr>
+<tr>
+<td>(64)</td>
+<td>OS Version Structure (Optional)</td>
+<td>8 bytes</td>
+</tr>
+<tr>
+<td>52 (64) (72)</td>
+<td>start of data block</td>
+<td></td>
+</tr>
+</tbody></table>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/v3NTLM.png" class="">
+
+<p>Signature (8 bytes): 8字节 必须包含字符数组：(‘N’, ‘T’, ‘L’, ‘M’, ‘S’, ‘S’, ‘P’, ‘\0’)</p>
+<p>MessageType (4 bytes): 表示消息类型，值必须为0x0000003。</p>
+<p>The LM&#x2F;LMv2 and NTLM&#x2F;NTLMv2 responses LM&#x2F;LMv2 NTLM&#x2F;NTLMv2这两个响应是客户端收到Type2消息用用户输入的密码hash对Challege生成的。</p>
+<p>LmChallengeResponseFields(8 bytes)，包含LmChallengeResponseLen(2 bytes)、LmChallengeResponseMaxLen(2 bytes)、LmChallengeResponseBufferOffset(4 bytes)字段。如果客户端不发送LmChallengeResponse，Len字段则为0。<br>NtChallengeResponseFields (8 bytes)，包含NTChallengeResponseLen(2 bytes)、NTChallengeResponseMaxLen(2 bytes)、NTChallengeResponseBufferOffset(4 bytes)字段。如果客户端不发送NTChallengeResponse，Len字段则为0。</p>
+<p>DomainNameFields (8 bytes)，包含DomainNameLen(2 bytes)、DomainNameMaxLen(2 bytes)、DomainNameBufferOffset(4 bytes)字段。如果客户端不发送DomainName，Len字段应为0。</p>
+<p>UserNameFields (8 bytes),，包含UserNameLen(2 bytes)、UserNameMaxLen(2 bytes)、UserNameBufferOffset(4 bytes)字段。如果客户端不发送UserName，Len字段应为0。</p>
+<p>NegotiateFlags (4 bytes):这里表示的是客户端协商的配置。</p>
+<p>这里细说下 NTChallengeResponse，NTChallengeResponse的结构为</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>Response（ntlmssp.ntlmv2_response.ntproofstr）16bytes</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>NTLMv2_CLIENT_CHALLENGE</td>
+<td></td>
+</tr>
+</tbody></table>
+
+<p>而NTLMv2_CLIENT_CHALLENGE（Blob）的结构是这样的</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Description</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Blob Signature</td>
+<td>0x01010000</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Reserved</td>
+<td>long (0x00000000)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Timestamp</td>
+<td>表示自1月1日1601年1月1日以來微秒的十分之一</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Client Nonce（NTLMv2 Client Challenge）</td>
+<td>8 bytes（随机生成）</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Unknown</td>
+<td>4 bytes（0x00000000）</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Target Information</td>
+<td>从type2阶段来的目标信息块</td>
+</tr>
+<tr>
+<td></td>
+<td>Unknown</td>
+<td>4bytes</td>
+</tr>
+</tbody></table>
+
+<p>想了解每个字段的含义还是得去看官方文档<a class="link"   target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/033d32cc-88f9-4483-9bf2-b273055038ce" >AUTHENTICATE_MESSAGE<i class="fas fa-external-link-alt"></i></a></p>
+<pre class="line-numbers language-none"><code class="language-none">例子:4e544c4d5353500003000000180018005a000000f000f0007200000000000000400000001a001a0040000000000000005a0000000000000062010000050288a0410064006d0069006e006900730074007200610074006f0072001a8e5080fb4a6f0a8bf3e0669eb146f37a735845757168659a792665c56f71be45ecbe9c7d7a99b0010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000
+
+4e544c4d53535000 NTLMSSP Signature
+
+03000000 NTLM Message Type
+
+180018005a000000  LM&#x2F;LMv2 Respons
+1800 &#x3D; 0x0018 &#x3D; 24 Len &amp; MaxLen
+5a000000 &#x3D; 0x0000005a &#x3D; 90 Offset LM&#x2F;LMv2 Respons出现的位置是第90个字节的时候，长度为24。
+
+f000f00072000000 NTLM&#x2F;NTLMv2 Response
+f000&#x3D;0x00f0 &#x3D; 240 Len &amp; MaxLen
+72000000 &#x3D; 0x00000072 &#x3D; 114 Offset NTLM&#x2F;NTLMv2 Respons出现的位置是第240个字节的时候，Offset为114。
+
+0000000040000000 Domain Name
+0000&#x3D;0x0000 Len为0 ，DomainName为空
+40000000 &#x3D; 0x00000040 Offset
+
+1a001a0040000000 UserName
+1a00 &#x3D; 0x001a  &#x3D;26 Len &amp; MaxLen
+40000000 &#x3D;0x00000040 offset username 长度26
+
+000000005a000000 HostName
+0000&#x3D;0x0000 Len为0 ，空
+5a000000 &#x3D; 0x0000005a &#x3D; 90 Offset
+
+0000000062010000 SessionsKeys
+0000&#x3D;0x0000 Len为0 ，空
+62010000 &#x3D; 0x00000162 offset
+
+050288a0 Flags 和Type1的相同
+
+
+410064006d0069006e006900730074007200610074006f007200 Offset:64 长度26 A d m i n i s t r a t o r因为是unicode，所以长度是2倍
+
+
+
+1a8e5080fb4a6f0a8bf3e0669eb146f37a73584575716865 Offset:90 长度24 LM&#x2F;LMv2 Respons
+
+
+9a792665c56f71be45ecbe9c7d7a99b0010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000 NTLM&#x2F;NTLMv2Response
+
+Response 9a792665c56f71be45ecbe9c7d7a99b0
+Blob 010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000
+
+Blob Signature   4bytes : 01010000 &#x3D;0x01010000
+Reserved 4 bytes : 00000000 &#x3D; 0x00000000
+Timestamp 8 bytes: 20b70cb6992bd801 &#x3D; 0x20b70cb6992bd801
+client nonce 8bytes : 7a73584575716865 &#x3D; 0x7a73584575716865
+end subblock: 00000000 &#x3D; 0x00000000
+target information: 020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f005300450052005600450052003000310000000000
+enbsubblock: 00000000
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="The-NTLMv2-Response生成"><a href="#The-NTLMv2-Response生成" class="headerlink" title="The NTLMv2 Response生成"></a>The NTLMv2 Response生成</h4><p>这里注意NTLM&#x2F;NTLMv2Response，我们可以发现NTLMv2Response里面前16 Bytes是一段HMAC-MD5生成的值。被称为Response，或者是NTProofStr。这一段值的生成方式比较复杂，受客户端和服务端Flags（参数）的影响。</p>
+<p>简单的介绍下最基础的生成方式(根据Flags的设置 加密方式会有所不同（比如如果是NTLMv2SessionResponse计算方式就会和下面的不一样）</p>
+<ol>
+<li>将明文密码转换为NTLM-Hash(前面有介绍NTLM Hash生成方式)</li>
+<li>将用户名转换为大写,然后和域名(域名区分大小写,但是必须和Type3包文中显示的域名一致)拼接在一起,然后进行Unicode的十六进制编码转换.(这里编码始终使用Unicode即使Flags中设置了OEM).NTLM Hash作为Key 对其进行Hmac Md5加密:HMAC_MD5(((UserName).Upper()+domainName),NTLM Hash)得到ntlmV2Hash</li>
+<li>ServerChallenge和Blob进行拼接.使用第三步得到的ntlmV2hash对其进行加密:HMAC_MD5((ServerChallenge+Blob),ntlmv2hash)得到Response(NTProofStr)</li>
+<li>将Response(NTProofStr)和Blob重新进行拼接 得到NTLMv2 Response.</li>
+</ol>
+<p>Examples(案例来自:<a class="link"   target="_blank" rel="noopener" href="http://davenport.sourceforge.net/ntlm.html#theNtlmv2Response" >TheNTLMv2Response<i class="fas fa-external-link-alt"></i></a>):</p>
+<pre class="line-numbers language-none"><code class="language-none">Target:DOMAIN
+Username:user
+Password:SecREt01
+ServerChallenge:0x123456789abcdef
+TargetInformation:0x02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000
+Timestamp:0x0090d336b734c301
+Client nonce:0xffffff0011223344
+
+ServerChallenge+Blob:
+0x0123456789abcdef01010000000000000090d336b734c301ffffff00112233440000000002000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d000000000000000000
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>大致的 python 代码如下</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> binascii
+<span class="token keyword">import</span> hashlib
+<span class="token keyword">import</span> hmac
+
+passwd<span class="token operator">=</span><span class="token string">"SecREt01"</span>
+unicode_hex_passwd <span class="token operator">=</span> passwd<span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token string">'utf-16le'</span><span class="token punctuation">)</span>
+md4_passwd<span class="token operator">=</span>hashlib<span class="token punctuation">.</span>new<span class="token punctuation">(</span><span class="token string">"md4"</span><span class="token punctuation">,</span>unicode_hex_passwd<span class="token punctuation">)</span><span class="token punctuation">.</span>digest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>passwd<span class="token punctuation">,</span>binascii<span class="token punctuation">.</span>hexlify<span class="token punctuation">(</span>md4_passwd<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+username <span class="token operator">=</span> <span class="token string">"user"</span><span class="token punctuation">.</span>upper<span class="token punctuation">(</span><span class="token punctuation">)</span>
+domain <span class="token operator">=</span> <span class="token string">"DOMAIN"</span>
+
+un_domain <span class="token operator">=</span> username<span class="token operator">+</span>domain
+hex_undomain <span class="token operator">=</span> un_domain<span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token string">'utf-16le'</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"un_domain"</span><span class="token punctuation">,</span>binascii<span class="token punctuation">.</span>hexlify<span class="token punctuation">(</span>hex_undomain<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+enc_res <span class="token operator">=</span> hmac<span class="token punctuation">.</span>new<span class="token punctuation">(</span>md4_passwd<span class="token punctuation">,</span>hex_undomain<span class="token punctuation">,</span>hashlib<span class="token punctuation">.</span>md5<span class="token punctuation">)</span><span class="token punctuation">.</span>digest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>binascii<span class="token punctuation">.</span>hexlify<span class="token punctuation">(</span>enc_res<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+sc_blob<span class="token operator">=</span><span class="token string">b"\x01\x23\x45\x67\x89\xab\xcd\xef\x01\x01\x00\x00\x00\x00\x00\x00\x00\x90\xd3\x36\xb7\x34\xc3\x01\xff\xff\xff\x00\x11\x22\x33\x44\x00\x00\x00\x00\x02\x00\x0c\x00\x44\x00\x4f\x00\x4d\x00\x41\x00\x49\x00\x4e\x00\x01\x00\x0c\x00\x53\x00\x45\x00\x52\x00\x56\x00\x45\x00\x52\x00\x04\x00\x14\x00\x64\x00\x6f\x00\x6d\x00\x61\x00\x69\x00\x6e\x00\x2e\x00\x63\x00\x6f\x00\x6d\x00\x03\x00\x22\x00\x73\x00\x65\x00\x72\x00\x76\x00\x65\x00\x72\x00\x2e\x00\x64\x00\x6f\x00\x6d\x00\x61\x00\x69\x00\x6e\x00\x2e\x00\x63\x00\x6f\x00\x6d\x00\x00\x00\x00\x00\x00\x00\x00\x00"</span>
+enc_res <span class="token operator">=</span> hmac<span class="token punctuation">.</span>new<span class="token punctuation">(</span>enc_res<span class="token punctuation">,</span>sc_blob<span class="token punctuation">,</span>hashlib<span class="token punctuation">.</span>md5<span class="token punctuation">)</span><span class="token punctuation">.</span>hexdigest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>enc_res<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>最后得到的 Response 将会和 Blob 重新拼接.成为 NTLMv2 Response。</p>
+<pre class="line-numbers language-none"><code class="language-none">0xcbabbca713eb795d04c97abc01ee498301010000000000000090d336b734c301ffffff00112233440000000002000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d000000000000000000<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>前面说到Response有六种格式，但是他们使用的加密流程都是一样，区别在于Challenge和加密算法不同，这里就不细展开说其他Response的生成方式了，感兴趣的还是去阅读推荐文章。（这里注意一下包文里的NTChallengeResponse并不等于net-ntlm hashv2）</p>
+<p>而NTLM v1与NTLM v2区别就是Challenge与加密算法不同，共同点就是加密的都是NTLM Hash。<br>Net-NTLM Hash v1的格式为：</p>
+<pre class="line-numbers language-none"><code class="language-none">username::hostname:LM response:NTLM response:challenge<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>Net-NTLM Hash v2的格式为：</p>
+<pre class="line-numbers language-none"><code class="language-none">username::domain:challenge:NTproofstring:modifiedntlmv2response<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="手动获取NTLM加密"><a href="#手动获取NTLM加密" class="headerlink" title="手动获取NTLM加密"></a>手动获取NTLM加密</h4><p>搜索ntlmssp</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/ntlmsspHand.png" class="">
+
+<p>找到NTLMSSP_AUTH的请求包，找到SMB2&#x2F;Security Blob层。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/ntlmsspHand.png" class="">
+
+<p>在这里我们可以看到认证的用户名、域名（我这里用的是工作组）。复制用户名和域名记录起来</p>
+<pre class="line-numbers language-none"><code class="language-none">UserName:Administrator
+DomainName:NULL<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>接着继续找到NTLM Response部分，找到NTLMv2 Response和NTProofStr字段，将其以16进制字段复制，记录起来。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NTLMResponse.png" class="">
+
+<pre class="line-numbers language-none"><code class="language-none">NTLMv2 Response:9a792665c56f71be45ecbe9c7d7a99b0010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000
+NTProofStr:9a792665c56f71be45ecbe9c7d7a99b0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>将NTLMv2 Response开头和NTProofStr相同的部分值删掉</p>
+<pre class="line-numbers language-none"><code class="language-none">NTProofStr的值是 9a792665c56f71be45ecbe9c7d7a99b0 
+
+删除之后的NTLMv2 Response字段是:
+010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>接着过滤 <code>ntlmssp.serverchallenge</code> 的请求包</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/serverchallenge.png" class="">
+
+<p>同样也是过滤SMB2&#x2F;Security Blob层。找到NTLM Server Challenge值</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/serverchallengeValue.png" class="">
+
+<pre class="line-numbers language-none"><code class="language-none">NTLMServerChallenge:dea8b91964571623<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>然后按照以下字段组合在一起，保存到文本，然后就可以使用工具进行破解了。</p>
+<pre class="line-numbers language-none"><code class="language-none">username::domain:ServerChallenge:NTproofstring:modifiedntlmv2response
+
+Administrator:::dea8b91964571623:9a792665c56f71be45ecbe9c7d7a99b0:010100000000000020b70cb6992bd8017a7358457571686500000000020008004400430030003100010010005300450052005600450052003000310004001c006100740073007500640030002e006c00610062002e0063006f006d0003002e00530065007200760065007200300031002e006100740073007500640030002e006c00610062002e0063006f006d0005001c006100740073007500640030002e006c00610062002e0063006f006d000700080020b70cb6992bd80109001a0063006900660073002f00530045005200560045005200300031000000000000000000<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>使用 john 进行破解</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/johnHash.png" class="">
+
+<h4 id="脚本获取NTLM加密"><a href="#脚本获取NTLM加密" class="headerlink" title="脚本获取NTLM加密"></a>脚本获取NTLM加密</h4><p>可以使用<a class="link"   target="_blank" rel="noopener" href="https://github.com/mlgualtieri/NTLMRawUnHide" >脚本<i class="fas fa-external-link-alt"></i></a>，指定已经捕获了NTLM请求的pcap包进行获取。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/pcapngAnanlyse.png" class="">
+
+<p>然后可以使用hashcat进行破解：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">hashcat <span class="token parameter variable">-m</span> <span class="token number">5600</span> hash.txt passwordlist.txt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/hashcat.png" class="">
+
+<h3 id="SSP-amp-SSPI"><a href="#SSP-amp-SSPI" class="headerlink" title="SSP &amp; SSPI"></a>SSP &amp; SSPI</h3><p>SSPI: Security Support Provider Interface 就是SSP的API接口，可以理解为该接口定义了很多安全有关的功能函数，但是没有具体的实现。然后SSP就是SSPI的实现。</p>
+<p>SSP： Security Support Provider，直译为安全支持提供者，又名Security Package.可以理解为SSP就是一个DLL。微软实现了以下SSP，用于提供安全功能：</p>
+<ol>
+<li>NTLM SSP</li>
+<li>Kerberos</li>
+<li>Cred SSP</li>
+<li>Digest SSP</li>
+<li>Negotiate SSP</li>
+<li>Schannel SSP</li>
+<li>Negotiate Extensions SSP</li>
+<li>PKU2U SSP</li>
+</ol>
+<p>在系统层面，SSP就是一个DLL用于实现身份验证功能，NTLM是基于Challenge&#x2F;Response机制，Kerberos是基于ticket的身份验证。所以，我们也可以实现自己的SSP，让系统实现更多的身份验证方法，比如Mimikatz就自己实现了一个利用SSP机制的记录密码。</p>
+<p>在抓包分析的时候，我们也能看见ntlmssp是在gssapi下面的。</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/ssp.png" class="">
+
+<blockquote>
+<p>因为sspi是gssapi的变体，这里出现gssapi是为了兼容。注册为SSP的好处就是，SSP实现了了与安全有关的功能函数，那上层协议(比如SMB)在进行身份认证等功能的时候，就可以不用考虑协议细节，只需要调用相关的函数即可。而认证过程中的流量嵌入在上层协议里面。不像kerbreos，既可以镶嵌在上层协议里面，也可以作为独立的应用层协议。ntlm是只能镶嵌在上层协议里面，消息的传输依赖于使用ntlm的上层协议。</p>
+</blockquote>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/SMBSolved.png" class="">
+
+<p>HTTP是这样的：</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/HTTPSSPSolved.png" class="">
+
+<h2 id="0x04-NTLM-Relay-攻击"><a href="#0x04-NTLM-Relay-攻击" class="headerlink" title="0x04 NTLM Relay 攻击"></a>0x04 NTLM Relay 攻击</h2><p>在上面的认证过程中，我们知道了正常的 NTLM 认证流程是这样的：</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/NTLMRoutine.png" class="">
+
+<p>如果这个时候有个中间人出现的话：</p>
+<img src="/2023/03/14/%E5%9F%9F%E6%B8%97%E9%80%8F%E4%B9%8B-NTLM-%E5%AD%A6%E4%B9%A0/middleInNTLM.png" class="">
+
+<p>作为中间人，攻击者会将来自客户端的包转发给服务端，在将服务端的包转发给客户端，客户端生成 Response 后，再把 type3 包转发给服务端，服务端验证通过后，服务器将会授予攻击者访问的权限。</p>
 
             </div>
 
@@ -635,7 +1241,7 @@ hash_hex <span class="token operator">=</span> binascii<span class="token punctu
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-NTLM"><span class="nav-text">0x02 NTLM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">NTLM 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%9C%AC%E5%9C%B0%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-text">NTLM 本地认证流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AD%98%E5%82%A8%E7%9A%84-hash"><span class="nav-text">获取存储的 hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-impacket-%E8%AF%BB"><span class="nav-text">用 impacket 读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-Mimikatz-%E8%AF%BB"><span class="nav-text">用 Mimikatz 读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LM-Hash"><span class="nav-text">LM Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-Hash"><span class="nav-text">NTLM Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NTLM-Hash-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="nav-text">NTLM Hash 加密方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Net-NTLM-hash"><span class="nav-text">Net-NTLM hash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-NTLM-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">0x03 NTLM 身份认证流量分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-NTLM"><span class="nav-text">0x02 NTLM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">NTLM 是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%9C%AC%E5%9C%B0%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="nav-text">NTLM 本地认证流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%AD%98%E5%82%A8%E7%9A%84-hash"><span class="nav-text">获取存储的 hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-impacket-%E8%AF%BB"><span class="nav-text">用 impacket 读</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8-Mimikatz-%E8%AF%BB"><span class="nav-text">用 Mimikatz 读</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LM-Hash"><span class="nav-text">LM Hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-Hash"><span class="nav-text">NTLM Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NTLM-Hash-%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="nav-text">NTLM Hash 加密方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Net-NTLM-hash"><span class="nav-text">Net-NTLM hash</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-NTLM-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">0x03 NTLM 身份认证流量分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-text">环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#win2012-%E5%9F%9F%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-text">win2012 域环境配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#win7-%E5%9F%9F%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-text">win7 域环境配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NTLM-%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-text">NTLM 流量分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-1-%E5%8D%8F%E5%95%86"><span class="nav-text">Type 1 协商</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-2-%E8%B4%A8%E8%AF%A2"><span class="nav-text">Type 2 质询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-3-%E9%AA%8C%E8%AF%81"><span class="nav-text">Type 3 验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#The-NTLMv2-Response%E7%94%9F%E6%88%90"><span class="nav-text">The NTLMv2 Response生成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E8%8E%B7%E5%8F%96NTLM%E5%8A%A0%E5%AF%86"><span class="nav-text">手动获取NTLM加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC%E8%8E%B7%E5%8F%96NTLM%E5%8A%A0%E5%AF%86"><span class="nav-text">脚本获取NTLM加密</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSP-amp-SSPI"><span class="nav-text">SSP &amp; SSPI</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-NTLM-Relay-%E6%94%BB%E5%87%BB"><span class="nav-text">0x04 NTLM Relay 攻击</span></a></li></ol>
     </div>
 </div>
 
