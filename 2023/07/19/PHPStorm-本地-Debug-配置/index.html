@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="且将新火试新茶，诗酒趁年华">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            PHPStorm 本地 Debug 配置 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/font/css/brands.min.css">
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.json"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","font_size":"15px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"mac"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va","appkey":"ermlV1eoB1YODT088EdXjo6C","placeholder":"just go go","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null,"proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.6.1"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">PHPStorm 本地 Debug 配置</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2023-07-19 14:24:11</span>
+        <span class="mobile">2023-07-19 14:24</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2023-07-19 17:05:23</span>
+    </span>
+    
+    
+        <span class="article-categories article-meta-item">
+            <i class="fas fa-folder"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/categories/PHP/">PHP</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/PHP/">PHP</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+        <span class="article-wordcount article-meta-item">
+            <i class="fas fa-file-word"></i>&nbsp;<span>704 字</span>
+        </span>
+    
+    
+        <span class="article-min2read article-meta-item">
+            <i class="fas fa-clock"></i>&nbsp;<span>2 分钟</span>
+        </span>
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>其实算是很早就应该记录的内容，一直被我拖着了</p>
+<span id="more"></span>
+
+<h1 id="PHPStorm-本地-Debug-配置"><a href="#PHPStorm-本地-Debug-配置" class="headerlink" title="PHPStorm 本地 Debug 配置"></a>PHPStorm 本地 Debug 配置</h1><p>文章内容主要摘自 oatmeal 师傅的博客 <a class="link"   target="_blank" rel="noopener" href="https://oatmeal.vip/tools/phpstudyphpstormxdebug/" >https://oatmeal.vip/tools/phpstudyphpstormxdebug/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="XDebug-是如何工作的？"><a href="#XDebug-是如何工作的？" class="headerlink" title="XDebug 是如何工作的？"></a>XDebug 是如何工作的？</h2><h3 id="IDE-结合-XDebug-调试原理"><a href="#IDE-结合-XDebug-调试原理" class="headerlink" title="IDE 结合 XDebug 调试原理"></a>IDE 结合 XDebug 调试原理</h3><ul>
+<li>IDE 行为：打开本地端口（XDebug 2.X 默认为 9000，3.X 默认为 9003）进行监听；同时做好路径映射，将本地的项目与远程服务器的项目目录做一一映射。</li>
+<li>浏览器行为：向服务器发起请求，Headers 中带上 <code>Cookie：XDEBUG_SESSION=IDEKEY</code></li>
+<li>服务器行为：检测到 Cookie，挂起PHP解释器，等待进一步请求；同时获取请求的来源地址，发起对对方端口（此端口与监听端口一致）的访问，建立调试连接。</li>
+<li>IDE 行为：发现有调试连接建立，判断 <code>XDEBUG_SESSION</code> 是否为预设的 IDE key，如果是，双方协商，进入调试状态。</li>
+</ul>
+<h3 id="为什么-Debug-这么难？"><a href="#为什么-Debug-这么难？" class="headerlink" title="为什么 Debug 这么难？"></a>为什么 Debug 这么难？</h3><p>习惯了 Pycharm 和 CLion 的直接虫子 Debug，可能对 PHP 为何如此难用 Debug 感到困惑，这里借了Clang 佬的一张图（来自某年 XMAN）：</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/clangDebug.png" class="">
+
+<p>可以看到整个流程中存在三方角色：本地的负责调试客户端的 PhpStrom，提交请求触发调试的浏览器（例如 Chrome）以及安装了 XDebug 等待被调试 PHP 服务器 Apache&#x2F;Nginx 等（这部分在 Windows 下使用 PHPStudy 实现）。三者都存在于本机中，于是会使人产生了在本地调试的错觉。其中最大的区别是 php 解析器是被 apache&#x2F;nginx 等中间件调用，phpstorm 需要经过中间件与调试的 php 代码进行通信，本质上是一种远程调试，而 XDebug 就是实现的插件。</p>
+<h2 id="XDebug-下载与配置"><a href="#XDebug-下载与配置" class="headerlink" title="XDebug 下载与配置"></a>XDebug 下载与配置</h2><p>这里 PHPStudy 其实已经带有了 XDebug，所以在 PHPStudy 里面去做</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/debug.png" class="">
+
+<p>在 php.ini 里面配置 xdebug 的内容</p>
+<pre class="line-numbers language-ini" data-language="ini"><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Xdebug</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">xdebug.idekey</span><span class="token punctuation">=</span><span class="token value attr-value">PHPSTORM</span>
+<span class="token key attr-name">zend_extension</span><span class="token punctuation">=</span><span class="token value attr-value">D:/phpstudy_pro/Extensions/php/php7.4.3nts/ext/php_xdebug.dll</span>
+<span class="token key attr-name">xdebug.collect_params</span><span class="token punctuation">=</span><span class="token value attr-value">1</span>
+<span class="token key attr-name">xdebug.collect_return</span><span class="token punctuation">=</span><span class="token value attr-value">1</span>
+<span class="token key attr-name">xdebug.auto_trace</span><span class="token punctuation">=</span><span class="token value attr-value">Off</span>
+<span class="token key attr-name">xdebug.trace_output_dir</span><span class="token punctuation">=</span><span class="token value attr-value">D:/phpstudy_pro/Extensions/php_log/php7.4.3nts.xdebug.trace</span>
+<span class="token key attr-name">xdebug.profiler_enable</span><span class="token punctuation">=</span><span class="token value attr-value">Off</span>
+<span class="token key attr-name">xdebug.profiler_output_dir</span><span class="token punctuation">=</span><span class="token value attr-value">D:/phpstudy_pro/Extensions/php_log/php7.4.3nts.xdebug.profiler</span>
+<span class="token key attr-name">xdebug.remote_enable</span><span class="token punctuation">=</span><span class="token value attr-value">On</span>
+<span class="token key attr-name">xdebug.remote_host</span><span class="token punctuation">=</span><span class="token value attr-value">localhost</span>
+<span class="token key attr-name">xdebug.remote_port</span><span class="token punctuation">=</span><span class="token value attr-value">9000</span>
+<span class="token key attr-name">xdebug.remote_handler</span><span class="token punctuation">=</span><span class="token value attr-value">dbgp</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>然后重启服务器，访问 phpinfo，可以看到已经有 Xdebug 了。</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/XdebugExists.png" class="">
+
+<h2 id="PHPStorm-开启监听"><a href="#PHPStorm-开启监听" class="headerlink" title="PHPStorm 开启监听"></a>PHPStorm 开启监听</h2><p>PhpStorm 的配置不用做太大的变化，默认也是开启了 Debug 的，匹配一下端口就行了。</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/port9000.png" class="">
+
+<p>设置监听的服务器信息</p>
+<p>Debug → DBGp Proxy，这里是设置 IDE key 以及监听 host 和 port 信息的，这里注意和 <code>php.ini</code> 的属性保持一致即可。</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/DBGpProxy.png" class="">
+
+<p>再配置 Web Page</p>
+<img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/webPage.png" class="">
+
+<p>点击上面那只小虫子，是一个打电话的形式，这就开启了监听。</p>
+<h2 id="配置-xdebug-helper-插件"><a href="#配置-xdebug-helper-插件" class="headerlink" title="配置 xdebug helper 插件"></a>配置 xdebug helper 插件</h2><img src="/2023/07/19/PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE/PHPSTORMKey.png" class="">
+
+<p>这样子的话，就可以直接在开启监听的情况下，通过插件来做调试的开启与否。</p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">PHPStorm 本地 Debug 配置</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-07-19 14:24:11</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/07/19/PHPStorm-本地-Debug-配置/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/PHP/">#PHP</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/07/31/CodeQL-%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item">CodeQL 学习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/07/04/eBPF-%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">eBPF 的基本使用</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;评论
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: 'mCIu9X4iLP3I0GikUoetB9bV-9Nh9j0Va',
+              appKey: 'ermlV1eoB1YODT088EdXjo6C',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('') {
+              config.serverURLs = ''
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PHPStorm-%E6%9C%AC%E5%9C%B0-Debug-%E9%85%8D%E7%BD%AE"><span class="nav-text">PHPStorm 本地 Debug 配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#XDebug-%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84%EF%BC%9F"><span class="nav-text">XDebug 是如何工作的？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IDE-%E7%BB%93%E5%90%88-XDebug-%E8%B0%83%E8%AF%95%E5%8E%9F%E7%90%86"><span class="nav-text">IDE 结合 XDebug 调试原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-Debug-%E8%BF%99%E4%B9%88%E9%9A%BE%EF%BC%9F"><span class="nav-text">为什么 Debug 这么难？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XDebug-%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%85%8D%E7%BD%AE"><span class="nav-text">XDebug 下载与配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PHPStorm-%E5%BC%80%E5%90%AF%E7%9B%91%E5%90%AC"><span class="nav-text">PHPStorm 开启监听</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-xdebug-helper-%E6%8F%92%E4%BB%B6"><span class="nav-text">配置 xdebug helper 插件</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2021</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">Drunkbaby</a>
+            
+        </div>
+        
+            <script async data-pjax
+                    src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="website-count info-item">
+                
+                    访问人数&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
+                
+                
+                    总访问量&nbsp;<span id="busuanzi_value_site_pv"></span>
+                
+            </div>
+        
+        <div class="theme-info info-item">
+            由 <a target="_blank" href="https://hexo.io">Hexo</a> 驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.6.1</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/toc.js"></script>
+        
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.6.1/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
