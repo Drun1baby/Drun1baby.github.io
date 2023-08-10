@@ -218,7 +218,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-08-06 17:04:02</span>
+        <span class="pc">2023-08-09 16:35:46</span>
     </span>
     
     
@@ -249,12 +249,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>1.1k 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>11.3k 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>3 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>44 分钟</span>
         </span>
     
     
@@ -278,7 +278,10 @@
 <h1 id="eBPF-内核跟踪"><a href="#eBPF-内核跟踪" class="headerlink" title="eBPF 内核跟踪"></a>eBPF 内核跟踪</h1><p>今天我们先来看看，怎样使用 eBPF 去跟踪内核的状态，特别是最简单的 bpftrace 的使用方法。在下一讲中，我还将介绍两种 eBPF 程序的进阶编程方法。</p>
 <p>上一讲中提到过，跟踪类 eBPF 程序主要包含内核插桩（<code>BPF_PROG_TYPE_KPROBE</code>）、跟踪点（<code>BPF_PROG_TYPE_TRACEPOINT</code>）以及性能事件（<code>BPF_PROG_TYPE_PERF_EVENT</code>）等程序类型，而每类 eBPF 程序类型又可以挂载到不同的内核函数、内核跟踪点或性能事件上。当这些内核函数、内核跟踪点或性能事件被调用的时候，挂载到其上的 eBPF 程序就会自动执行。</p>
 <p>那么，你可能想问了：当我不知道内核中都有哪些内核函数、内核跟踪点或性能事件的时候，可以在哪里查询到它们的列表呢？对于内核函数和内核跟踪点，在需要跟踪它们的传入参数和返回值的时候，又该如何查询这些数据结构的定义格式呢？别担心，接下来就跟我一起去探索下吧。</p>
-<h2 id="查询跟踪点的几种方法"><a href="#查询跟踪点的几种方法" class="headerlink" title="查询跟踪点的几种方法"></a>查询跟踪点的几种方法</h2><h3 id="利用调试信息查询跟踪点"><a href="#利用调试信息查询跟踪点" class="headerlink" title="利用调试信息查询跟踪点"></a>利用调试信息查询跟踪点</h3><p>实际上，作为一个软件系统，内核也经常会发生各种各样的问题，比如安全漏洞、逻辑错误、性能差，等等。因此，内核本身的调试与跟踪一直都是内核提供的核心功能之一。</p>
+<h2 id="bpftrace-查询跟踪点的几种方法"><a href="#bpftrace-查询跟踪点的几种方法" class="headerlink" title="bpftrace 查询跟踪点的几种方法"></a>bpftrace 查询跟踪点的几种方法</h2><blockquote>
+<p>官方文档 <a class="link"   target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md" >https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md<i class="fas fa-external-link-alt"></i></a></p>
+</blockquote>
+<h3 id="利用调试信息查询跟踪点"><a href="#利用调试信息查询跟踪点" class="headerlink" title="利用调试信息查询跟踪点"></a>利用调试信息查询跟踪点</h3><p>实际上，作为一个软件系统，内核也经常会发生各种各样的问题，比如安全漏洞、逻辑错误、性能差，等等。因此，内核本身的调试与跟踪一直都是内核提供的核心功能之一。</p>
 <p>比如，为了方便调试，内核把所有函数以及非栈变量的地址都抽取到了  <code>/proc/kallsyms</code>  中，这样调试器就可以根据地址找出对应的函数和变量名称。很显然，具有实际含义的名称要比 16 进制的地址易读得多。对内核插桩类的 eBPF 程序来说，它们要挂载的内核函数就可以从  <code>/proc/kallsyms</code>  这个文件中查到。</p>
 <p>注意，内核函数是一个非稳定 API，在新版本中可能会发生变化，并且内核函数的数量也在不断增长中。以 v5.13.0 为例，总的内核符号表数量已经超过了 16 万：</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">cat</span> /proc/kallsyms <span class="token operator">|</span> <span class="token function">wc</span> <span class="token parameter variable">-l</span>
@@ -293,7 +296,761 @@
 <p>除了内核函数和跟踪点之外，性能事件又该如何查询呢？你可以使用 Linux 性能工具  perf  来查询性能事件的列表。如下面的命令所示，你可以不带参数查询所有的性能事件，也可以加入可选的事件类型参数进行过滤：</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> perf list <span class="token punctuation">[</span>hw<span class="token operator">|</span>sw<span class="token operator">|</span>cache<span class="token operator">|</span>tracepoint<span class="token operator">|</span>pmu<span class="token operator">|</span>sdt<span class="token operator">|</span>metric<span class="token operator">|</span>metricgroup<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-<h3 id="利用-bpftrace-查询跟踪点"><a href="#利用-bpftrace-查询跟踪点" class="headerlink" title="利用 bpftrace 查询跟踪点"></a>利用 bpftrace 查询跟踪点</h3><p>虽然你可以利用内核调试信息和 perf 工具查询内核函数、跟踪点以及性能事件的列表，但它们的位置比较分散，并且用这种方法也不容易查询内核函数的定义格式。所以，我再给你推荐一个更好用的 eBPF 工具  bpftrace。</p>
+<h3 id="利用-bpftrace-查询跟踪点"><a href="#利用-bpftrace-查询跟踪点" class="headerlink" title="利用 bpftrace 查询跟踪点"></a>利用 bpftrace 查询跟踪点</h3><p>虽然你可以利用内核调试信息和 perf 工具查询内核函数、跟踪点以及性能事件的列表，但它们的位置比较分散，并且用这种方法也不容易查询内核函数的定义格式。所以，我再给你推荐一个更好用的 eBPF 工具  <a class="link"   target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md" >bpftrace<i class="fas fa-external-link-alt"></i></a>。</p>
+<p>bpftrace 在 eBPF 和 BCC 之上构建了一个简化的跟踪语言，通过简单的几行脚本，就可以实现复杂的跟踪功能。并且，多行的跟踪指令也可以放到脚本文件中执行（脚本后缀通常为  <code>.bt</code>）。</p>
+<p>如下图（图片来自 bpftrace文档）所示，bpftrace 会把你开发的脚本借助 BCC 编译加载到内核中执行，再通过 BPF 映射获取执行的结果：</p>
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/bpfTraceResult.png" class="">
+
+<p>因此，在编写简单的 eBPF 程序，特别是编写的 eBPF 程序用于临时的调试和排错时，你可以考虑直接使用 bpftrace ，而不需要用 C 或 Python 去开发一个复杂的程序。</p>
+<ul>
+<li>安装 bpf</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token parameter variable">-y</span> bpftrace<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>安装好 bpftrace 之后，你就可以执行  <code>bpftrace -l</code>  来查询内核插桩和跟踪点了。比如你可以通过以下几种方式来查询：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 查询所有内核插桩和跟踪点</span>
+<span class="token function">sudo</span> bpftrace <span class="token parameter variable">-l</span>
+
+<span class="token comment"># 使用通配符查询所有的系统调用跟踪点</span>
+<span class="token function">sudo</span> bpftrace <span class="token parameter variable">-l</span> <span class="token string">'tracepoint:syscalls:*'</span>
+
+<span class="token comment"># 使用通配符查询所有名字包含"execve"的跟踪点</span>
+<span class="token function">sudo</span> bpftrace <span class="token parameter variable">-l</span> <span class="token string">'*execve*'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>对于跟踪点来说，你还可以加上  <code>-v</code>  参数查询函数的入口参数或返回值。而由于内核函数属于不稳定的 API，在 bpftrace 中只能通过  <code>arg0</code>、<code>arg1</code>  这样的参数来访问，具体的参数格式还需要参考内核源代码。</p>
+<p>比如，下面就是一个查询系统调用  <code>execve</code>  入口参数（对应系统调用 <code>sys_enter_execve</code>）和返回值（对应系统调用 <code>sys_exit_execve</code>）的示例：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 查询execve入口参数格式</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_enter_execve
+tracepoint:syscalls:sys_enter_execve
+    int __syscall_nr
+    const char * filename
+    const char *const * argv
+    const char *const * envp
+
+<span class="token comment"># 查询execve返回值格式</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_exit_execve
+tracepoint:syscalls:sys_exit_execve
+    int __syscall_nr
+    long ret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>所以，你既可以通过内核调试信息和 perf 来查询内核函数、跟踪点以及性能事件的列表，也可以使用 bpftrace 工具来查询。</p>
+<p>在这两种方法中，我更推荐使用更简单的 bpftrace 进行查询。这是因为，我们通常只需要在开发环境查询这些列表，以便去准备 eBPF 程序的挂载点。也就是说，虽然 bpftrace 依赖 BCC 和 LLVM 开发工具，但开发环境本来就需要这些库和开发工具。综合来看，用 bpftrace 工具来查询的方法显然更简单快捷。</p>
+<p>在开发 eBPF 程序之前，还需要在这些长长的函数列表中进行选择，确定你应该挂载到哪一个上。那么，具体该如何选择呢？接下来，就进入我们的案例环节，一起看看内核跟踪点的具体使用方法。</p>
+<h3 id="如何利用内核跟踪点排查短时进程问题？"><a href="#如何利用内核跟踪点排查短时进程问题？" class="headerlink" title="如何利用内核跟踪点排查短时进程问题？"></a>如何利用内核跟踪点排查短时进程问题？</h3><p>在排查系统 CPU 使用率高的问题时，我想你很可能遇到过这样的困惑：明明通过  top  命令发现系统的 CPU 使用率（特别是用户 CPU 使用率）特别高，但通过  ps、pidstat  等工具都找不出 CPU 使用率高的进程。这是什么原因导致的呢？你可以先停下来思考一下，再继续下面的内容。</p>
+<p>你想到可能的原因了吗？在我看来，一般情况下，这类问题很可能是以下两个原因导致的：</p>
+<ul>
+<li>第一，应用程序里面直接调用其他二进制程序，并且这些程序的运行时间很短，通过  top  工具不容易发现；</li>
+<li>第二，应用程序自身在不停地崩溃重启中，且重启间隔较短，启动过程中资源的初始化导致了高 CPU 使用率。</li>
+</ul>
+<p>使用  <code>top</code>、<code>ps</code>  等性能工具很难发现这类短时进程，这是因为它们都只会按照给定的时间间隔采样，而不会实时采集到所有新创建的进程。那要如何才能采集到所有的短时进程呢？你肯定已经想到了，那就是<strong>利用 eBPF 的事件触发机制，跟踪内核每次新创建的进程</strong>，这样就可以揪出这些短时进程。</p>
+<p>要跟踪内核新创建的进程，首先得找到要跟踪的内核函数或跟踪点。如果你了解过 Linux 编程中创建进程的过程，我想你已经知道了，创建一个新进程通常需要调用  <code>fork()</code>  和  <code>execve()</code>  这两个标准函数，它们的调用过程如下图所示：</p>
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/newProcess.png" class="">
+
+<p>因为我们要关心的主要是新创建进程的基本信息，而像进程名称和参数等信息都在  <code>execve()</code>  的参数里，所以我们就要找出  <code>execve()</code>  所对应的内核函数或跟踪点。</p>
+<p>借助刚才提到的  <code>bpftrace</code>  工具，你可以执行下面的命令，查询所有包含  <code>execve</code>  关键字的跟踪点：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> bpftrace <span class="token parameter variable">-l</span> <span class="token string">'*execve*'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>命令执行后，你会得到如下的输出内容：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kprobe:__ia32_compat_sys_execve
+kprobe:__ia32_compat_sys_execveat
+kprobe:__ia32_sys_execve
+kprobe:__ia32_sys_execveat
+kprobe:__x32_compat_sys_execve
+kprobe:__x32_compat_sys_execveat
+kprobe:__x64_sys_execve
+kprobe:__x64_sys_execveat
+kprobe:audit_log_execve_info
+kprobe:bprm_execve
+kprobe:do_execveat_common.isra.0
+kprobe:kernel_execve
+tracepoint:syscalls:sys_enter_execve
+tracepoint:syscalls:sys_enter_execveat
+tracepoint:syscalls:sys_exit_execve
+tracepoint:syscalls:sys_exit_execveat<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从输出中，你可以发现这些函数可以分为内核插桩（kprobe）和跟踪点（tracepoint）两类。在上一小节中我曾提到，内核插桩属于不稳定接口，而跟踪点则是稳定接口。因而，<strong>在内核插桩和跟踪点两者都可用的情况下，应该选择更稳定的跟踪点，以保证 eBPF 程序的可移植性（即在不同版本的内核中都可以正常执行）</strong>。</p>
+<p>排除掉  kprobe  类型之后，剩下的  <code>tracepoint:syscalls:sys_enter_execve</code>、<code>tracepoint:syscalls:sys_enter_execveat</code>、<code>tracepoint:syscalls:sys_exit_execve</code>  以及  <code>tracepoint:syscalls:sys_exit_execveat</code>  就是我们想要的 eBPF 跟踪点。其中，<code>sys_enter_</code>  和  <code>sys_exit_</code>  分别表示在系统调用的入口和出口执行。</p>
+<p>只有跟踪点的列表还不够，因为我们还想知道具体启动的进程名称、命令行选项以及返回值，而这些也都可以通过 bpftrace 来查询。在命令行中执行下面的命令，即可查询：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 查询sys_enter_execve入口参数</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_enter_execve
+tracepoint:syscalls:sys_enter_execve
+    int __syscall_nr
+    const char * filename
+    const char *const * argv
+    const char *const * envp
+
+<span class="token comment"># 查询sys_exit_execve返回值</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_exit_execve
+tracepoint:syscalls:sys_exit_execve
+    int __syscall_nr
+    long ret
+
+<span class="token comment"># 查询sys_enter_execveat入口参数</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_enter_execveat
+tracepoint:syscalls:sys_enter_execveat
+    int __syscall_nr
+    int fd
+    const char * filename
+    const char *const * argv
+    const char *const * envp
+    int flags
+
+<span class="token comment"># 查询sys_exit_execveat返回值</span>
+$ <span class="token function">sudo</span> bpftrace <span class="token parameter variable">-lv</span> tracepoint:syscalls:sys_exit_execveat
+tracepoint:syscalls:sys_exit_execveat
+    int __syscall_nr
+    long ret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从输出中可以看到，<code>sys_enter_execveat()</code>  比  <code>sys_enter_execve()</code>  多了两个参数，而文件名  <code>filename</code>、命令行选项  <code>argv</code>  以及返回值  ret 的定义都是一样的。</p>
+<p>到这里，我带你使用 bpftrace 查询到了 execve 相关的跟踪点，以及这些跟踪点的具体格式。接下来，为了帮你全方位掌握 eBPF 程序的开发过程，我会以 bpftrace、BCC 和 libbpf 这三种方式为例，带你开发一个跟踪短时进程的 eBPF 程序。这三种方式各有优缺点，在实际的生产环境中都有大量的应用：</p>
+<ul>
+<li><strong>bpftrace 通常用在快速排查和定位系统上，它支持用单行脚本的方式来快速开发并执行一个 eBPF 程序</strong>。不过，bpftrace 的功能有限，不支持特别复杂的 eBPF 程序，也依赖于 BCC 和 LLVM 动态编译执行。</li>
+<li><strong>BCC 通常用在开发复杂的 eBPF 程序中，其内置的各种小工具也是目前应用最为广泛的 eBPF 小程序</strong>。不过，BCC 也不是完美的，它依赖于 LLVM 和内核头文件才可以动态编译和加载 eBPF 程序。</li>
+<li><strong>libbpf 是从内核中抽离出来的标准库，用它开发的 eBPF 程序可以直接分发执行，这样就不需要每台机器都安装 LLVM 和内核头文件了</strong>。不过，它要求内核开启 BTF 特性，需要非常新的发行版才会默认开启（如 RHEL 8.2+ 和 Ubuntu 20.10+ 等）。</li>
+</ul>
+<p>在实际应用中，你可以根据你的内核版本、内核配置、eBPF 程序复杂度，以及是否允许安装内核头文件和 LLVM 等编译工具等，来选择最合适的方案。</p>
+<h3 id="bpftrace-方法"><a href="#bpftrace-方法" class="headerlink" title="bpftrace 方法"></a>bpftrace 方法</h3><p>这一讲我们先来看看，如何使用 bpftrace 来跟踪短时进程。</p>
+<p>由于 <code>execve()</code> 和 <code>execveat()</code> 这两个系统调用的入口参数文件名 <code>filename</code> 和命令行选项 <code>argv</code> ，以及返回值  ret  的定义都是一样的，因而我们可以把这两个跟踪点放到一起来处理。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> bpftrace <span class="token parameter variable">-e</span> <span class="token string">'tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat &#123; printf("%-6d %-8s", pid, comm); join(args->argv);&#125;'</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/bpftraceTwoProcess.png" class="">
+
+<p>这个命令中的具体内容含义如下：</p>
+<ul>
+<li><code>bpftrace -e</code>  表示直接从后面的字符串参数中读入 bpftrace 程序（除此之外，它还支持从文件中读入 bpftrace 程序）；</li>
+<li><code>tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat</code>  表示用逗号分隔的多个跟踪点，其后的中括号表示跟踪点的处理函数；</li>
+<li><code>printf()</code> 表示向终端中打印字符串，其用法类似于 C 语言中的 <code>printf()</code> 函数；</li>
+<li><code>pid</code> 和 <code>comm</code> 是 bpftrace 内置的变量，分别表示进程 PID 和进程名称（你可以在其官方文档中找到其他的内置变量）；</li>
+<li><code>join(args-&gt;argv)</code> 表示把字符串数组格式的参数用空格拼接起来，再打印到终端中。对于跟踪点来说，你可以使用  <code>args-&gt;参数名</code>  的方式直接读取参数（比如这里的 <code>args-&gt;argv</code> 就是读取系统调用中的 <code>argv</code> 参数）。</li>
+</ul>
+<p>在另一个终端中执行 ls 命令，然后你会在第一个终端中看到如下的输出：</p>
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/lsCommand.png" class="">
+
+<p>一个最简单的思路就是在系统调用的入口把参数保存到 BPF 映射中，然后再在系统调用出口获取返回值后一起输出。比如，你可以尝试执行下面的命令，把新进程的参数存入哈希映射中：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 其中，tid表示线程ID，@execs[tid]表示创建一个哈希映射</span>
+<span class="token function">sudo</span> bpftrace <span class="token parameter variable">-e</span> <span class="token string">'tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat &#123;@execs[tid] = join(args->argv);&#125;'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>很遗憾，这条命令并不能正常运行。根据下面的错误信息，你可以发现，<code>join()</code> 这个内置函数没有返回字符串，不能用来赋值：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">stdin:1:90-106: ERROR: join<span class="token punctuation">(</span><span class="token punctuation">)</span> should not be used <span class="token keyword">in</span> an assignment or as a map key
+tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat <span class="token punctuation">&#123;</span>@execs<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> join<span class="token punctuation">(</span>args-<span class="token operator">></span>argv<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>实际上，在 bpftrace 的 GitHub 页面上，已经有其他用户汇报了同样的问题，并且到现在还是没有解决。</p>
+<p>bpftrace 本身并不适用于所有的 eBPF 应用。如果是复杂的应用，我还是推荐使用 BCC 或者 libbpf 开发。</p>
+<p>再举一用例，在解决短时进程引发的性能问题时，找出短时进程才是最重要的。至于短时进程的执行结果，我们一般可以通过日志看到详细的运行过程。</p>
+<p>不过，这个跟踪程序还是有一些比较大的限制，比如：</p>
+<ul>
+<li>没有输出时间戳，这样去大量日志里面定位问题就比较困难；</li>
+<li>没有父进程 PID，还需要一些额外的工具或经验，才可以找出父进程。</li>
+</ul>
+<p>那么，这些问题该如何解决呢？</p>
+<pre class="line-numbers language-bt" data-language="bt"><code class="language-bt">---------------- execsnoop.bt -----------------
+
+#!&#x2F;usr&#x2F;bin&#x2F;bpftrace
+
+#include &lt;linux&#x2F;sched.h&gt;
+
+BEGIN
+&#123;
+    printf(&quot;%-9s %-6s %-6s %-16s %s\n&quot;, &quot;TIME&quot;, &quot;PID&quot;, &quot;PPID&quot;, &quot;COMM&quot;, &quot;ARGS&quot;)
+&#125;
+
+tracepoint:syscalls:sys_enter_execve,
+tracepoint:syscalls:sys_enter_execveat
+&#123;
+    $task &#x3D; (struct task_struct *)curtask;
+
+    time(&quot;%H:%M:%S  &quot;);
+    printf(&quot;%-6d %-6d %-16s&quot;, pid, $task-&gt;parent-&gt;tgid, comm);
+    join(args-&gt;argv);
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="bpftrace-小结"><a href="#bpftrace-小结" class="headerlink" title="bpftrace 小结"></a>bpftrace 小结</h3><p>今天，我带你梳理了查询 eBPF 跟踪点的常用方法，并以短时进程的跟踪为例，通过 bpftrace 实现了短时进程的跟踪程序。</p>
+<p>在跟踪内核时，你要记得，所有的内核跟踪都是被内核函数、内核跟踪点或性能事件等事件源触发后才执行的。所以，在跟踪内核之前，我们就需要通过调试信息、perf、bpftrace 等，找到这些事件源，然后再利用 eBPF 提供的强大功能去跟踪这些事件的执行过程。</p>
+<p>bpftrace 是一个使用最为简单的 eBPF 工具，因此在初学 eBPF 时，建议你可以从它开始。bpftrace 提供了一个简单的脚本语言，只需要简单的几条脚本就可以实现很丰富的 eBPF 程序。它通常用在快速排查和定位系统上，并支持用单行脚本的方式来快速开发并执行一个 eBPF 程序。</p>
+<h2 id="BCC-开发内核追踪程序"><a href="#BCC-开发内核追踪程序" class="headerlink" title="BCC 开发内核追踪程序"></a>BCC 开发内核追踪程序</h2><h3 id="BCC-方法"><a href="#BCC-方法" class="headerlink" title="BCC 方法"></a>BCC 方法</h3><p>我们先来看看如何使用 BCC 来开发上一讲中短时进程的跟踪程序。这里先说明下，由于  <code>execveat</code>  的处理逻辑同  <code>execve</code>  基本相同，限于篇幅的长度，接下来的 BCC 和 libbpf 程序都以  <code>execve</code>  为例。</p>
+<p>这里先回顾一下之前的内容，使用 BCC 开发 eBPF 程序包含两部分</p>
+<ul>
+<li>第一部分是用 C 语言开发的 eBPF 程序。在 eBPF 程序中，你可以利用 BCC 提供的库函数和宏定义简化你的处理逻辑。</li>
+<li>第二部分是用 Python 语言开发的前端界面，其中包含 eBPF 程序加载、挂载到内核函数和跟踪点，以及通过 BPF 映射获取和打印执行结果等部分。在前端程序中，你同样可以利用 BCC 库来访问 BPF 映射。</li>
+</ul>
+<h3 id="数据结构定义"><a href="#数据结构定义" class="headerlink" title="数据结构定义"></a>数据结构定义</h3><p>我们先看第一部分。为了在系统调用入口跟踪点和出口跟踪点间共享进程信息等数据，我们可以定义一个哈希映射（比如命名为  <code>tasks</code>）；同样地，因为我们想要在用户空间实时获取跟踪信息，这就需要一个性能事件映射。对于这两种映射的创建步骤，BCC 已经提供了非常方便的宏定义，你可以直接使用。</p>
+<p>比如，你可以用下面的方式来创建这两个映射：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token punctuation">&#123;</span>
+    u32 pid<span class="token punctuation">;</span>
+    <span class="token keyword">char</span> comm<span class="token punctuation">[</span>TASK_COMM_LEN<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> retval<span class="token punctuation">;</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> args_size<span class="token punctuation">;</span>
+    <span class="token keyword">char</span> argv<span class="token punctuation">[</span>FULL_MAX_ARGS_ARR<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token function">BPF_PERF_OUTPUT</span><span class="token punctuation">(</span>events<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">BPF_HASH</span><span class="token punctuation">(</span>tasks<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">data_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>代码中指令的具体作用如下：</p>
+<ul>
+<li><code>struct data_t</code>  定义了一个包含进程基本信息的数据结构，它将用在哈希映射的值中（其中的参数大小  <code>args_size</code>  会在读取参数内容的时候用到）；</li>
+<li><code>BPF_PERF_OUTPUT(events)</code>  定义了一个性能事件映射；</li>
+<li><code>BPF_HASH(tasks, u32, struct data_t)</code>  定义了一个哈希映射，其键为 32 位的进程 PID，而值则是进程基本信息  <code>data_t</code>。</li>
+</ul>
+<p>两个映射定义好之后，接下来就是<strong>定义跟踪点的处理函数</strong>。在 BCC 中，你可以通过  <code>TRACEPOINT_PROBE(category, event)</code>  来定义一个跟踪点处理函数。BCC 会将所有的参数放入  <code>args</code>  这个变量中，这样使用  <code>args-&gt;&lt;参数名&gt;</code>  就可以访问跟踪点的参数值。</p>
+<p>对我们要跟踪的短时进程问题来说，也就是下面这两个跟踪点：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 定义sys_enter_execve跟踪点处理函数.</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_enter_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">//待添加处理逻辑</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 定义sys_exit_execve跟踪点处理函数.</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_exit_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">//待添加处理逻辑</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="入口跟踪点处理"><a href="#入口跟踪点处理" class="headerlink" title="入口跟踪点处理"></a>入口跟踪点处理</h3><p>对于入口跟踪点  <code>sys_enter_execve</code>  的处理，还是按照上一讲中 bpftrace 的逻辑，先获取进程的 PID、进程名称和参数列表之后，再存入刚刚定义的哈希映射中。</p>
+<p>其中，进程 PID 和进程名称都比较容易获取。如下面的代码所示，你可以调用  <code>bpf_get_current_pid_tgid()</code>  查询进程 PID，调用  <code>bpf_get_current_comm()</code>  读取进程名称：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 获取进程PID和进程名称</span>
+<span class="token keyword">struct</span> <span class="token class-name">data_t</span> data <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+u32 pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 取低32位为进程PID</span>
+data<span class="token punctuation">.</span>pid <span class="token operator">=</span> pid<span class="token punctuation">;</span>
+<span class="token function">bpf_get_current_comm</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>而命令行参数的获取就没那么容易了。因为 BCC 把所有参数都放到了  <code>args</code>  中，你可以使用  <code>args-&gt;argv</code>  来访问参数列表：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>args<span class="token operator">-></span>argv<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>注意，<code>argv</code>  是一个用户空间的字符串数组（指针数组），这就需要调用  <code>bpf_probe_read</code> 系列的辅助函数，去这些指针中读取数据。并且，字符串的数量（即参数的个数）和每个字符串的长度（即每个参数的长度）都是未知的，由于 eBPF 栈大小只有 512 字节，如果想要把它们读入一个临时的字符数组中，必须要保证每次读取的内容不超过栈的大小。这类问题有很多种不同的处理方法，其中一个比较简单的方式就是<strong>把多余的参数截断，使用<code>...</code>代替过长的参数</strong>。一般来说，知道了进程的名称和前几个参数，对调试和排错来说就足够了。</p>
+<p>你可以定义最大读取的参数个数和参数长度，然后在哈希映射的值中定义一个字符数组，代码如下所示：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 定义参数长度和参数个数常量</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">ARGSIZE</span> <span class="token expression"><span class="token number">64</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">TOTAL_MAX_ARGS</span> <span class="token expression"><span class="token number">5</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FULL_MAX_ARGS_ARR</span> <span class="token expression"><span class="token punctuation">(</span>TOTAL_MAX_ARGS <span class="token operator">*</span> ARGSIZE<span class="token punctuation">)</span></span></span>
+
+<span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">char</span> argv<span class="token punctuation">[</span>FULL_MAX_ARGS_ARR<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>有了字符数组，接下来再定义一个辅助函数，从参数数组中读取字符串参数（限定最长  <code>ARGSIZE</code>）：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 从用户空间读取字符串</span>
+<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token operator">*</span>data<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>ptr<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>data<span class="token operator">-></span>args_size <span class="token operator">></span> LAST_ARG<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token function">bpf_probe_read_user_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token operator">-></span>argv<span class="token punctuation">[</span>data<span class="token operator">-></span>args_size<span class="token punctuation">]</span><span class="token punctuation">,</span> ARGSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">></span> ARGSIZE <span class="token operator">||</span> ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// increase the args size. the first tailing '\0' is not counted and hence it</span>
+    <span class="token comment">// would be overwritten by the next call.</span>
+    data<span class="token operator">-></span>args_size <span class="token operator">+=</span> <span class="token punctuation">(</span>ret <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在这个函数中，有几点需要你注意：</p>
+<ul>
+<li><code>bpf_probe_read_user_str()</code>  返回的是包含字符串结束符 <code>\0</code> 的长度。为了拼接所有的字符串，在计算已读取参数长度的时候，需要把 <code>\0</code> 排除在外。</li>
+<li><code>&amp;data-&gt;argv[data-&gt;args_size]</code>  用来获取要存放参数的位置指针，这是为了把多个参数拼接到一起。</li>
+<li>在调用 <code>bpf_probe_read_user_str()</code> 前后，需要对指针位置和返回值进行校验，这可以帮助 eBPF 验证器获取指针读写的边界（如果你感兴趣，可以参考<a class="link"   target="_blank" rel="noopener" href="https://sysdig.com/blog/the-art-of-writing-ebpf-programs-a-primer/" >这篇文章<i class="fas fa-external-link-alt"></i></a>，了解更多的内存访问验证细节）。</li>
+<li>在调用 <code>bpf_probe_read_user_str()</code> 前后，需要对指针位置和返回值进行校验，这可以帮助 eBPF 验证器获取指针读写的边界（如果你感兴趣，可以参考这篇文章，了解更多的内存访问验证细节）。</li>
+</ul>
+<p>有了这个辅助函数之后，因为 eBPF 在老版本内核中并不支持循环（有界循环在 5.3 之后才支持），要访问字符串数组，还需要一个小技巧：使用 <code>#pragma unroll</code> 告诉编译器，把源码中的循环自动展开。这就避免了最终的字节码中包含循环。</p>
+<p>完整的处理函数如下所示（具体的每一步我都加了详细的注释，你可以参考注释来加深理解）：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 引入内核头文件</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;uapi/linux/ptrace.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;linux/sched.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;linux/fs.h></span></span>
+
+<span class="token comment">// 定义sys_enter_execve跟踪点处理函数.</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_enter_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">// 变量定义</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>args<span class="token operator">-></span>argv<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 获取进程PID和进程名称</span>
+    <span class="token keyword">struct</span> <span class="token class-name">data_t</span> data <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+    u32 pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    data<span class="token punctuation">.</span>pid <span class="token operator">=</span> pid<span class="token punctuation">;</span>
+    <span class="token function">bpf_get_current_comm</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 获取第一个参数（即可执行文件的名字）</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>argv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">goto</span> out<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 获取其他参数（限定最多5个）</span>
+    <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">pragma</span> <span class="token expression"><span class="token function">unrollfor</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> TOTAL_MAX_ARGS<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span></span></span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>argv<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">goto</span> out<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+ out<span class="token operator">:</span>
+    <span class="token comment">// 存储到哈希映射中</span>
+    tasks<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>注意，为了获取内核数据结构的定义，在文件的开头需要引入相关的内核头文件。此外，读取参数完成之后，不要忘记调用 <code>tasks.update()</code> 把进程的基本信息存储到哈希映射中。因为返回值需要等到出口跟踪点时才可以获取，这儿只需要更新哈希映射就可以了，不需要把进程信息提交到性能事件映射中去。</p>
+<h3 id="出口跟踪点处理"><a href="#出口跟踪点处理" class="headerlink" title="出口跟踪点处理"></a>出口跟踪点处理</h3><p>入口跟踪点  <code>sys_enter_execve</code>  处理好之后，我们再来看看出口跟踪点  <code>sys_exit_execve</code>  该如何处理。</p>
+<p>由于进程的基本信息已经保存在了哈希映射中，所以出口事件的处理可以分为查询进程基本信息、填充返回值、最后再提交到性能事件映射这三个步骤。具体代码如下所示：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 定义sys_exit_execve跟踪点处理函数.</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_exit_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">// 从哈希映射中查询进程基本信息</span>
+    u32 pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token operator">*</span>data <span class="token operator">=</span> tasks<span class="token punctuation">.</span><span class="token function">lookup</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 填充返回值并提交到性能事件映射中</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>data <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        data<span class="token operator">-></span>retval <span class="token operator">=</span> args<span class="token operator">-></span>ret<span class="token punctuation">;</span>
+        events<span class="token punctuation">.</span><span class="token function">perf_submit</span><span class="token punctuation">(</span>args<span class="token punctuation">,</span> data<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">data_t</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token comment">// 最后清理进程信息</span>
+        tasks<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>到这里，完整的 eBPF 程序就开发好了，你可以把上述的代码保存到一个本地文件中，并命名为  <code>execsnoop.c</code></p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">/* Tracing execve system call. */</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;linux/sched.h></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;linux/fs.h></span></span>
+
+<span class="token comment">// consts for arguments (ensure below stack size limit 512)</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">ARGSIZE</span> <span class="token expression"><span class="token number">64</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">TOTAL_MAX_ARGS</span> <span class="token expression"><span class="token number">5</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FULL_MAX_ARGS_ARR</span> <span class="token expression"><span class="token punctuation">(</span>TOTAL_MAX_ARGS <span class="token operator">*</span> ARGSIZE<span class="token punctuation">)</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">LAST_ARG</span> <span class="token expression"><span class="token punctuation">(</span>FULL_MAX_ARGS_ARR <span class="token operator">-</span> ARGSIZE<span class="token punctuation">)</span></span></span>
+
+<span class="token comment">// perf event map (sharing data to userspace) and hash map (sharing data between tracepoints)</span>
+<span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token punctuation">&#123;</span>
+	u32 pid<span class="token punctuation">;</span>
+	<span class="token keyword">char</span> comm<span class="token punctuation">[</span>TASK_COMM_LEN<span class="token punctuation">]</span><span class="token punctuation">;</span>
+	<span class="token keyword">int</span> retval<span class="token punctuation">;</span>
+	<span class="token keyword">unsigned</span> <span class="token keyword">int</span> args_size<span class="token punctuation">;</span>
+	<span class="token keyword">char</span> argv<span class="token punctuation">[</span>FULL_MAX_ARGS_ARR<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token function">BPF_PERF_OUTPUT</span><span class="token punctuation">(</span>events<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">BPF_HASH</span><span class="token punctuation">(</span>tasks<span class="token punctuation">,</span> u32<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">data_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// helper function to read string from userspace.</span>
+<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token operator">*</span>data<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>ptr<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span>data<span class="token operator">-></span>args_size <span class="token operator">></span> LAST_ARG<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token function">bpf_probe_read_user_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token operator">-></span>argv<span class="token punctuation">[</span>data<span class="token operator">-></span>args_size<span class="token punctuation">]</span><span class="token punctuation">,</span> ARGSIZE<span class="token punctuation">,</span>
+					  <span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>ptr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">></span> ARGSIZE <span class="token operator">||</span> ret <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// increase the args size. the first tailing '\0' is not counted and hence it</span>
+	<span class="token comment">// would be overwritten by the next call.</span>
+	data<span class="token operator">-></span>args_size <span class="token operator">+=</span> <span class="token punctuation">(</span>ret <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// sys_enter_execve tracepoint.</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_enter_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token comment">// variables definitions</span>
+	<span class="token keyword">unsigned</span> <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>args<span class="token operator">-></span>argv<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token comment">// get the pid and comm</span>
+	<span class="token keyword">struct</span> <span class="token class-name">data_t</span> data <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+	u32 pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	data<span class="token punctuation">.</span>pid <span class="token operator">=</span> pid<span class="token punctuation">;</span>
+	<span class="token function">bpf_get_current_comm</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>data<span class="token punctuation">.</span>comm<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token comment">// get the binary name (first argment)</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>argv<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">goto</span> out<span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// get other arguments (skip first arg because it has already been read)</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">pragma</span> <span class="token expression">unroll</span></span>
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> TOTAL_MAX_ARGS<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">__bpf_read_arg_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>data<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>argv<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">goto</span> out<span class="token punctuation">;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+
+ out<span class="token operator">:</span>
+	<span class="token comment">// store the data in hash map</span>
+	tasks<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// sys_exit_execve tracepoint</span>
+<span class="token function">TRACEPOINT_PROBE</span><span class="token punctuation">(</span>syscalls<span class="token punctuation">,</span> sys_exit_execve<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+	<span class="token comment">// query the data from hash map</span>
+	u32 pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword">struct</span> <span class="token class-name">data_t</span> <span class="token operator">*</span>data <span class="token operator">=</span> tasks<span class="token punctuation">.</span><span class="token function">lookup</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token comment">// submit perf events after getting the retval</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span>data <span class="token operator">!=</span> <span class="token constant">NULL</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		data<span class="token operator">-></span>retval <span class="token operator">=</span> args<span class="token operator">-></span>ret<span class="token punctuation">;</span>
+		events<span class="token punctuation">.</span><span class="token function">perf_submit</span><span class="token punctuation">(</span>args<span class="token punctuation">,</span> data<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">data_t</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+		<span class="token comment">// clean up the hash map</span>
+		tasks<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="Python-前端处理"><a href="#Python-前端处理" class="headerlink" title="Python 前端处理"></a>Python 前端处理</h3><p>eBPF 程序开发完成后，最后一步就是为它增加一个 Python 前端。</p>
+<p>同之前写的 Hello World 类似，<strong>Python 前端逻辑需要 eBPF 程序加载、挂载到内核函数和跟踪点，以及通过 BPF 映射获取和打印执行结果等几个步骤</strong>。其中，因为我们已经使用了 <code>TRACEPOINT_PROBE</code> 宏定义，来定义 eBPF 跟踪点处理函数，BCC 在加载字节码的时候，会帮你自动把它挂载到正确的跟踪点上，所以挂载的步骤就可以忽略。完整的 Python 程序如下所示：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># 引入库函数</span>
+<span class="token keyword">from</span> bcc <span class="token keyword">import</span> BPF
+<span class="token keyword">from</span> bcc<span class="token punctuation">.</span>utils <span class="token keyword">import</span> printb
+
+<span class="token comment"># 1) 加载eBPF代码</span>
+b <span class="token operator">=</span> BPF<span class="token punctuation">(</span>src_file<span class="token operator">=</span><span class="token string">"execsnoop.c"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 2) 输出头</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"%-6s %-16s %-3s %s"</span> <span class="token operator">%</span> <span class="token punctuation">(</span><span class="token string">"PID"</span><span class="token punctuation">,</span> <span class="token string">"COMM"</span><span class="token punctuation">,</span> <span class="token string">"RET"</span><span class="token punctuation">,</span> <span class="token string">"ARGS"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 3) 定义性能事件打印函数</span>
+<span class="token keyword">def</span> <span class="token function">print_event</span><span class="token punctuation">(</span>cpu<span class="token punctuation">,</span> data<span class="token punctuation">,</span> size<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># BCC自动根据"struct data_t"生成数据结构</span>
+    event <span class="token operator">=</span> b<span class="token punctuation">[</span><span class="token string">"events"</span><span class="token punctuation">]</span><span class="token punctuation">.</span>event<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+    printb<span class="token punctuation">(</span><span class="token string">b"%-6d %-16s %-3d %-16s"</span> <span class="token operator">%</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>pid<span class="token punctuation">,</span> event<span class="token punctuation">.</span>comm<span class="token punctuation">,</span> event<span class="token punctuation">.</span>retval<span class="token punctuation">,</span> event<span class="token punctuation">.</span>argv<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 4) 绑定性能事件映射和输出函数，并从映射中循环读取数据</span>
+b<span class="token punctuation">[</span><span class="token string">"events"</span><span class="token punctuation">]</span><span class="token punctuation">.</span>open_perf_buffer<span class="token punctuation">(</span>print_event<span class="token punctuation">)</span>
+<span class="token keyword">while</span> <span class="token number">1</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        b<span class="token punctuation">.</span>perf_buffer_poll<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> KeyboardInterrupt<span class="token punctuation">:</span>
+        exit<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>把上述的代码保存到  execsnoop.py  中，然后通过 Python 运行，并在另一个终端中执行  ls  命令，你就可以得到如下的输出：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> python3 execsnoop.py
+PID    COMM             RET ARGS
+<span class="token number">1311958</span> barad_agent      <span class="token number">0</span>   /bin/sh-ccat /proc/meminfo <span class="token operator">|</span><span class="token function">grep</span> <span class="token string">'HardwareCorrupted'</span> <span class="token operator">|</span><span class="token function">awk</span> <span class="token string">'&#123;print $2&#125;'</span>
+<span class="token number">1311959</span> <span class="token function">sh</span>               <span class="token number">0</span>   cat/proc/meminfo
+<span class="token number">1311960</span> <span class="token function">sh</span>               <span class="token number">0</span>   grepHardwareCorrupted
+<span class="token number">1311961</span> <span class="token function">sh</span>               <span class="token number">0</span>   awk<span class="token punctuation">&#123;</span>print <span class="token variable">$2</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>到此处，我们就开发了一个新的 eBPF 程序，它的作用也是排查短时进程相关的性能。</p>
+<p>不过，在你想要分发这个程序到生产环境时，又会碰到一个新的难题：BCC 依赖于 LLVM 和内核头文件才可以动态编译和加载 eBPF 程序，而出于安全策略的需要，在生产环境中通常又不允许安装这些开发工具。</p>
+<p>这个难题应该怎么克服呢？一种很容易想到的方法是把 BCC 和开发工具都安装到容器中，容器本身不提供对外服务，这样可以降低安全风险。另外一种方法就是参考内核中的 <a class="link"   target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.13/source/samples/bpf" >eBPF 示例<i class="fas fa-external-link-alt"></i></a>，开发一个匹配当前内核版本的 eBPF 程序，并编译为字节码，再分发到生产环境中。</p>
+<p>除此之外，如果你的内核已经支持了 BPF 类型格式 (BTF)，我推荐你使用从内核源码中抽离出来的 libbpf 进行开发，这样可以借助 BTF 和 CO-RE 获得更好的移植性。实际上，BCC 的很多工具都在向 BTF 迁移中，相信未来 libbpf 会成为最受欢迎的 eBPF 程序开发基础库，甚至 Windows eBPF 也会支持 libbpf。</p>
+<h2 id="libbpf-开发内核追踪程序"><a href="#libbpf-开发内核追踪程序" class="headerlink" title="libbpf 开发内核追踪程序"></a>libbpf 开发内核追踪程序</h2><h3 id="libbpf-方法"><a href="#libbpf-方法" class="headerlink" title="libbpf 方法"></a>libbpf 方法</h3><p>那么，如何用 libbpf 来开发一个 eBPF 程序呢？跟刚才的 BCC 程序类似，使用 libbpf 开发 eBPF 程序也是分为两部分：</p>
+<ul>
+<li>第一，内核态的 eBPF 程序；</li>
+<li>第二，用户态的加载、挂载、映射读取以及输出程序等。</li>
+</ul>
+<p><strong>在 eBPF 程序中，由于内核已经支持了 BTF，你不再需要引入众多的内核头文件来获取内核数据结构的定义</strong>。取而代之的是一个通过 bpftool 生成的 <code>vmlinux.h</code>  头文件，其中包含了内核数据结构的定义。</p>
+<p>这样，使用 libbpf 开发 eBPF 程序就可以通过以下四个步骤完成：</p>
+<ol>
+<li>使用 bpftool 生成内核数据结构定义头文件。BTF 开启后，你可以在系统中找到  <code>/sys/kernel/btf/vmlinux</code>  这个文件，bpftool 正是从它生成了内核数据结构头文件。</li>
+<li>开发 eBPF 程序部分。为了方便后续通过统一的 Makefile 编译，eBPF 程序的源码文件一般命名为  <code>&lt;程序名&gt;.bpf.c</code>。</li>
+<li>编译 eBPF 程序为字节码，然后再调用 <code>bpftool gen skeleton</code> 为 eBPF 字节码生成脚手架头文件（Skeleton Header）。这个头文件包含了 eBPF 字节码以及相关的加载、挂载和卸载函数，可在用户态程序中直接调用。</li>
+<li>最后就是用户态程序引入上一步生成的头文件，开发用户态程序，包括 eBPF 程序加载、挂载到内核函数和跟踪点，以及通过 BPF 映射获取和打印执行结果等。</li>
+</ol>
+<p>通常，这几个步骤里面的编译、库链接、执行 <code>bpftool</code>  命令等，都可以放到 Makefile 中，这样就可以通过一个 <code>make</code> 命令去执行所有的步骤。比如，下面是一个简化版本的 Makefile：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">APPS <span class="token operator">=</span> execsnoop
+
+<span class="token punctuation">.</span>PHONY<span class="token operator">:</span> all
+all<span class="token operator">:</span> $<span class="token punctuation">(</span>APPS<span class="token punctuation">)</span>
+
+$<span class="token punctuation">(</span>APPS<span class="token punctuation">)</span><span class="token operator">:</span>
+    clang <span class="token operator">-</span>g <span class="token operator">-</span>O2 <span class="token operator">-</span>target bpf <span class="token operator">-</span>D__TARGET_ARCH_x86_64 <span class="token operator">-</span>I<span class="token operator">/</span>usr<span class="token operator">/</span>include<span class="token operator">/</span>x86_64<span class="token operator">-</span>linux<span class="token operator">-</span>gnu <span class="token operator">-</span>I<span class="token punctuation">.</span> <span class="token operator">-</span>c $@<span class="token punctuation">.</span>bpf<span class="token punctuation">.</span>c <span class="token operator">-</span>o $@<span class="token punctuation">.</span>bpf<span class="token punctuation">.</span>o
+    bpftool gen skeleton $@<span class="token punctuation">.</span>bpf<span class="token punctuation">.</span>o <span class="token operator">></span> $@<span class="token punctuation">.</span>skel<span class="token punctuation">.</span>h
+    clang <span class="token operator">-</span>g <span class="token operator">-</span>O2 <span class="token operator">-</span>Wall <span class="token operator">-</span>I <span class="token punctuation">.</span> <span class="token operator">-</span>c $@<span class="token punctuation">.</span>c <span class="token operator">-</span>o $@<span class="token punctuation">.</span>o
+    clang <span class="token operator">-</span>Wall <span class="token operator">-</span>O2 <span class="token operator">-</span>g $@<span class="token punctuation">.</span>o <span class="token operator">-</span><span class="token keyword">static</span> <span class="token operator">-</span>lbpf <span class="token operator">-</span>lelf <span class="token operator">-</span>lz <span class="token operator">-</span>o $@
+
+vmlinux<span class="token operator">:</span>
+    $<span class="token punctuation">(</span>bpftool<span class="token punctuation">)</span> btf dump file <span class="token operator">/</span>sys<span class="token operator">/</span>kernel<span class="token operator">/</span>btf<span class="token operator">/</span>vmlinux format c <span class="token operator">></span> vmlinux<span class="token punctuation">.</span>h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>有了这个 Makefile 之后，你执行 <code>make vmlinux</code> 命令就可以生成 <code>vmlinux.h</code> 文件，再执行 <code>make</code> 就可以编译  <code>APPS</code> 里面配置的所有 eBPF 程序（多个程序之间以空格分隔）。</p>
+<h3 id="内核头文件生成"><a href="#内核头文件生成" class="headerlink" title="内核头文件生成"></a>内核头文件生成</h3><p>首先，对于第一步，我们只需要执行下面的命令，即可生成内核数据结构的头文件：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> bpftool btf dump <span class="token function">file</span> /sys/kernel/btf/vmlinux <span class="token function">format</span> c <span class="token operator">></span> vmlinux.h<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>如果命令执行失败了，并且错误说 BTF 不存在，那说明当前系统内核没有开启 BTF 特性。这时候，你需要开启 <code>CONFIG_DEBUG_INFO_BTF=y</code> 和 <code>CONFIG_DEBUG_INFO=y</code> 这两个编译选项，然后重新编译和安装内核。</p>
+<h3 id="eBPF-程序定义"><a href="#eBPF-程序定义" class="headerlink" title="eBPF 程序定义"></a>eBPF 程序定义</h3><p>第二步就是开发 eBPF 程序，包括定义哈希映射、性能事件映射以及跟踪点的处理函数等，而对这些数据结构和跟踪函数的定义都可以通过 <code>SEC()</code> 宏定义来完成。在编译时，<strong>通过 <code>SEC()</code> 宏定义的数据结构和函数会放到特定的 ELF 段中，这样后续在加载 BPF 字节码时，就可以从这些段中获取所需的元数据</strong>。</p>
+<p>比如，你可以使用下面的代码来定义映射和跟踪点处理函数：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 包含头文件</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"vmlinux.h"</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">&lt;bpf/bpf_helpers.h></span></span>
+
+<span class="token comment">// 定义进程基本信息数据结构</span>
+<span class="token keyword">struct</span> <span class="token class-name">event</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">char</span> comm<span class="token punctuation">[</span>TASK_COMM_LEN<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token class-name">pid_t</span> pid<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> retval<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> args_count<span class="token punctuation">;</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> args_size<span class="token punctuation">;</span>
+    <span class="token keyword">char</span> args<span class="token punctuation">[</span>FULL_MAX_ARGS_ARR<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 定义哈希映射</span>
+<span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">__uint</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> BPF_MAP_TYPE_HASH<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">__uint</span><span class="token punctuation">(</span>max_entries<span class="token punctuation">,</span> <span class="token number">10240</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">__type</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> <span class="token class-name">pid_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">__type</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">event</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> execs <span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">".maps"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 定义性能事件映射</span>
+<span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+    <span class="token function">__uint</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> BPF_MAP_TYPE_PERF_EVENT_ARRAY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">__uint</span><span class="token punctuation">(</span>key_size<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>u32<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">__uint</span><span class="token punctuation">(</span>value_size<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>u32<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span> events <span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">".maps"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// sys_enter_execve跟踪点</span>
+<span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">"tracepoint/syscalls/sys_enter_execve"</span><span class="token punctuation">)</span>
+<span class="token keyword">int</span> <span class="token function">tracepoint__syscalls__sys_enter_execve</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">trace_event_raw_sys_enter</span> <span class="token operator">*</span>ctx<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+  <span class="token comment">// 待实现处理逻辑</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// sys_exit_execve跟踪点</span>
+<span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">"tracepoint/syscalls/sys_exit_execve"</span><span class="token punctuation">)</span>
+<span class="token keyword">int</span> <span class="token function">tracepoint__syscalls__sys_exit_execve</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">trace_event_raw_sys_exit</span> <span class="token operator">*</span>ctx<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+  <span class="token comment">// 待实现处理逻辑</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 定义许可证（前述的BCC默认使用GPL）</span>
+<span class="token keyword">char</span> LICENSE<span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">"license"</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token string">"Dual BSD/GPL"</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>让我们来看看这段代码的具体含义：</p>
+<ul>
+<li>头文件 <code>vmlinux.h</code> 包含了内核数据结构，而 <code>bpf/bpf_helpers.h</code> 包含了之前提到的 BPF 辅助函数；</li>
+<li><code>struct event</code> 定义了进程基本信息数据结构，它会用在后面的哈希映射中；</li>
+<li><code>SEC(&quot;.maps&quot;)</code> 定义了哈希映射和性能事件映射；</li>
+<li><code>SEC(&quot;tracepoint/&lt;跟踪点名称&gt;&quot;)</code> 定义了跟踪点处理函数，系统调用跟踪点的格式是  <code>tracepoint/syscalls/&lt;系统调用名称&gt;&quot;</code>。以后你需要定义内核插桩和用户插桩的时候，也是以类似的格式定义，比如 <code>kprobe/do_unlinkat</code>  或  <code>uprobe/func</code>；</li>
+<li>最后的  <code>SEC(&quot;license&quot;)</code>  定义了 eBPF 程序的许可证。在上述的 BCC eBPF 程序中，我们并没有定义许可证，这是因为 BCC 自动帮你使用了 GPL 许可。</li>
+</ul>
+<p>有了基本的程序结构，接下来就是<strong>实现系统调用入口和出口跟踪点的处理函数</strong>。它们的基本过程跟上述的 BCC 程序是类似的。</p>
+<h3 id="入口跟踪点处理-1"><a href="#入口跟踪点处理-1" class="headerlink" title="入口跟踪点处理"></a>入口跟踪点处理</h3><p>对于入口跟踪点 <code>sys_enter_execve</code> 的处理，还是按照上述 BCC 程序的逻辑，先获取进程的 PID、进程名称和参数列表之后，再存入刚刚定义的哈希映射中。完整代码如下所示，具体每一步的内容我都加了详细的注释：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">"tracepoint/syscalls/sys_enter_execve"</span><span class="token punctuation">)</span>
+<span class="token keyword">int</span> <span class="token function">tracepoint__syscalls__sys_enter_execve</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">trace_event_raw_sys_enter</span>
+                       <span class="token operator">*</span>ctx<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">struct</span> <span class="token class-name">event</span> <span class="token operator">*</span>event<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>args <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span><span class="token punctuation">)</span><span class="token punctuation">(</span>ctx<span class="token operator">-></span>args<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>argp<span class="token punctuation">;</span>
+
+    <span class="token comment">// 查询PID</span>
+    u64 id <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">pid_t</span> pid <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">pid_t</span><span class="token punctuation">)</span> id<span class="token punctuation">;</span>
+
+    <span class="token comment">// 保存一个空的event到哈希映射中</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">bpf_map_update_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>execs<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>empty_event<span class="token punctuation">,</span> BPF_NOEXIST<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    event <span class="token operator">=</span> <span class="token function">bpf_map_lookup_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>execs<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>event<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 初始化event变量</span>
+    event<span class="token operator">-></span>pid <span class="token operator">=</span> pid<span class="token punctuation">;</span>
+    event<span class="token operator">-></span>args_count <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    event<span class="token operator">-></span>args_size <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 查询第一个参数</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">int</span> ret <span class="token operator">=</span> <span class="token function">bpf_probe_read_user_str</span><span class="token punctuation">(</span>event<span class="token operator">-></span>args<span class="token punctuation">,</span> ARGSIZE<span class="token punctuation">,</span>
+                           <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>ctx<span class="token operator">-></span>args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">&lt;=</span> ARGSIZE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        event<span class="token operator">-></span>args_size <span class="token operator">+=</span> ret<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 查询其他参数</span>
+    event<span class="token operator">-></span>args_count<span class="token operator">++</span><span class="token punctuation">;</span>
+    <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">pragma</span> <span class="token expression"><span class="token function">unrollfor</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> TOTAL_MAX_ARGS<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span></span></span>
+        <span class="token function">bpf_probe_read_user</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>argp<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>argp<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>args<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>argp<span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>event<span class="token operator">-></span>args_size <span class="token operator">></span> LAST_ARG<span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+        ret <span class="token operator">=</span>
+            <span class="token function">bpf_probe_read_user_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>event<span class="token operator">-></span>args<span class="token punctuation">[</span>event<span class="token operator">-></span>args_size<span class="token punctuation">]</span><span class="token punctuation">,</span>
+                        ARGSIZE<span class="token punctuation">,</span> argp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>ret <span class="token operator">></span> ARGSIZE<span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+        event<span class="token operator">-></span>args_count<span class="token operator">++</span><span class="token punctuation">;</span>
+        event<span class="token operator">-></span>args_size <span class="token operator">+=</span> ret<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 再尝试一次，确认是否还有未读取的参数</span>
+    <span class="token function">bpf_probe_read_user</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>argp<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>argp<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>args<span class="token punctuation">[</span>TOTAL_MAX_ARGS<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>argp<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 如果还有未读取参数，则增加参数数量（用于输出"..."）</span>
+    event<span class="token operator">-></span>args_count<span class="token operator">++</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中，你需要注意这三点：</p>
+<ul>
+<li>第一，程序使用了 <code>bpf_probe_read_user()</code>  来查询参数。由于它把 <code>\0</code>  也算到了已读取参数的长度里面，所以最终 <code>event-&gt;args</code> 中保存的各个参数是以 <code>\0</code>  分隔的。在用户态程序输出参数之前，需要用空格替换  <code>\0</code>。</li>
+<li>第二，程序在一开始的时候向哈希映射存入了一个空事件，在后续出口跟踪点处理的时候需要确保空事件也能正确清理。</li>
+<li>第三，程序在最后又尝试多读取了一次参数列表。如果还有未读取参数，参数数量增加了 1。用户态程序可以根据参数数量来决定是不是需要在参数结尾输出一个 <code>...</code>。</li>
+</ul>
+<h3 id="出口跟踪点处理-1"><a href="#出口跟踪点处理-1" class="headerlink" title="出口跟踪点处理"></a>出口跟踪点处理</h3><p>入口跟踪点处理好之后，再来看看出口跟踪点的处理方法。它的步骤跟 BCC 程序也是类似的，也是查询进程基本信息、填充返回值、提交到性能事件映射这三个步骤。</p>
+<p>除此之外，由于刚才入口跟踪点的处理中没有读取进程名称，所以在提交性能事件之前还需要先查询一下进程名称。完整的程序如下所示，具体每一步的内容我也加了详细的注释：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">"tracepoint/syscalls/sys_exit_execve"</span><span class="token punctuation">)</span>
+<span class="token keyword">int</span> <span class="token function">tracepoint__syscalls__sys_exit_execve</span><span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">trace_event_raw_sys_exit</span> <span class="token operator">*</span>ctx<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    u64 id<span class="token punctuation">;</span>
+    <span class="token class-name">pid_t</span> pid<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> ret<span class="token punctuation">;</span>
+    <span class="token keyword">struct</span> <span class="token class-name">event</span> <span class="token operator">*</span>event<span class="token punctuation">;</span>
+
+    <span class="token comment">// 从哈希映射中查询进程基本信息</span>
+    id <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    pid <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">pid_t</span><span class="token punctuation">)</span> id<span class="token punctuation">;</span>
+    event <span class="token operator">=</span> <span class="token function">bpf_map_lookup_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>execs<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>event<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 更新返回值和进程名称</span>
+    ret <span class="token operator">=</span> ctx<span class="token operator">-></span>ret<span class="token punctuation">;</span>
+    event<span class="token operator">-></span>retval <span class="token operator">=</span> ret<span class="token punctuation">;</span>
+    <span class="token function">bpf_get_current_comm</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>event<span class="token operator">-></span>comm<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>event<span class="token operator">-></span>comm<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 提交性能事件</span>
+    <span class="token class-name">size_t</span> len <span class="token operator">=</span> <span class="token function">EVENT_SIZE</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>len <span class="token operator">&lt;=</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>event<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token function">bpf_perf_event_output</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token operator">&amp;</span>events<span class="token punctuation">,</span> BPF_F_CURRENT_CPU<span class="token punctuation">,</span> event<span class="token punctuation">,</span>
+                      len<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 清理哈希映射</span>
+    <span class="token function">bpf_map_delete_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>execs<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>从这些代码中你可以看到，它的处理逻辑跟上述的 BCC 程序基本上是相同的。不过，详细对比一下，你会发现它们之间还是有不同的，不同点主要在两个方面：</p>
+<ul>
+<li>第一，函数名的定义格式不同。BCC 程序使用的是 <code>TRACEPOINT_PROBE</code> 宏，而 libbpf 程序用的则是  <code>SEC</code>  宏。</li>
+<li>第二，映射的访问方法不同。BCC 封装了很多更易用的映射访问函数（如 <code>tasks.lookup()</code>），而 libbpf 程序则需要调用 05 讲 提到过的 BPF 辅助函数（比如查询要使用 <code>bpf_map_lookup_elem()</code>）。</li>
+</ul>
+<p>到这里，新建一个目录，并把上述代码存入 <code>execsnoop.bpf.c</code> 文件中，eBPF 部分的代码也就开发好了。</p>
+<h3 id="编译并生成脚手架头文件"><a href="#编译并生成脚手架头文件" class="headerlink" title="编译并生成脚手架头文件"></a>编译并生成脚手架头文件</h3><p>有了 eBPF 程序，执行下面的命令，你就可以使用 clang 和 bpftool 将其编译成 BPF 字节码，然后再生成其脚手架头文件  <code>execsnoop.skel.h</code> （注意，脚手架头文件的名字一般定义为  <code>&lt;程序名&gt;.skel.h</code>）：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">clang <span class="token parameter variable">-g</span> <span class="token parameter variable">-O2</span> <span class="token parameter variable">-target</span> bpf <span class="token parameter variable">-D__TARGET_ARCH_x86_64</span> -I/usr/include/x86_64-linux-gnu -I. <span class="token parameter variable">-c</span> execsnoop.bpf.c <span class="token parameter variable">-o</span> execsnoop.bpf.o
+bpftool gen skeleton execsnoop.bpf.o <span class="token operator">></span> execsnoop.skel.h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>其中，clang 的参数 <code>-target bpf</code>  表示要生成 BPF 字节码，<code>-D__TARGET_ARCH_x86_64</code>  表示目标的体系结构是 <code>x86_64</code>，而  <code>-I</code>  则是引入头文件路径。</p>
+<p>命令执行后，脚手架头文件会放到 <code>execsnoop.skel.h</code>  中，这个头文件包含了 BPF 字节码和相关的管理函数。因而，当用户态程序引入这个头文件并编译之后，只需要分发最终用户态程序生成的二进制文件到生产环境即可（如果用户态程序使用了其他的动态库，还需要分发动态库）。</p>
+<h3 id="开发用户态程序"><a href="#开发用户态程序" class="headerlink" title="开发用户态程序"></a>开发用户态程序</h3><p>有了脚手架头文件之后，还剩下最后一步，也就是用户态程序的开发。</p>
+<p>同 BCC 的 Python 前端程序类似，libbpf 用户态程序也需要 eBPF 程序加载、挂载到跟踪点，以及通过 BPF 映射获取和打印执行结果等几个步骤。虽然 C 语言听起来可能比 Python 语言麻烦一些，但实际上，这几个步骤都可以通过脚手架头文件中自动生成的函数来完成。</p>
+<p>下面是忽略了错误处理逻辑之后，用户态程序的一个基本框架：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 引入脚手架头文件</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"execsnoop.skel.h"</span></span>
+
+<span class="token comment">// C语言主函数</span>
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">// 定义BPF程序和性能事件缓冲区</span>
+    <span class="token keyword">struct</span> <span class="token class-name">execsnoop_bpf</span> <span class="token operator">*</span>skel<span class="token punctuation">;</span>
+    <span class="token keyword">struct</span> <span class="token class-name">perf_buffer_opts</span> pb_opts<span class="token punctuation">;</span>
+    <span class="token keyword">struct</span> <span class="token class-name">perf_buffer</span> <span class="token operator">*</span>pb <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> err<span class="token punctuation">;</span>
+
+    <span class="token comment">// 1. 设置调试输出函数</span>
+    <span class="token function">libbpf_set_print</span><span class="token punctuation">(</span>libbpf_print_fn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 2. 增大 RLIMIT_MEMLOCK（默认值通常太小，不足以存入BPF映射的内容）</span>
+    <span class="token function">bump_memlock_rlimit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 3. 初始化BPF程序</span>
+    skel <span class="token operator">=</span> <span class="token function">execsnoop_bpf__open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 4. 加载BPF字节码</span>
+    err <span class="token operator">=</span> <span class="token function">execsnoop_bpf__load</span><span class="token punctuation">(</span>skel<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 5. 挂载BPF字节码到跟踪点</span>
+    err <span class="token operator">=</span> <span class="token function">execsnoop_bpf__attach</span><span class="token punctuation">(</span>skel<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 6. 配置性能事件回调函数</span>
+    pb_opts<span class="token punctuation">.</span>sample_cb <span class="token operator">=</span> handle_event<span class="token punctuation">;</span>
+    pb <span class="token operator">=</span> <span class="token function">perf_buffer__new</span><span class="token punctuation">(</span><span class="token function">bpf_map__fd</span><span class="token punctuation">(</span>skel<span class="token operator">-></span>maps<span class="token punctuation">.</span>events<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">64</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>pb_opts<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 7. 从缓冲区中循环读取数据</span>
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>err <span class="token operator">=</span> <span class="token function">perf_buffer__poll</span><span class="token punctuation">(</span>pb<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">>=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中，<code>execsnoop_</code>  开头的数据结构和函数都包含在脚手架头文件 <code>execsnoop.skel.h</code> 中。而具体到每一步的含义如下：</p>
+<ul>
+<li>第 1 步的调试输出函数中，可以调用 <code>printf()</code> 把调试信息输出到终端中。</li>
+<li>第 2 步增大锁定内存限制 <code>RLIMIT_MEMLOCK</code> 是必要的，因为系统默认的锁定内存通常过小，无法满足 BPF 映射的需要。</li>
+<li>第 3~5 步，直接调用脚手架头文件中的函数，加载 BPF 字节码并挂载到跟踪点。</li>
+<li>第 6~7 步为性能事件设置回调函数，并从缓冲区中循环读取数据。注意，性能事件映射  <code>skel-&gt;maps.events</code>  也是 bpftool 自动帮你生成好的。</li>
+</ul>
+<p>接下来，在性能事件回调函数中，把数据格式转换为 <code>struct event</code>  格式之后，由于参数列表是使用  <code>\0</code>  来分割的，并不能直接向终端打印所有参数。所以，还需要把  <code>\0</code>  先替换为空格，然后再打印。完整的回调函数如下所示：</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">// 性能事件回调函数(向终端中打印进程名、PID、返回值以及参数)</span>
+<span class="token keyword">void</span> <span class="token function">handle_event</span><span class="token punctuation">(</span><span class="token keyword">void</span> <span class="token operator">*</span>ctx<span class="token punctuation">,</span> <span class="token keyword">int</span> cpu<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>data<span class="token punctuation">,</span> __u32 data_sz<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">const</span> <span class="token keyword">struct</span> <span class="token class-name">event</span> <span class="token operator">*</span>e <span class="token operator">=</span> data<span class="token punctuation">;</span>
+    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"%-16s %-6d %3d "</span><span class="token punctuation">,</span> e<span class="token operator">-></span>comm<span class="token punctuation">,</span> e<span class="token operator">-></span>pid<span class="token punctuation">,</span> e<span class="token operator">-></span>retval<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">print_args</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">putchar</span><span class="token punctuation">(</span><span class="token char">'\n'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 打印参数（替换'\0'为空格）</span>
+<span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">print_args</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">struct</span> <span class="token class-name">event</span> <span class="token operator">*</span>e<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> args_counter <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> e<span class="token operator">-></span>args_size <span class="token operator">&amp;&amp;</span> args_counter <span class="token operator">&lt;</span> e<span class="token operator">-></span>args_count<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">char</span> c <span class="token operator">=</span> e<span class="token operator">-></span>args<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>c <span class="token operator">==</span> <span class="token char">'\0'</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 把'\0'替换为空格</span>
+            args_counter<span class="token operator">++</span><span class="token punctuation">;</span>
+            <span class="token function">putchar</span><span class="token punctuation">(</span><span class="token char">' '</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token function">putchar</span><span class="token punctuation">(</span>c<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token operator">-></span>args_count <span class="token operator">></span> TOTAL_MAX_ARGS<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 过长的参数输出"..."替代</span>
+        <span class="token function">fputs</span><span class="token punctuation">(</span><span class="token string">" ..."</span><span class="token punctuation">,</span> <span class="token constant">stdout</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>把上面的代码保存到  <code>execsnoop.c</code>  文件中，然后执行下面的命令，将其编译为可执行文件：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">clang <span class="token parameter variable">-g</span> <span class="token parameter variable">-O2</span> <span class="token parameter variable">-Wall</span> <span class="token parameter variable">-I</span> <span class="token builtin class-name">.</span> <span class="token parameter variable">-c</span> execsnoop.c <span class="token parameter variable">-o</span> execsnoop.o
+clang <span class="token parameter variable">-Wall</span> <span class="token parameter variable">-O2</span> <span class="token parameter variable">-g</span> execsnoop.o <span class="token parameter variable">-static</span> <span class="token parameter variable">-lbpf</span> <span class="token parameter variable">-lelf</span> <span class="token parameter variable">-lz</span> <span class="token parameter variable">-o</span> execsnoop<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>最后，执行 <code>execsnoop</code>，你就可以得到如下的结果：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> ./execsnoop
+COMM             PID    RET ARGS
+<span class="token function">sh</span>               <span class="token number">276871</span>   <span class="token number">0</span> /bin/sh <span class="token parameter variable">-c</span> <span class="token function">which</span> <span class="token function">ps</span>
+<span class="token function">which</span>            <span class="token number">276872</span>   <span class="token number">0</span> /usr/bin/which <span class="token function">ps</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>你还可以直接把这个文件复制到开启了 BTF 的其他机器中，无需安装额外的 LLVM 开发工具和内核头文件，也可以直接执行。</p>
+<p>如果命令失败，并且你看到如下的错误，这说明当前机器没有开启 BTF，需要重新编译内核开启 BTF 才可以运行：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Failed to load and verify BPF skeleton<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>虽然这三种方法的步骤和实现代码各不相同，但实际上它们的实现逻辑都是类似的，无非就是找出跟踪点，然后在 eBPF 部分获取想要的数据并保存到 BPF 映射中，最后在用户空间程序中读取 BPF 映射的内容并输出出来。</p>
+</blockquote>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>在实际的应用中，这三种方法有不同的使用场景：</p>
+<ul>
+<li>bpftrace 通常用在<strong>快速排查和定位系统</strong>上，它支持用单行脚本的方式来快速开发并执行一个 eBPF 程序；</li>
+<li>BCC 通常用在<strong>开发复杂的 eBPF 程序</strong>中，它内置的各种小工具也是目前应用最为广泛的 eBPF 小程序；</li>
+<li>libbpf 是<strong>从内核中抽离出来的标准库</strong>，用它开发的 eBPF 程序可以直接分发执行，不再需要在每台机器上都安装 LLVM 和内核头文件。</li>
+</ul>
+<p>通常情况下，你可以用 bpftrace 或 BCC 做一些快速原型，验证你的设计思路是不是可行，然后再切换到 libbpf ，开发完善的 eBPF 程序后再去分发执行。这样，不仅 eBPF 程序运行得更快（无需编译步骤），还避免了在运行环境中安装开发工具和内核头文件。</p>
+<p>在不支持 BTF 的机器中，如果不想在运行 eBPF 时依赖于 LLVM 编译和内核头文件，你还可以参考内核中的  BPF 示例，直接引用内核源码中的 <code>tools/lib/bpf/</code>  库，以及内核头文件中的数据结构，来开发 eBPF 程序。</p>
 
             </div>
 
@@ -466,7 +1223,7 @@
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA"><span class="nav-text">eBPF 内核跟踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95"><span class="nav-text">查询跟踪点的几种方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%B0%83%E8%AF%95%E4%BF%A1%E6%81%AF%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9"><span class="nav-text">利用调试信息查询跟踪点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8-bpftrace-%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9"><span class="nav-text">利用 bpftrace 查询跟踪点</span></a></li></ol></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA"><span class="nav-text">eBPF 内核跟踪</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bpftrace-%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95"><span class="nav-text">bpftrace 查询跟踪点的几种方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%B0%83%E8%AF%95%E4%BF%A1%E6%81%AF%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9"><span class="nav-text">利用调试信息查询跟踪点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8-bpftrace-%E6%9F%A5%E8%AF%A2%E8%B7%9F%E8%B8%AA%E7%82%B9"><span class="nav-text">利用 bpftrace 查询跟踪点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA%E7%82%B9%E6%8E%92%E6%9F%A5%E7%9F%AD%E6%97%B6%E8%BF%9B%E7%A8%8B%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-text">如何利用内核跟踪点排查短时进程问题？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bpftrace-%E6%96%B9%E6%B3%95"><span class="nav-text">bpftrace 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bpftrace-%E5%B0%8F%E7%BB%93"><span class="nav-text">bpftrace 小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BCC-%E5%BC%80%E5%8F%91%E5%86%85%E6%A0%B8%E8%BF%BD%E8%B8%AA%E7%A8%8B%E5%BA%8F"><span class="nav-text">BCC 开发内核追踪程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BCC-%E6%96%B9%E6%B3%95"><span class="nav-text">BCC 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9A%E4%B9%89"><span class="nav-text">数据结构定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A5%E5%8F%A3%E8%B7%9F%E8%B8%AA%E7%82%B9%E5%A4%84%E7%90%86"><span class="nav-text">入口跟踪点处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BA%E5%8F%A3%E8%B7%9F%E8%B8%AA%E7%82%B9%E5%A4%84%E7%90%86"><span class="nav-text">出口跟踪点处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python-%E5%89%8D%E7%AB%AF%E5%A4%84%E7%90%86"><span class="nav-text">Python 前端处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#libbpf-%E5%BC%80%E5%8F%91%E5%86%85%E6%A0%B8%E8%BF%BD%E8%B8%AA%E7%A8%8B%E5%BA%8F"><span class="nav-text">libbpf 开发内核追踪程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#libbpf-%E6%96%B9%E6%B3%95"><span class="nav-text">libbpf 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E5%A4%B4%E6%96%87%E4%BB%B6%E7%94%9F%E6%88%90"><span class="nav-text">内核头文件生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eBPF-%E7%A8%8B%E5%BA%8F%E5%AE%9A%E4%B9%89"><span class="nav-text">eBPF 程序定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A5%E5%8F%A3%E8%B7%9F%E8%B8%AA%E7%82%B9%E5%A4%84%E7%90%86-1"><span class="nav-text">入口跟踪点处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BA%E5%8F%A3%E8%B7%9F%E8%B8%AA%E7%82%B9%E5%A4%84%E7%90%86-1"><span class="nav-text">出口跟踪点处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%B9%B6%E7%94%9F%E6%88%90%E8%84%9A%E6%89%8B%E6%9E%B6%E5%A4%B4%E6%96%87%E4%BB%B6"><span class="nav-text">编译并生成脚手架头文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E7%94%A8%E6%88%B7%E6%80%81%E7%A8%8B%E5%BA%8F"><span class="nav-text">开发用户态程序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></li></ol>
     </div>
 </div>
 
