@@ -219,7 +219,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-03-29 21:55:59</span>
+        <span class="pc">2023-08-31 15:56:53</span>
     </span>
     
     
@@ -250,12 +250,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>472 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>691 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>1 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>2 分钟</span>
         </span>
     
     
@@ -357,6 +357,11 @@ systemctl start frps<span aria-hidden="true" class="line-numbers-rows"><span></s
 mysql <span class="token parameter variable">-h</span> localhost <span class="token parameter variable">-u</span> root <span class="token parameter variable">-p</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>MySQL 中存在中文乱码的问题</p>
+<h1 id="docker-的详细使用"><a href="#docker-的详细使用" class="headerlink" title="docker 的详细使用"></a>docker 的详细使用</h1><p>更新于 2023&#x2F;8&#x2F;31；更新的主要原因是发现自己 Dockerfile 编写的非常不熟练，<code>docker-compose.yml</code> 编写的也非常不熟练。</p>
+<p>所以此时的更新也是主要围绕着 Dockerfile 和 docker-compose 展开</p>
+<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><p>Dockerfile 是用来描述文件的构成的文本文档，其中包含了用户可以在使用行调用以组合 Image 的所有命令，用户还可以使用 Docker build 实现连续执行多个命令指今行的自动构建。</p>
+<p>通过编写Dockerfile生磁镜像，可以为开发、测试团队提供基本一致的环境，从而提升开发、测试团队的效率，不用再为环境不统一而发愁，同时运维也能更加方便地管理我们的镜像。</p>
+<p>Dockerfile的语法非常简单，常用的只有11个：</p>
 
             </div>
 
@@ -529,7 +534,7 @@ mysql <span class="token parameter variable">-h</span> localhost <span class="to
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%96%E5%85%88%EF%BC%8C%E5%BC%84%E6%98%8E%E7%99%BDdocker-image%E4%B8%8EContainer%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">首先，弄明白docker image与Container的关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E8%BF%9B%E5%85%A5%E6%AD%A3%E9%A2%98%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8docker"><span class="nav-text">0x01 进入正题：如何使用docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-docker%E7%BD%91%E7%BB%9C"><span class="nav-text">0x02 docker网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9F%A5%E7%9C%8Bdocker%E5%AE%B9%E5%99%A8%E7%9A%84ip"><span class="nav-text">1.查看docker容器的ip</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-ctfd%E4%B8%ADdocker%E7%9A%84frp%E5%AE%B9%E5%99%A8%E4%B8%80%E7%9B%B4restarting%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">0x03 ctfd中docker的frp容器一直restarting的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A6%82%E6%9E%9C%E6%98%AF%E7%AB%AF%E5%8F%A3%E8%A2%AB%E5%8D%A0%E7%94%A8"><span class="nav-text">1.如果是端口被占用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A6%82%E6%9E%9C%E6%98%AF%E6%98%BE%E7%A4%BAFRP%E6%9C%AA%E9%85%8D%E7%BD%AE"><span class="nav-text">2.如果是显示FRP未配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-docker-%E6%8B%89-MySQL"><span class="nav-text">0x04 docker 拉 MySQL</span></a>
+        <ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%96%E5%85%88%EF%BC%8C%E5%BC%84%E6%98%8E%E7%99%BDdocker-image%E4%B8%8EContainer%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">首先，弄明白docker image与Container的关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E8%BF%9B%E5%85%A5%E6%AD%A3%E9%A2%98%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8docker"><span class="nav-text">0x01 进入正题：如何使用docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-docker%E7%BD%91%E7%BB%9C"><span class="nav-text">0x02 docker网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9F%A5%E7%9C%8Bdocker%E5%AE%B9%E5%99%A8%E7%9A%84ip"><span class="nav-text">1.查看docker容器的ip</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-ctfd%E4%B8%ADdocker%E7%9A%84frp%E5%AE%B9%E5%99%A8%E4%B8%80%E7%9B%B4restarting%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">0x03 ctfd中docker的frp容器一直restarting的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A6%82%E6%9E%9C%E6%98%AF%E7%AB%AF%E5%8F%A3%E8%A2%AB%E5%8D%A0%E7%94%A8"><span class="nav-text">1.如果是端口被占用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A6%82%E6%9E%9C%E6%98%AF%E6%98%BE%E7%A4%BAFRP%E6%9C%AA%E9%85%8D%E7%BD%AE"><span class="nav-text">2.如果是显示FRP未配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-docker-%E6%8B%89-MySQL"><span class="nav-text">0x04 docker 拉 MySQL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-%E7%9A%84%E8%AF%A6%E7%BB%86%E4%BD%BF%E7%94%A8"><span class="nav-text">docker 的详细使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dockerfile"><span class="nav-text">Dockerfile</span></a>
     </div>
 </div>
 
