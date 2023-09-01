@@ -219,7 +219,7 @@
     
         <span class="article-update-date article-meta-item">
         <i class="fas fa-file-pen"></i>&nbsp;
-        <span class="pc">2023-08-31 15:56:53</span>
+        <span class="pc">2023-08-31 16:36:50</span>
     </span>
     
     
@@ -250,12 +250,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>691 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>864 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>2 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>3 分钟</span>
         </span>
     
     
@@ -305,7 +305,7 @@
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">-itd</span> 容器ID       // 这里 -i，-t，-d分别是三个参数<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
-<li>这里出现的<none>的出现，是因为docker中的镜像被新的镜像覆盖的时候，老版本的镜像名称会变成<none>，删除即可</li>
+<li>这里出现的 <code>&lt;none&gt;</code>的出现，是因为docker中的镜像被新的镜像覆盖的时候，老版本的镜像名称会变成<code>&lt;none&gt;</code>，删除即可</li>
 </ul>
 <p>删除镜像的指令</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> rmi <span class="token parameter variable">-f</span> 容器id<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
@@ -356,12 +356,59 @@ systemctl start frps<span aria-hidden="true" class="line-numbers-rows"><span></s
 
 mysql <span class="token parameter variable">-h</span> localhost <span class="token parameter variable">-u</span> root <span class="token parameter variable">-p</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
+
 <p>MySQL 中存在中文乱码的问题</p>
-<h1 id="docker-的详细使用"><a href="#docker-的详细使用" class="headerlink" title="docker 的详细使用"></a>docker 的详细使用</h1><p>更新于 2023&#x2F;8&#x2F;31；更新的主要原因是发现自己 Dockerfile 编写的非常不熟练，<code>docker-compose.yml</code> 编写的也非常不熟练。</p>
+<h2 id="docker-的详细使用"><a href="#docker-的详细使用" class="headerlink" title="docker 的详细使用"></a>docker 的详细使用</h2><p>更新于 2023&#x2F;8&#x2F;31；更新的主要原因是发现自己 Dockerfile 编写的非常不熟练，<code>docker-compose.yml</code> 编写的也非常不熟练。</p>
 <p>所以此时的更新也是主要围绕着 Dockerfile 和 docker-compose 展开</p>
-<h2 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h2><p>Dockerfile 是用来描述文件的构成的文本文档，其中包含了用户可以在使用行调用以组合 Image 的所有命令，用户还可以使用 Docker build 实现连续执行多个命令指今行的自动构建。</p>
+<h3 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h3><p>Dockerfile 是用来描述文件的构成的文本文档，其中包含了用户可以在使用行调用以组合 Image 的所有命令，用户还可以使用 Docker build 实现连续执行多个命令指今行的自动构建。</p>
 <p>通过编写Dockerfile生磁镜像，可以为开发、测试团队提供基本一致的环境，从而提升开发、测试团队的效率，不用再为环境不统一而发愁，同时运维也能更加方便地管理我们的镜像。</p>
 <p>Dockerfile的语法非常简单，常用的只有11个：</p>
+<img src="/2021/10/12/docker%E7%9A%84%E4%BD%BF%E7%94%A8/dockerfile.png" class="">
+
+<p>编写多了现在自然而然也就会了</p>
+<h3 id="docker-compose"><a href="#docker-compose" class="headerlink" title="docker-compose"></a>docker-compose</h3><p>在 dockerfile 的基础上升级了一下，通过 docker-compose.yml 能够对一些容器&#x2F;调试起很大的作用。</p>
+<p>比如这一个</p>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">version</span><span class="token punctuation">:</span> <span class="token string">'2'</span>
+
+<span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">namesrv</span><span class="token punctuation">:</span>
+      <span class="token key atrule">image</span><span class="token punctuation">:</span> apache/rocketmq<span class="token punctuation">:</span>4.9.4
+      <span class="token key atrule">container_name</span><span class="token punctuation">:</span> rmqnamesrv
+      <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> 9876<span class="token punctuation">:</span><span class="token number">9876</span>
+        <span class="token punctuation">-</span> 9555<span class="token punctuation">:</span><span class="token number">9555</span>
+      <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+        <span class="token key atrule">JAVA_OPT</span><span class="token punctuation">:</span> <span class="token string">"-Xdebug -Xrunjdwp:transport=dt_socket,address=9555,server=y,suspend=n"</span>
+      <span class="token key atrule">command</span><span class="token punctuation">:</span> sh mqnamesrv
+
+  <span class="token key atrule">broker</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> apache/rocketmq<span class="token punctuation">:</span>4.9.4
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> rmqbroker
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 10909<span class="token punctuation">:</span><span class="token number">10909</span>
+      <span class="token punctuation">-</span> 10911<span class="token punctuation">:</span><span class="token number">10911</span>
+      <span class="token punctuation">-</span> 10912<span class="token punctuation">:</span><span class="token number">10912</span>
+      <span class="token punctuation">-</span> 9556<span class="token punctuation">:</span><span class="token number">9555</span>
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+        <span class="token key atrule">JAVA_OPT</span><span class="token punctuation">:</span> <span class="token string">"-Xdebug -Xrunjdwp:transport=dt_socket,address=9555,server=y,suspend=n"</span>
+    <span class="token key atrule">command</span><span class="token punctuation">:</span> sh mqbroker <span class="token punctuation">-</span>n namesrv<span class="token punctuation">:</span>9876 <span class="token punctuation">-</span>c ../conf/broker.conf
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> namesrv
+
+
+  <span class="token key atrule">dashboard</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> apacherocketmq/rocketmq<span class="token punctuation">-</span>dashboard
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> rmqdashboard
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> always
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 8081<span class="token punctuation">:</span><span class="token number">8081</span>
+    <span class="token key atrule">environment</span><span class="token punctuation">:</span>
+      <span class="token key atrule">JAVA_OPTS</span><span class="token punctuation">:</span> <span class="token string">"-Drocketmq.namesrv.addr=namesrv:9876"</span>
+    <span class="token key atrule">depends_on</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> namesrv
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里的语法和 dockerfile 几乎差不多，此处便不再展开</p>
 
             </div>
 
@@ -534,7 +581,7 @@ mysql <span class="token parameter variable">-h</span> localhost <span class="to
             <div class="toc-content-container">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%96%E5%85%88%EF%BC%8C%E5%BC%84%E6%98%8E%E7%99%BDdocker-image%E4%B8%8EContainer%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">首先，弄明白docker image与Container的关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E8%BF%9B%E5%85%A5%E6%AD%A3%E9%A2%98%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8docker"><span class="nav-text">0x01 进入正题：如何使用docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-docker%E7%BD%91%E7%BB%9C"><span class="nav-text">0x02 docker网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9F%A5%E7%9C%8Bdocker%E5%AE%B9%E5%99%A8%E7%9A%84ip"><span class="nav-text">1.查看docker容器的ip</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-ctfd%E4%B8%ADdocker%E7%9A%84frp%E5%AE%B9%E5%99%A8%E4%B8%80%E7%9B%B4restarting%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">0x03 ctfd中docker的frp容器一直restarting的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A6%82%E6%9E%9C%E6%98%AF%E7%AB%AF%E5%8F%A3%E8%A2%AB%E5%8D%A0%E7%94%A8"><span class="nav-text">1.如果是端口被占用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A6%82%E6%9E%9C%E6%98%AF%E6%98%BE%E7%A4%BAFRP%E6%9C%AA%E9%85%8D%E7%BD%AE"><span class="nav-text">2.如果是显示FRP未配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-docker-%E6%8B%89-MySQL"><span class="nav-text">0x04 docker 拉 MySQL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-%E7%9A%84%E8%AF%A6%E7%BB%86%E4%BD%BF%E7%94%A8"><span class="nav-text">docker 的详细使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dockerfile"><span class="nav-text">Dockerfile</span></a>
+        <ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%96%E5%85%88%EF%BC%8C%E5%BC%84%E6%98%8E%E7%99%BDdocker-image%E4%B8%8EContainer%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">首先，弄明白docker image与Container的关系</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E8%BF%9B%E5%85%A5%E6%AD%A3%E9%A2%98%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8docker"><span class="nav-text">0x01 进入正题：如何使用docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-docker%E7%BD%91%E7%BB%9C"><span class="nav-text">0x02 docker网络</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%9F%A5%E7%9C%8Bdocker%E5%AE%B9%E5%99%A8%E7%9A%84ip"><span class="nav-text">1.查看docker容器的ip</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-ctfd%E4%B8%ADdocker%E7%9A%84frp%E5%AE%B9%E5%99%A8%E4%B8%80%E7%9B%B4restarting%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">0x03 ctfd中docker的frp容器一直restarting的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%A6%82%E6%9E%9C%E6%98%AF%E7%AB%AF%E5%8F%A3%E8%A2%AB%E5%8D%A0%E7%94%A8"><span class="nav-text">1.如果是端口被占用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%A6%82%E6%9E%9C%E6%98%AF%E6%98%BE%E7%A4%BAFRP%E6%9C%AA%E9%85%8D%E7%BD%AE"><span class="nav-text">2.如果是显示FRP未配置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-docker-%E6%8B%89-MySQL"><span class="nav-text">0x04 docker 拉 MySQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#docker-%E7%9A%84%E8%AF%A6%E7%BB%86%E4%BD%BF%E7%94%A8"><span class="nav-text">docker 的详细使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dockerfile"><span class="nav-text">Dockerfile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-compose"><span class="nav-text">docker-compose</span></a>
     </div>
 </div>
 
