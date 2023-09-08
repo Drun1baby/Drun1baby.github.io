@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            CodeQL 入门 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+        <link rel="shortcut icon" href="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/brands.min.css">
+    
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.xml"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","font_size":"15px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"9Ky0YY6Ij33nFC4KZ2VcGh9k-MdYXbMMI","appkey":"qqN77H4k2Hxhg7ZJ88Lf0xxM","placeholder":"just go go","server_urls":"https://9Ky0YY6I.api.lncldglobal.com","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":"Drun1baby","github_admins":null,"repository":"gitalk-restore","client_id":"e5b5e5c0ba918eb3d3c4","client_secret":"a0ac0e6f2078095bce9291f42acd13b67e059dff","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"version":"3.7.3"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Drunkbaby's Blog" type="application/atom+xml">
+</head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container border-box">
+
+    <!-- home first screen  -->
+    
+
+    <!-- page content -->
+    <div class="page-main-content border-box">
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="border-box header-content">
+        <div class="left border-box">
+            
+                <a class="logo-image border-box" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="site-name border-box" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right border-box">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle border-box">
+
+            <div class="main-content border-box">
+
+                
+
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+
+        <div class="article-content-container border-box">
+
+            <div class="article-title">
+                <span class="title-hover-animation">CodeQL 入门</span>
+            </div>
+
+            
+                <div class="article-header border-box">
+                    
+                        <div class="avatar-box border-box">
+                            <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+                        </div>
+                    
+                    <div class="info-box">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info border-box">
+                            
+
+<div class="article-meta-info-container border-box post">
+    <div class="article-meta-info border-box">
+        
+
+
+        
+            <span class="meta-info-item article-create-date">
+                <i class="icon fa-solid fa-calendar-check"></i>&nbsp;
+                <span class="pc">2023-09-03 21:30:21</span>
+                <span class="mobile">2023-09-03 21:30</span>
+            </span>
+
+            <span class="meta-info-item article-update-date">
+                <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                <span class="pc">2023-09-08 21:08:44</span>
+            </span>
+        
+
+        
+            <span class="meta-info-item article-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
+                <ul>
+                    
+                            <li class="category-item">
+                                
+                                <a href="/categories/ql/">ql</a>
+                            </li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+            <span class="article-tag meta-info-item border-box">
+                <i class="icon fas fa-tags"></i>&nbsp;
+                <ul>
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/ql/">ql</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+            <span class="meta-info-item article-wordcount">
+                <i class="icon fas fa-file-word"></i>&nbsp;<span>4.3k 字</span>
+            </span>
+        
+        
+            <span class="meta-info-item article-min2read">
+                <i class="icon fas fa-clock"></i>&nbsp;<span>18 分钟</span>
+            </span>
+        
+        
+            <span class="meta-info-item article-pv">
+                <i class="icon fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+            </span>
+        
+    </div>
+
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>CodeQL · 真入门</p>
+<span id="more"></span>
+
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>在自己第一遍学完 CodeQL 之后还是感觉比较生疏，于是想找点靶场练手，于是就有了这篇文章。</p>
+<h2 id="0x02-CodeQL-基本语法"><a href="#0x02-CodeQL-基本语法" class="headerlink" title="0x02 CodeQL 基本语法"></a>0x02 CodeQL 基本语法</h2><h3 id="QL-语法"><a href="#QL-语法" class="headerlink" title="QL 语法"></a>QL 语法</h3><p>用的是这个靶场 —— <a class="link"   target="_blank" rel="noopener" href="https://github.com/l4yn3/micro_service_seclab/" >micro_service_seclab:<i class="fas fa-external-link-alt"></i></a>，同理其实 JoyChou93 师傅之前所设计的靶场，也是可以用来做 CodeQL 练习的。</p>
+<ul>
+<li>添加对应 database</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codeql database create E:\Coding\CodeQL\CodeQL-Practice --language=<span class="string">&quot;java&quot;</span> --source-root=E:\Coding\CodeQL\micro_service_seclab --<span class="built_in">command</span>=<span class="string">&quot;mvn clean package -Dmaven.test.skip=true&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>CodeQL的核心引擎是不开源的，这个核心引擎的作用之一是帮助我们把micro-service-seclab转换成CodeQL能识别的中间层数据库。</p>
+<p>然后我们需要编写QL查询语句来获取我们想要的数据。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/codeqlRunningProces.png" class="">
+
+<p>正如这张图描述的，由于CodeQL开源了所有的规则和规则库部分，所以我们能够做的就是编写符合我们业务逻辑的QL规则，然后使用CodeQL引擎去跑我们的规则，发现靶场的安全漏洞。</p>
+<p>我们来简单地介绍一下本案例涉及到的CodeQL的基本语法。</p>
+<p>基本语法包含3个部分。</p>
+<table class="editor-table-container"><thead><tr><th>名称</th><th>解释</th></tr></thead><tbody><tr><td>Method</td><td>方法类，Method method 表示获取当前项目中所有的方法</td></tr><tr><td>MethodAccess</td><td>方法调用类，MethodAccess call 表示获取当前项目当中的所有方法调用</td></tr><tr><td>Parameter</td><td>参数类，Parameter 表示获取当前项目当中所有的参数</td></tr></tbody></table>
+
+<p>结合 ql 的语法，我们尝试获取 <code>micro-service-seclab</code> 项目当中定义的所有方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"> </span><br><span class="line">from Method method</span><br><span class="line">select method</span><br></pre></td></tr></table></figure>
+
+<p>我们再通过 Method 类内置的一些方法，把结果过滤一下。比如我们获取名字为 <code>getStudent</code> 的方法名称。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"> </span><br><span class="line">from Method method</span><br><span class="line">where method.hasName(&quot;getStudent&quot;)</span><br><span class="line">select method.getName(), method.getDeclaringType()</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/getLimitedMethod.png" class="">
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">method.getName() <span class="comment">// 获取的是当前方法的名称</span></span><br><span class="line">method.getDeclaringType() / 获取的是当前方法所属class的名称。</span><br></pre></td></tr></table></figure>
+
+<h3 id="谓词"><a href="#谓词" class="headerlink" title="谓词"></a>谓词</h3><p>和SQL一样，where部分的查询条件如果过长，会显得很乱。CodeQL提供一种机制可以让你把很长的查询语句封装成函数。</p>
+<p>这个函数，就叫谓词。</p>
+<p>比如上面的案例，我们可以写成如下，获得的结果跟上面是一样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"> </span><br><span class="line">predicate isStudent(Method method) &#123;</span><br><span class="line">exists(|method.hasName(&quot;getStudent&quot;))</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">from Method method</span><br><span class="line">where isStudent(method)</span><br><span class="line">select method.getName(), method.getDeclaringType()</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>语法解释</p>
+</blockquote>
+<p><code>predicate</code> 表示当前方法没有返回值。<br><code>exists</code> 子查询，是CodeQL谓词语法里非常常见的语法结构，它根据内部的子查询返回 <code>true or false</code>，来决定筛选出哪些数据。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/predicate.png" class="">
+
+<h3 id="设置-Source-和-Sink"><a href="#设置-Source-和-Sink" class="headerlink" title="设置 Source 和 Sink"></a>设置 Source 和 Sink</h3><p>什么是source和sink</p>
+<p>在代码自动化安全审计的理论当中，有一个最核心的三元组概念，就是(source，sink和sanitizer)。</p>
+<p>source 是指漏洞污染链条的输入点。比如获取http请求的参数部分，就是非常明显的Source。</p>
+<p>sink 是指漏洞污染链条的执行点，比如SQL注入漏洞，最终执行SQL语句的函数就是sink(这个函数可能叫query或者exeSql，或者其它)。</p>
+<p>sanitizer又叫净化函数，是指在整个的漏洞链条当中，如果存在一个方法阻断了整个传递链，那么这个方法就叫sanitizer。</p>
+<p>只有当source和sink同时存在，并且从source到sink的链路是通的，才表示当前漏洞是存在的。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/sourceToSink.png" class="">
+
+<ul>
+<li>设置 Source</li>
+</ul>
+<p>在 micro_service_seclab 中，对应的 Source 举个例子，SQL 注入的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/one&quot;)</span>  </span><br><span class="line"><span class="keyword">public</span> List&lt;Student&gt; <span class="title function_">one</span><span class="params">(<span class="meta">@RequestParam(value = &quot;username&quot;)</span> String username)</span> &#123;  </span><br><span class="line">    <span class="keyword">return</span> indexLogic.getStudent(username);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应 CodeQL 当中的 Source</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">override predicate isSource(DataFlow::Node src) &#123; src instanceof RemoteFlowSource &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>RemoteFlowSource</code> 类（在<code>semmle.code.java.dataflow.FlowSources</code>）中定义）表示可能由远程用户控制的数据流源，这里这段代码的传参比较简单，但其实传参如果复杂，比如是一个类的情况下，也是类似的</p>
+<p>在下面的代码中，source就是<code>Student user</code>(user为Student类型，这个不受影响)。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(value = &quot;/object&quot;)</span></span><br><span class="line"><span class="keyword">public</span> List&lt;Student&gt; <span class="title function_">objectParam</span><span class="params">(<span class="meta">@RequestBody</span> Student user)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> indexLogic.getStudent(user.getUsername());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>设置 Sink</li>
+</ul>
+<p>在本案例中，我们的sink应该为<code>query</code>方法(Method)的调用(MethodAccess)，所以我们设置Sink为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">override predicate <span class="title function_">isSink</span><span class="params">(DataFlow::Node sink)</span> &#123;</span><br><span class="line">exists(Method method, MethodAccess call |</span><br><span class="line">  method.hasName(<span class="string">&quot;query&quot;</span>)</span><br><span class="line">  and</span><br><span class="line">  call.getMethod() = method and</span><br><span class="line">  sink.asExpr() = call.getArgument(<span class="number">0</span>)</span><br><span class="line">)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注：以上代码使用了exists子查询语法，格式为exists(Obj obj| somthing), 上面查询的意思为：查找一个query()方法的调用点，并把它的第一个参数设置为sink。 </p>
+<p>在靶场系统(<code>micro-service-seclab</code>)中，sink就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jdbcTemplate.query(sql, ROW_MAPPER);</span><br></pre></td></tr></table></figure>
+
+<p>因为我们测试的注入漏洞，当source变量流入这个方法的时候，才会发生注入漏洞！</p>
+<h3 id="Flow数据流"><a href="#Flow数据流" class="headerlink" title="Flow数据流"></a>Flow数据流</h3><p>在设置完 Source 和 Sink 之后，我们需要确认 Source 到 Sink 是能够走通的，这一段的连通工作就是 CodeQL 引擎本身来完成的。我们通过 <code>config.hasFlowPath(source, sink)</code> 方法来判断是否连通。</p>
+<p>比如如下代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">from VulConfig config, DataFlow::PathNode source, DataFlow::PathNode sink</span><br><span class="line">where config.hasFlowPath(source, sink)</span><br><span class="line">select source.getNode(), source, sink, &quot;source&quot;</span><br></pre></td></tr></table></figure>
+
+<p>我们传递给 <code>config.hasFlowPath(source, sink)</code> 我们定义好的source和sink，系统就会自动帮我们判断是否存在漏洞了。</p>
+<h2 id="0x03-CodeQL-语句优化"><a href="#0x03-CodeQL-语句优化" class="headerlink" title="0x03 CodeQL 语句优化"></a>0x03 CodeQL 语句优化</h2><h3 id="初步成果"><a href="#初步成果" class="headerlink" title="初步成果"></a>初步成果</h3><p>经过整理之后的 ql 查询代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * @id java/examples/vuldemo</span><br><span class="line"> * @name Sql-Injection</span><br><span class="line"> * @description Sql-Injection</span><br><span class="line"> * @kind path-problem</span><br><span class="line"> * @problem.severity warning</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line">import java</span><br><span class="line">import semmle.code.java.dataflow.FlowSources</span><br><span class="line">import semmle.code.java.security.QueryInjection</span><br><span class="line">import DataFlow::PathGraph</span><br><span class="line"></span><br><span class="line">class VulConfig extends TaintTracking::Configuration &#123;</span><br><span class="line">     VulConfig() &#123; this = &quot;SqlInjectionConfig&quot;&#125;</span><br><span class="line">    </span><br><span class="line">    override predicate isSource(DataFlow::Node src) &#123;</span><br><span class="line">        src instanceof RemoteFlowSource</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    override predicate isSink(DataFlow::Node sink) &#123;</span><br><span class="line">        exists(Method method, MethodAccess call |</span><br><span class="line">            method.hasName(&quot;query&quot;)</span><br><span class="line">            and</span><br><span class="line">            call.getMethod() = method and</span><br><span class="line">            sink.asExpr() = call.getArgument(0)</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">from VulConfig config, DataFlow::PathNode source, DataFlow::PathNode sink</span><br><span class="line">where config.hasFlowPath(source, sink)</span><br><span class="line">select source.getNode(), source, sink, &quot;source&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/Result.png" class="">
+
+<p>CodeQL 在定义类上的语法和 Java 类似，其中 extends 的父类 <code>TaintTracking::Configuration</code> 是官方提供用来做数据流分析的通用类，提供很多数据流分析相关的方法，比如isSource(定义source)，isSink(定义sink)</p>
+<p><code>src instanceof RemoteFlowSource</code> 表示src 必须是 RemoteFlowSource 类型。在RemoteFlowSource里，官方提供很非常全的source定义，我们本次用到的Springboot的Source就已经涵盖了。</p>
+<ul>
+<li>注：上面的注释和其它语言是不一样的，不能够删除，它是程序的一部分，因为在我们生成测试报告的时候，上面注释当中的name，description等信息会写入到审计报告中。</li>
+</ul>
+<h3 id="误报解决"><a href="#误报解决" class="headerlink" title="误报解决"></a>误报解决</h3><p>扫描结果当中存在一项误报</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/wubao.png" class="">
+
+<p>这个方法的参数类型是 <code>List&lt;Long&gt;</code>，不可能存在注入漏洞。</p>
+<p>这说明我们的规则里，对于 <code>List&lt;Long&gt;</code> ，甚至 <code>List&lt;Integer&gt;</code> 类型都会产生误报，source 误把这种类型的参数涵盖了。</p>
+<p>我们需要采取手段消除这种误报。</p>
+<p>这个手段就是<code>isSanitizer</code>。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/isSanitizer.png" class="">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">isSanitizer是CodeQL的类TaintTracking::Configuration提供的净化方法。它的函数原型是：</span><br><span class="line"></span><br><span class="line">override predicate isSanitizer(DataFlow::Node node) &#123;&#125;</span><br><span class="line"></span><br><span class="line">在CodeQL自带的默认规则里，对当前节点是否为基础类型做了判断。</span><br><span class="line"></span><br><span class="line">override predicate isSanitizer(DataFlow::Node node) &#123;</span><br><span class="line">node.getType() instanceof PrimitiveType or</span><br><span class="line">node.getType() instanceof BoxedType or</span><br><span class="line">node.getType() instanceof NumberType</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">表示如果当前节点是上面提到的基础类型，那么此污染链将被净化阻断，漏洞将不存在。</span><br></pre></td></tr></table></figure>
+
+<p>由于 CodeQL 检测SQL注入里的 <code>isSanitizer</code> 方法，只对基础类型做了判断，并没有对这种复合类型做判断，才引起了这次误报问题。</p>
+<p>那我们只需要将这种复合类型加入到 <code>isSanitizer</code> 方法，即可消除这种误报。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">override predicate isSanitizer(DataFlow::Node node) &#123;</span><br><span class="line">    node.getType() instanceof PrimitiveType or</span><br><span class="line">    node.getType() instanceof BoxedType or</span><br><span class="line">    node.getType() instanceof NumberType or</span><br><span class="line">    exists(ParameterizedType pt| node.getType() = pt and pt.getTypeArgument(0) instanceof NumberType )</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码的意思为：如果当前node节点的类型为基础类型，数字类型和泛型数字类型(比如List)时，就切断数据流，认为数据流断掉了，不会继续往下检测。  </p>
+<p>重新执行query，我们发现，刚才那条误报已经被成功消除啦。</p>
+<h3 id="漏报解决"><a href="#漏报解决" class="headerlink" title="漏报解决"></a>漏报解决</h3><p>我们发现，如下的SQL注入并没有被CodeQL捕捉到。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> List&lt;Student&gt; <span class="title function_">getStudentWithOptional</span><span class="params">(Optional&lt;String&gt; username)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">sqlWithOptional</span> <span class="operator">=</span> <span class="string">&quot;select * from students where username like &#x27;%&quot;</span> + username.get() + <span class="string">&quot;%&#x27;&quot;</span>;</span><br><span class="line">        <span class="comment">//String sql = &quot;select * from students where username like ?&quot;;</span></span><br><span class="line">        <span class="keyword">return</span> jdbcTemplate.query(sqlWithOptional, ROW_MAPPER);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>漏报理论上讲是不能接受的。如果出现误报我们还可以通过人工筛选来解决，但是漏报会导致很多漏洞流经下一个环节到线上，从而产生损失。</p>
+<p>那我们如果通过CodeQL来解决漏报问题呢？答案就是通过 <code>isAdditionalTaintStep</code> 方法。</p>
+<p>实现原理就一句话：<strong>断了就强制给它接上。</strong></p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/isAdditionalTaintStep.png" class="">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">isAdditionalTaintStep方法是CodeQL的类TaintTracking::Configuration提供的的方法，它的原型是：</span><br><span class="line"></span><br><span class="line">override predicate isAdditionalTaintStep(DataFlow::Node node1, DataFlow::Node node2) &#123;&#125;</span><br><span class="line"></span><br><span class="line">它的作用是将一个可控节点</span><br><span class="line">A强制传递给另外一个节点B，那么节点B也就成了可控节点。</span><br></pre></td></tr></table></figure>
+
+<p>这里由于 Optional 这种类型的使用没有在 CodeQL 的语法库里，我们需要强制让 <code>username</code> 流转到<code>username.get()</code>，这样 <code>username.get()</code> 就变得可控了。这样应该就能识别出这个注入漏洞了。</p>
+<p><strong>完整代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * @id java/examples/vuldemo</span><br><span class="line"> * @name Sql-Injection</span><br><span class="line"> * @description Sql-Injection</span><br><span class="line"> * @kind path-problem</span><br><span class="line"> * @problem.severity warning</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line">// 解决 SQL 注入 QL 语句的漏保</span><br><span class="line"></span><br><span class="line">import java</span><br><span class="line">import semmle.code.java.dataflow.FlowSources</span><br><span class="line">import semmle.code.java.security.QueryInjection</span><br><span class="line">import DataFlow::PathGraph</span><br><span class="line"></span><br><span class="line">predicate isTaintedString(Expr expSrc, Expr expDest) &#123;</span><br><span class="line">    exists(Method method, MethodAccess call, MethodAccess call1|</span><br><span class="line">        expSrc = call1.getArgument(0) and expDest = call and call.getMethod() = method</span><br><span class="line">        and method.hasName(&quot;get&quot;) and method.getDeclaringType().toString() = &quot;Optional&lt;String&gt;&quot;</span><br><span class="line">        and call1.getArgument(0).getType().toString() = &quot;Optional&lt;String&gt;&quot;</span><br><span class="line">        )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class VulConfig extends TaintTracking::Configuration &#123;</span><br><span class="line">     VulConfig() &#123; this = &quot;SqlInjectionConfig&quot;&#125;</span><br><span class="line">    </span><br><span class="line">    override predicate isSource(DataFlow::Node src) &#123;</span><br><span class="line">        src instanceof RemoteFlowSource</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    override predicate isSink(DataFlow::Node sink) &#123;</span><br><span class="line">        exists(Method method, MethodAccess call |</span><br><span class="line">            method.hasName(&quot;query&quot;)</span><br><span class="line">            and</span><br><span class="line">            call.getMethod() = method and</span><br><span class="line">            sink.asExpr() = call.getArgument(0)</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    override predicate isSanitizer(DataFlow::Node node) &#123;</span><br><span class="line">        node.getType() instanceof PrimitiveType or</span><br><span class="line">        node.getType() instanceof BoxedType or</span><br><span class="line">        node.getType() instanceof NumberType or</span><br><span class="line">        exists(ParameterizedType pt| </span><br><span class="line">            node.getType() = pt and pt.getTypeArgument(0) instanceof NumberType</span><br><span class="line">         )</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    override predicate isAdditionalTaintStep(DataFlow::Node node1, DataFlow::Node node2) &#123;</span><br><span class="line">        isTaintedString(node1.asExpr(), node2.asExpr())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">from VulConfig config, DataFlow::PathNode source, DataFlow::PathNode sink</span><br><span class="line">where config.hasFlowPath(source, sink)</span><br><span class="line">select source.getNode(), source, sink, &quot;source&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Lombok-插件漏报"><a href="#Lombok-插件漏报" class="headerlink" title="Lombok 插件漏报"></a>Lombok 插件漏报</h3><p>Lombok 的注解并不会直接被 CodeQL 所解析，导致其中的中间链路会“中道崩殂”，我们用以下方法来解决。</p>
+<h4 id="解决方法-①"><a href="#解决方法-①" class="headerlink" title="解决方法 ①"></a>解决方法 ①</h4><p>使用 <code>maven-delombok</code>，在 <code>pom.xml</code> 中添加以下代码，重新编译即可。（推荐）</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>target/generated-sources/delombok<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="name">testSourceDirectory</span>&gt;</span>target/generated-test-sources/delombok<span class="tag">&lt;/<span class="name">testSourceDirectory</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">plugins</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="name">plugin</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.18.20.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">executions</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">execution</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>delombok<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-sources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">goal</span>&gt;</span>delombok<span class="tag">&lt;/<span class="name">goal</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">addOutputDirectory</span>&gt;</span>false<span class="tag">&lt;/<span class="name">addOutputDirectory</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>src/main/java<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;/<span class="name">execution</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;<span class="name">execution</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>test-delombok<span class="tag">&lt;/<span class="name">id</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>generate-test-sources<span class="tag">&lt;/<span class="name">phase</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">goal</span>&gt;</span>testDelombok<span class="tag">&lt;/<span class="name">goal</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">addOutputDirectory</span>&gt;</span>false<span class="tag">&lt;/<span class="name">addOutputDirectory</span>&gt;</span>  </span><br><span class="line">               <span class="tag">&lt;<span class="name">sourceDirectory</span>&gt;</span>src/test/java<span class="tag">&lt;/<span class="name">sourceDirectory</span>&gt;</span>  </span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span>  </span><br><span class="line">         <span class="tag">&lt;/<span class="name">execution</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;/<span class="name">executions</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">plugin</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">      <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span>  </span><br><span class="line">  </span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/SolvedLombok.png" class="">
+
+<h4 id="解决办法-②"><a href="#解决办法-②" class="headerlink" title="解决办法 ②"></a>解决办法 ②</h4><p>CodeQL官方的issue里面，有人给出了这个问题的解决办法 <a class="link"   target="_blank" rel="noopener" href="https://github.com/github/codeql/issues/4984" >https://github.com/github/codeql/issues/4984<i class="fas fa-external-link-alt"></i></a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># get a copy of lombok.jar</span></span><br><span class="line">wget https://projectlombok.org/downloads/lombok.jar -O <span class="string">&quot;lombok.jar&quot;</span></span><br><span class="line"><span class="comment"># run &quot;delombok&quot; on the source files and write the generated files to a folder named &quot;delombok&quot;</span></span><br><span class="line">java -jar <span class="string">&quot;lombok.jar&quot;</span> delombok -n --onlyChanged . -d <span class="string">&quot;delombok&quot;</span></span><br><span class="line"><span class="comment"># remove &quot;generated by&quot; comments</span></span><br><span class="line">find <span class="string">&quot;delombok&quot;</span> -name <span class="string">&#x27;*.java&#x27;</span> -<span class="built_in">exec</span> sed <span class="string">&#x27;/Generated by delombok/d&#x27;</span> -i <span class="string">&#x27;&#123;&#125;&#x27;</span> <span class="string">&#x27;;&#x27;</span></span><br><span class="line"><span class="comment"># remove any left-over import statements</span></span><br><span class="line">find <span class="string">&quot;delombok&quot;</span> -name <span class="string">&#x27;*.java&#x27;</span> -<span class="built_in">exec</span> sed <span class="string">&#x27;/import lombok/d&#x27;</span> -i <span class="string">&#x27;&#123;&#125;&#x27;</span> <span class="string">&#x27;;&#x27;</span></span><br><span class="line"><span class="comment"># copy delombok&#x27;d files over the original ones</span></span><br><span class="line"><span class="built_in">cp</span> -r <span class="string">&quot;delombok/.&quot;</span> <span class="string">&quot;./&quot;</span></span><br><span class="line"><span class="comment"># remove the &quot;delombok&quot; folder</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;delombok&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>没有特别明白这个应该在哪个目录下执行命令。</p>
+<p>上面的代码，实现的功能是：去掉代码里的lombok注解，并还原setter和getter方法的java代码，从而使CodeQL的Flow流能够顺利走下去，<br>从而检索到安全漏洞。</p>
+<h3 id="持续工程化"><a href="#持续工程化" class="headerlink" title="持续工程化"></a>持续工程化</h3><p>到此为止，我们编写了SQL注入的查询语句，消除了误报和漏报问题。当前的规则已经能够适应micro-service-seclab项目啦。</p>
+<p>因为我们的micro-service-seclab项目，是按照标准生成的微服务结构，那么我们可以使用这个ql规则去跑其他的项目，来自动化检测其它项目，从而做到自动化检测，提高安全检测效率。</p>
+<p>CodeQL除了提供VSCode的检测插件，也提供了大量的命令行，来实现项目的集成检测。</p>
+<p>比如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codeql database create E:\Coding\CodeQL\CodeQL-Practice\database --language=<span class="string">&quot;java&quot;</span> --source-root=E:\Coding\CodeQL\micro_service_seclab --<span class="built_in">command</span>=<span class="string">&quot;mvn clean package -Dmaven.test.skip=true&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们通过上面语句自动生成 codeql 的中间数据库(database)</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/SolvedLombok.png" class="">
+
+<p>这里是很容易踩坑的，因为前面的语句有个问题就是 select 的返回值并非是 string，所以就会报错，报错信息如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error was: Expected result pattern(s) are not present <span class="keyword">for</span> problem query: Expected exactly one pattern. </span><br></pre></td></tr></table></figure>
+
+<p>参考 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10852#toc-7" >https://xz.aliyun.com/t/10852#toc-7<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x04-CodeQL-进阶"><a href="#0x04-CodeQL-进阶" class="headerlink" title="0x04 CodeQL 进阶"></a>0x04 CodeQL 进阶</h2><h3 id="用-instanceof-替代复杂查询语句问题"><a href="#用-instanceof-替代复杂查询语句问题" class="headerlink" title="用 instanceof 替代复杂查询语句问题"></a>用 instanceof 替代复杂查询语句问题</h3><p>我们在上面的案例当中看到了 <code>instanceof</code>, 如果我们去看ql自带的规则库，会发现大量的 <code>instanceof</code> 语句。</p>
+<p><code>instanceof</code> 这个关键字是用来判断当前的对象，和后面的是否为同一类型。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/instanceof.png" class="">
+
+<p><code>instanceof</code> 是用来优化代码结构非常好的语法糖。</p>
+<p>这种方式的提出其实是用来优化之前使用 <code>exists(|)</code> 匹配对应 Source&#x2F;Sink，如果我们需要写非常多的 <code>exists(|)</code>，这会使得整个项目维护起来非常困难，于是就出现了这一种语法糖 <code>instanceof</code></p>
+<p><code>instanceof</code> 给我们提供了一种机制，我们只需要定义一个 <code>abstract class</code>，比如这个案例当中的 <strong>RemoteFlowSource</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/** A data flow source of remote user input. */</span><br><span class="line">abstract class RemoteFlowSource extends DataFlow::Node &#123;</span><br><span class="line">  /** Gets a string that describes the type of this remote flow source. */</span><br><span class="line">  abstract string getSourceType();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>isSource</code> 方法里进行 <code>instanceof</code>，判断 src 是 RemoteFlowSource 类型就可以了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">override predicate isSource(DataFlow::Node src) &#123;</span><br><span class="line">        src instanceof RemoteFlowSource</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>学过 java 的人可能会很费解，我们继承了一个 abstract 抽象类，连个实现方法都没有，怎么就能够达到获取各种 source 的目的呢？</p>
+<p>CodeQL 和 Java 不太一样，只要我们的子类继承了这个 RemoteFlowSource 类，那么所有子类就会被调用，它所代表的 source 也会被加载（让我想起了超级版 Fastjson，这有没有存在 CodeQL 反制一说</p>
+<p>我们在 RemoteFlowSource 定义下面会看到非常多子类，就是这个道理，它们的结果都会被用 and 串联加载。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/autoUsed.png" class="">
+
+<h3 id="递归问题"><a href="#递归问题" class="headerlink" title="递归问题"></a>递归问题</h3><p>简单来说，有如此一段代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.l4yn3.microserviceseclab.service;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StudentService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">innerOne</span> &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">innerOne</span><span class="params">()</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">class</span> <span class="title class_">innerTwo</span> &#123;</span><br><span class="line">            <span class="keyword">public</span> <span class="title function_">innerTwo</span><span class="params">()</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">public</span> String <span class="title function_">Nihao</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;Nihao&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">Hi</span><span class="params">()</span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;hello&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们想要根据 <code>innerTwo</code> 类定位到最外层的 <code>StudentService</code> 类，怎么实现？</p>
+<p>按照非递归的写法，我们可以这样做：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"></span><br><span class="line">from Class classes</span><br><span class="line">where classes.getName().toString() = &quot;innerTwo&quot;</span><br><span class="line">select classes.getEnclosingType().getEnclosingType() // getEnclosingType 获取作用域</span><br></pre></td></tr></table></figure>
+
+<p>我们通过连续 2 次调用 <code>getEnclosingType()</code> 方法是能够拿到最外层的 StudentService 的。</p>
+<p>但是正如我们所说，实际情况是我们并不清楚一共有多少层嵌套，而且多个文件可能每个的嵌套数量都不一样，我们没法用确定的调用次数来解决此问题，这个时候我们就需要使用递归的方式解决。</p>
+<p>我们在调用方法后面加 <code>*</code> (从本身开始调用)或者 <code>+</code> (从上一级开始调用)，来解决此问题。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"></span><br><span class="line">from Class classes</span><br><span class="line">where classes.getName().toString() = &quot;innerTwo&quot;</span><br><span class="line">select classes.getEnclosingType+() // getEnclosingType 获取作用域</span><br></pre></td></tr></table></figure>
+
+<p>我们也可以自己封装方法来递归调用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"></span><br><span class="line">RefType demo(Class classes) &#123;</span><br><span class="line">    result = classes.getEnclosingType()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">from Class classes</span><br><span class="line">where classes.getName().toString() = &quot;innerTwo&quot;</span><br><span class="line">select demo*(classes)</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/SelfDefineRecursion.png" class="">
+
+<h3 id="强制类型转换问题（过滤需要类型）"><a href="#强制类型转换问题（过滤需要类型）" class="headerlink" title="强制类型转换问题（过滤需要类型）"></a>强制类型转换问题（过滤需要类型）</h3><p>强制类型转换这个名字有点拗口，且不太好理解，这里我更愿意把它理解成一种 filter</p>
+<p>在 CodeQL 的规则集里，我们会看到很多类型转换的代码，比如：</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/RefType.png" class="">
+
+<p>我们用如下 QL 语句做个测试：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"> </span><br><span class="line">from Parameter param</span><br><span class="line">select param, param.getType()</span><br></pre></td></tr></table></figure>
+
+<p>以上代码的含义是打印所有方法参数的名称和类型。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/getTypes.png" class="">
+
+<p>如果其中我们想要单独某个类型的方法参数，这里就需要用到强制类型转换，或者说用到 filter</p>
+<p>使用 <code>RefType()</code> 来测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"></span><br><span class="line">from Parameter param</span><br><span class="line">select param, param.getType().(RefType)</span><br></pre></td></tr></table></figure>
+
+<p>强制转换成 <code>RefType</code>，意思就是从前面的结果当中过滤出 <code>RefType</code> 类型的参数。</p>
+<p><code>RefType</code> 是什么？引用类型，说白了就是去掉int等基础类型之后的数据。</p>
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/RefTypeUse.png" class="">
+
+<p>同理这里肯定并不限于 RefType，也可以是其他的。比如这里保留所有的数值类型参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import java</span><br><span class="line"> </span><br><span class="line">from Parameter param</span><br><span class="line">select param, param.getType().(IntegralType)</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8/IntType.png" class="">
+
+<h2 id="0x05-关于其他漏洞点的-CodeQL-语句尝试"><a href="#0x05-关于其他漏洞点的-CodeQL-语句尝试" class="headerlink" title="0x05 关于其他漏洞点的 CodeQL 语句尝试"></a>0x05 关于其他漏洞点的 CodeQL 语句尝试</h2>
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">CodeQL 入门</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-09-03 21:30:21</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/09/03/CodeQL-入门/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/ql/"><i class="icon fas fa-hashtag"></i>ql</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/09/03/CodeQL-%E5%85%A5%E9%97%A8%E4%B8%8E%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item text-ellipsis">CodeQL 靶场练习</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/08/23/2023-%E6%98%A5%E6%8B%9B%E5%AE%89%E5%85%A8%E7%A0%94%E7%A9%B6%E5%B2%97%E4%BD%8D%E9%9D%A2%E7%BB%8F%E5%88%86%E4%BA%AB/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item text-ellipsis">2023 春招安全研究岗位面经分享</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                
+
+
+    <div class="comments-container">
+        <div id="comments-anchor"></div>
+        <div class="comment-area-title">
+            <i class="fas fa-comments"></i>&nbsp;评论
+        </div>
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: '9Ky0YY6Ij33nFC4KZ2VcGh9k-MdYXbMMI',
+              appKey: 'qqN77H4k2Hxhg7ZJ88Lf0xxM',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('https://9Ky0YY6I.api.lncldglobal.com') {
+              config.serverURLs = 'https://9Ky0YY6I.api.lncldglobal.com'
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                case 'zh-TW':
+                  return '站長'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+        
+    </div>
+
+
+
+
+
+            
+        </div>
+
+        
+            <div class="pc-post-toc right-toc">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-CodeQL-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-text">0x02 CodeQL 基本语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QL-%E8%AF%AD%E6%B3%95"><span class="nav-text">QL 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%93%E8%AF%8D"><span class="nav-text">谓词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE-Source-%E5%92%8C-Sink"><span class="nav-text">设置 Source 和 Sink</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flow%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-text">Flow数据流</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-CodeQL-%E8%AF%AD%E5%8F%A5%E4%BC%98%E5%8C%96"><span class="nav-text">0x03 CodeQL 语句优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E6%88%90%E6%9E%9C"><span class="nav-text">初步成果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AF%E6%8A%A5%E8%A7%A3%E5%86%B3"><span class="nav-text">误报解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%8A%A5%E8%A7%A3%E5%86%B3"><span class="nav-text">漏报解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lombok-%E6%8F%92%E4%BB%B6%E6%BC%8F%E6%8A%A5"><span class="nav-text">Lombok 插件漏报</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95-%E2%91%A0"><span class="nav-text">解决方法 ①</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95-%E2%91%A1"><span class="nav-text">解决办法 ②</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%81%E7%BB%AD%E5%B7%A5%E7%A8%8B%E5%8C%96"><span class="nav-text">持续工程化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-CodeQL-%E8%BF%9B%E9%98%B6"><span class="nav-text">0x04 CodeQL 进阶</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8-instanceof-%E6%9B%BF%E4%BB%A3%E5%A4%8D%E6%9D%82%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E9%97%AE%E9%A2%98"><span class="nav-text">用 instanceof 替代复杂查询语句问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%92%E5%BD%92%E9%97%AE%E9%A2%98"><span class="nav-text">递归问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%BA%E5%88%B6%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E9%97%AE%E9%A2%98%EF%BC%88%E8%BF%87%E6%BB%A4%E9%9C%80%E8%A6%81%E7%B1%BB%E5%9E%8B%EF%BC%89"><span class="nav-text">强制类型转换问题（过滤需要类型）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%85%B3%E4%BA%8E%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E7%82%B9%E7%9A%84-CodeQL-%E8%AF%AD%E5%8F%A5%E5%B0%9D%E8%AF%95"><span class="nav-text">0x05 关于其他漏洞点的 CodeQL 语句尝试</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom border-box">
+            
+<footer class="footer border-box">
+    <div class="border-box website-info-box default">
+        
+            <div class="copyright-info info-item default">
+                &copy;&nbsp;<span>2021</span>&nbsp;-&nbsp;2023
+                
+                    &nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;&nbsp;<a href="/">Drunkbaby</a>
+                
+            </div>
+
+            <div class="theme-info info-item default">
+                由&nbsp;<a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.7.3</a>
+            </div>
+
+            
+
+            
+        
+
+        <div class="count-item info-item default">
+            
+
+            
+                <span class="count-box border-box uv">
+                    <span class="item-type border-box">访问人数</span>
+                    <span class="item-value border-box uv" id="busuanzi_value_site_uv"></span>
+                </span>
+            
+
+            
+                <span class="count-box border-box pv">
+                    <span class="item-type border-box">总访问量</span>
+                    <span class="item-value border-box pv" id="busuanzi_value_site_pv"></span>
+                </span>
+            
+        </div>
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="tools-list border-box">
+        <!-- PC TOC show toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- PC go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <!-- side tools -->
+    <div class="side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        
+            <li class="tools-item toggle-show-toc-tablet flex-center">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        
+            <li class="tools-item go-to-comments-tablet flex-center">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+
+        
+    </ul>
+</div>
+
+    </div>
+
+    <!-- image mask -->
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    <!-- local search -->
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    <!-- tablet toc -->
+    
+        <div class="tablet-post-toc-mask">
+            <div class="tablet-post-toc">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-CodeQL-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-text">0x02 CodeQL 基本语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QL-%E8%AF%AD%E6%B3%95"><span class="nav-text">QL 语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%93%E8%AF%8D"><span class="nav-text">谓词</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE-Source-%E5%92%8C-Sink"><span class="nav-text">设置 Source 和 Sink</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flow%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="nav-text">Flow数据流</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-CodeQL-%E8%AF%AD%E5%8F%A5%E4%BC%98%E5%8C%96"><span class="nav-text">0x03 CodeQL 语句优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E6%88%90%E6%9E%9C"><span class="nav-text">初步成果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AF%E6%8A%A5%E8%A7%A3%E5%86%B3"><span class="nav-text">误报解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%8A%A5%E8%A7%A3%E5%86%B3"><span class="nav-text">漏报解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lombok-%E6%8F%92%E4%BB%B6%E6%BC%8F%E6%8A%A5"><span class="nav-text">Lombok 插件漏报</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95-%E2%91%A0"><span class="nav-text">解决方法 ①</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95-%E2%91%A1"><span class="nav-text">解决办法 ②</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%81%E7%BB%AD%E5%B7%A5%E7%A8%8B%E5%8C%96"><span class="nav-text">持续工程化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-CodeQL-%E8%BF%9B%E9%98%B6"><span class="nav-text">0x04 CodeQL 进阶</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8-instanceof-%E6%9B%BF%E4%BB%A3%E5%A4%8D%E6%9D%82%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E9%97%AE%E9%A2%98"><span class="nav-text">用 instanceof 替代复杂查询语句问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%92%E5%BD%92%E9%97%AE%E9%A2%98"><span class="nav-text">递归问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%BA%E5%88%B6%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E9%97%AE%E9%A2%98%EF%BC%88%E8%BF%87%E6%BB%A4%E9%9C%80%E8%A6%81%E7%B1%BB%E5%9E%8B%EF%BC%89"><span class="nav-text">强制类型转换问题（过滤需要类型）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%85%B3%E4%BA%8E%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E7%82%B9%E7%9A%84-CodeQL-%E8%AF%AD%E5%8F%A5%E5%B0%9D%E8%AF%95"><span class="nav-text">0x05 关于其他漏洞点的 CodeQL 语句尝试</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        </div>
+    
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/toc.js"></script>
+        
+    
+    
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+
+</body>
+</html>
