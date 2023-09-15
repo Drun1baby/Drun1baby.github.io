@@ -362,7 +362,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?flag[]=0</span><br></pre></td></tr></table></figure>
 
 <p>成功，如图</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/SuccessBypassStrcmp.png" class>
 
 <p>原理很简单；<code>?flag[]=0</code> 的意思也就是，我传入的变量名为 flag，但是这个 flag 是一个数组类型的变量，数组怎么可能可以和字符串比较呢？所以此处比较出错，成功返回 NULL，也就是返回 0</p>
 <h3 id="2-md5-比较绕过"><a href="#2-md5-比较绕过" class="headerlink" title="2. md5 比较绕过"></a>2. md5 比较绕过</h3><p>题目代码如下：</p>
@@ -418,10 +418,10 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">	</span><br><span class="line"><span class="title function_ invoke__">show_source</span>(<span class="keyword">__FILE__</span>); </span><br><span class="line"><span class="variable">$a</span>=<span class="title function_ invoke__">addslashes</span>(<span class="title function_ invoke__">trim</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;a&#x27;</span>])); </span><br><span class="line"><span class="variable">$b</span>=<span class="title function_ invoke__">strval</span>(<span class="title function_ invoke__">intval</span>(<span class="variable">$a</span>)); </span><br><span class="line"><span class="title function_ invoke__">var_dump</span>(<span class="variable">$a</span>==<span class="variable">$b</span>); </span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>一般的话肯定考虑一个空格给它绕过，但是这段代码里传入的变量都经过了 <code>trim</code> 函数，trim 函数过滤了很多空白字符</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/trim.png" class>
 
 <p>一般的话当然是没办法了，但是这里还有一个<code>%0c</code>，也就是<code>\f</code>未被过滤，因此这里我们可以用它来进行绕过，我们本地试也可以发现它是符合条件的</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/fBypass.png" class>
 
 <p>现在来看第三个条件 <code>intval($req[&quot;number&quot;])==intval(strrev($req[&quot;number&quot;]));</code>，这个 <code>strrev</code> 函数的作用是反转字符串，这里的话也就是要求数字是回文数，比如 131，这个时候反转一下还是 131，此时就可以满足条件了</p>
 <p>来看最后一个，让 <code>if(is_palindrome_number($req[&quot;number&quot;]))</code> 条件为假，这个函数定义如下</p>
@@ -430,7 +430,7 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?number=%<span class="number">00</span>%<span class="number">0</span>c131</span><br></pre></td></tr></table></figure>
 
 <p>成功 getflag</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/02Pass.png" class>
 
 <h3 id="5-ereg-x2F-preg-match-正则-00-截断"><a href="#5-ereg-x2F-preg-match-正则-00-截断" class="headerlink" title="5. ereg&#x2F;preg_match 正则 %00 截断"></a>5. ereg&#x2F;preg_match 正则 %00 截断</h3><ul>
 <li>源码如下</li>
@@ -460,7 +460,7 @@
 <p>sha1 算法加密的同样是字符串，那就意味着当值为数组时同样会报错，如果我们让两个都报错，那么他们肯定是同种类型的 Null，此时就可以绕过，正常的话我们会构造 payload 如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">name[]=1&amp;password[]=2</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/shaBypass.png" class>
 
 <h3 id="7-session-验证绕过"><a href="#7-session-验证绕过" class="headerlink" title="7. session 验证绕过"></a>7. session 验证绕过</h3><p>源代码如下</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 08 SESSION验证绕过</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$flag</span> = <span class="string">&quot;flag&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">session_start</span>(); </span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span> (<span class="variable">$_GET</span>[<span class="string">&#x27;password&#x27;</span>])) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$_GET</span>[<span class="string">&#x27;password&#x27;</span>] == <span class="variable">$_SESSION</span>[<span class="string">&#x27;password&#x27;</span>])</span><br><span class="line">        <span class="keyword">die</span> (<span class="string">&#x27;Flag: &#x27;</span>.<span class="variable">$flag</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">print</span> <span class="string">&#x27;&lt;p&gt;Wrong guess.&lt;/p&gt;&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_ invoke__">mt_srand</span>((<span class="title function_ invoke__">microtime</span>() ^ <span class="title function_ invoke__">rand</span>(<span class="number">1</span>, <span class="number">10000</span>)) % <span class="title function_ invoke__">rand</span>(<span class="number">1</span>, <span class="number">10000</span>) + <span class="title function_ invoke__">rand</span>(<span class="number">1</span>, <span class="number">10000</span>));</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
@@ -469,7 +469,7 @@
 <p>payload:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?password=</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/SessionBypass.png" class>
 
 <h3 id="8-urldecode-二次编码绕过"><a href="#8-urldecode-二次编码绕过" class="headerlink" title="8. urldecode 二次编码绕过"></a>8. urldecode 二次编码绕过</h3><ul>
 <li>原代码如下</li>
@@ -505,7 +505,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$_SERVER[&#x27;REMOTE_ADDR&#x27;]; //访问端（有可能是用户，有可能是代理的）IP</span><br><span class="line">$_SERVER[&#x27;HTTP_CLIENT_IP&#x27;]; //代理端的（有可能存在，可伪造）</span><br><span class="line">$_SERVER[&#x27;HTTP_X_FORWARDED_FOR&#x27;]; //用户是在哪个IP使用的代理（有可能存在，也可以伪造）</span><br></pre></td></tr></table></figure>
 
 <p>尝试伪造 XFF 头来进行绕过</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/XFFBypass.png" class>
 
 <h3 id="10-intval-函数"><a href="#10-intval-函数" class="headerlink" title="10. intval 函数"></a>10. intval 函数</h3><ul>
 <li>这里有四块内容，慢慢讲</li>
@@ -541,7 +541,7 @@
 
 <p>这关的话就是要求变量值不能为4476，但用过intval函数后为4476，这里的话我们首先需要知道intval的第二个参数为0时的意思是什么</p>
 <p>根据这张图绕过</p>
-
+<img src="/2022/08/17/PHP-%E5%85%A5%E9%97%A8%E5%9F%BA%E7%A1%80%E6%BC%8F%E6%B4%9E/intval.png" class>
 
 <p>看到这里的话就可以看出payload就有多种构造方法了</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">num=4476e123</span><br><span class="line">//这里就跟上面那个单引号的1e10情况一样，此时只看字母前面的</span><br><span class="line">num=4476.1</span><br><span class="line">//计算int值时，后面有小数点会直接舍去</span><br><span class="line">num=0x117c</span><br><span class="line">//0x表明是十六进制数，117c是4476的十六进制数</span><br><span class="line">num=010574</span><br><span class="line">//0表明是八进制数，10574是4476的八进制数</span><br></pre></td></tr></table></figure>

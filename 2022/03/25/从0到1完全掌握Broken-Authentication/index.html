@@ -304,7 +304,7 @@
 <p>1、用户向服务器发送用户名和密码。<br>2、服务器验证通过后，在当前对话（session）里面保存相关数据，比如用户角色、登录时间等等。<br>3、服务器向用户返回一个 session_id，写入用户的 Cookie。<br>4、用户随后的每一次请求，都会通过 Cookie，将 session_id 传回服务器。<br>5、服务器收到 session_id，找到前期保存的数据，由此得知用户的身份。</p>
 </blockquote>
 <h3 id="2-JWT-验证作用"><a href="#2-JWT-验证作用" class="headerlink" title="2. JWT 验证作用"></a>2. JWT 验证作用</h3><ul>
-<li><font color=gree> 一句话阐明 JWT 的验证作用  </font></li>
+<li><font color="gree"> 一句话阐明 JWT 的验证作用  </font></li>
 </ul>
 <p>实现同一家公司的关联服务，也就是用户在 A 网站登录，而当用户访问同公司旗下的 B 网站能够自动登录</p>
 <h3 id="3-浅谈-JWT-原理"><a href="#3-浅谈-JWT-原理" class="headerlink" title="3. 浅谈 JWT 原理"></a>3. 浅谈 JWT 原理</h3><p>JWT 的原理是，服务器认证以后，生成一个 JSON 对象，发回给用户，就像下面这样。</p>
@@ -324,10 +324,10 @@
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;typ&quot;</span><span class="punctuation">:</span><span class="string">&quot;JWT&quot;</span><span class="punctuation">,</span><span class="attr">&quot;alg&quot;</span><span class="punctuation">:</span><span class="string">&quot;HS256&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <p>得到的编码就构成了 Header 部分</p>
-
+<img src="/2022/03/25/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1Broken-Authentication/JWTHeader.png" class>
 
 <h4 id="Payload-部分"><a href="#Payload-部分" class="headerlink" title="Payload 部分"></a>Payload 部分</h4><ul>
-<li><font color=orange>Payload 用来存放有效信息，这个名字像是特指飞机上承载的货品。</font></li>
+<li><font color="orange">Payload 用来存放有效信息，这个名字像是特指飞机上承载的货品。</font></li>
 <li>JWT 官方规定了 7 个原始字段</li>
 </ul>
 <blockquote>
@@ -345,13 +345,13 @@
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1234567890&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;John Doe&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;admin&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <p>同样，进行 base64 编码，得到第二段 payload</p>
+<img src="/2022/03/25/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1Broken-Authentication/JWTPayload.png" class>
 
-
-<h4 id="Signature-部分"><a href="#Signature-部分" class="headerlink" title="Signature 部分"></a>Signature 部分</h4><p><font color=red>Signature 部分是对前两部分的签名，防止数据篡改。</font></p>
+<h4 id="Signature-部分"><a href="#Signature-部分" class="headerlink" title="Signature 部分"></a>Signature 部分</h4><p><font color="red">Signature 部分是对前两部分的签名，防止数据篡改。</font></p>
 <p>首先，需要指定一个密钥（secret）。这个密钥只有服务器才知道，不能泄露给用户。然后，使用 Header 里面指定的签名算法（默认是 HMAC SHA256），按照下面的公式产生签名。</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> encodedString = <span class="title function_">base64UrlEncode</span>(header) + <span class="string">&#x27;.&#x27;</span> + <span class="title function_">base64UrlEncode</span>(payload);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> signature = <span class="title class_">HMACSHA256</span>(encodedString, <span class="string">&#x27;secret&#x27;</span>); <span class="comment">// TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ</span></span><br></pre></td></tr></table></figure>
 <hr>
-<p><font color=gree>将上述三部分组合起来，就是一个完整的 JWT </font></p>
+<p><font color="gree">将上述三部分组合起来，就是一个完整的 JWT </font></p>
 <p>例如这一段，中间用 “.” 来分割三个模块</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJhbGciOiJIUzI1NiJ9.ew0KICAiYXV0aG9yaXRpZXMiIDogWyAiUk9MRV9BRE1JTiIsICJST0xFX1VTRVIiIF0sDQogICJjbGllbnRfaWQiIDogIm15LWNsaWVudC13aXRoLXNlY3JldCIsDQogICJleHAiIDogMTYwNzA5OTYwOCwNCiAgImp0aSIgOiAiOWJjOTJhNDQtMGIxYS00YzVlLWJlNzAtZGE1MjA3NWI5YTg0IiwNCiAgInNjb3BlIiA6IFsgInJlYWQiLCAid3JpdGUiIF0sDQogICJ1c2VyX25hbWUiIDogInVzZXIiDQp9.9lYaULTuoIDJ86-zKDSntJQyHPpJ2mZAbnWRfel99iI</span><br></pre></td></tr></table></figure>
 
@@ -363,7 +363,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fetch(<span class="string">&#x27;api/user/1&#x27;</span>, &#123;</span><br><span class="line">  headers: &#123;</span><br><span class="line">    <span class="string">&#x27;Authorization&#x27;</span>: <span class="string">&#x27;Bearer &#x27;</span> + token</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
 <p>JWT 获取 token 的原理如图所示</p>
-
+<img src="/2022/03/25/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1Broken-Authentication/JWTWorkingOrigin.png" class>
             </div>
 
             

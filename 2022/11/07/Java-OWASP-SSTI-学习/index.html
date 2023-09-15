@@ -295,12 +295,12 @@
 
                 <p>Java SSTI 学习</p>
 <span id="more"></span>
-<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近和 <a class="link"   target="_blank" rel="noopener" href="https://f1or.cn/" >F1or<i class="fas fa-external-link-alt"></i></a> 大师傅一起挖洞的时候发现一处某 CMS SSTI 的 0day，之前自己在复现 jpress 的一些漏洞的时候也发现了 SSTI 这个洞杀伤力之大。今天来好好系统学习一手。</p>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近和 <a class="link" target="_blank" rel="noopener" href="https://f1or.cn/">F1or<i class="fas fa-external-link-alt"></i></a> 大师傅一起挖洞的时候发现一处某 CMS SSTI 的 0day，之前自己在复现 jpress 的一些漏洞的时候也发现了 SSTI 这个洞杀伤力之大。今天来好好系统学习一手。</p>
 <ul>
 <li>有三个最重要的模板，其实模板引擎本质上的原理差不多，因为在 SpringBoot 初学习的阶段我就已经学习过 Thymeleaf 了，所以大体上老生常谈的东西就不继续讲了。</li>
 </ul>
 <p>三个模板的模板注入攻击差距其实还是有点大的，而且 Java 的 SSTI 和 Python Flask 的一些 SSTI 差距有点大。</p>
-<h2 id="0x02-FreeMarker-SSTI"><a href="#0x02-FreeMarker-SSTI" class="headerlink" title="0x02 FreeMarker SSTI"></a>0x02 FreeMarker SSTI</h2><p>FreeMarker 官网：<a class="link"   target="_blank" rel="noopener" href="http://freemarker.foofun.cn/index.html" >http://freemarker.foofun.cn/index.html<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x02-FreeMarker-SSTI"><a href="#0x02-FreeMarker-SSTI" class="headerlink" title="0x02 FreeMarker SSTI"></a>0x02 FreeMarker SSTI</h2><p>FreeMarker 官网：<a class="link" target="_blank" rel="noopener" href="http://freemarker.foofun.cn/index.html">http://freemarker.foofun.cn/index.html<i class="fas fa-external-link-alt"></i></a></p>
 <p>对应版本是 2.3.23，一会儿我们搭建环境的时候也用这个版本</p>
 <h3 id="FreeMarker-基础语法"><a href="#FreeMarker-基础语法" class="headerlink" title="FreeMarker 基础语法"></a>FreeMarker 基础语法</h3><p>关于文本与注释，本文不再强调，重点看插值与 FTL 指令。</p>
 <h4 id="插值"><a href="#插值" class="headerlink" title="插值"></a>插值</h4><ul>
@@ -316,7 +316,7 @@
 <blockquote>
 <p>我这里其实也花了不少时间看了 FreeMarker 的基础语法，但是并非很透彻，就不误人子弟了，有兴趣的师傅可以自己前往 FreeMarker 手册查看。</p>
 </blockquote>
-<p><a class="link"   target="_blank" rel="noopener" href="https://freemarker.apache.org/" >https://freemarker.apache.org/<i class="fas fa-external-link-alt"></i></a> </p>
+<p><a class="link" target="_blank" rel="noopener" href="https://freemarker.apache.org/">https://freemarker.apache.org/<i class="fas fa-external-link-alt"></i></a> </p>
 <h3 id="FreeMarker-SSTI-成因与攻击面"><a href="#FreeMarker-SSTI-成因与攻击面" class="headerlink" title="FreeMarker SSTI 成因与攻击面"></a>FreeMarker SSTI 成因与攻击面</h3><p>看了一些文章，有些地方有所疏漏，先说 SSTI 的攻击面吧，我们都知道 SSTI 的攻击面其实是模板引擎的渲染，所以我们要让 Web 服务器将 HTML 语句渲染为模板引擎，前提是要先有 HTML 语句。那么 HTML 如何才能被弄上去呢？这就有关乎我们的攻击面了。</p>
 <ul>
 <li>将 HTML 语句放到服务器上有两种方法：</li>
@@ -328,115 +328,115 @@
 <h4 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h4><ul>
 <li>一些开发的基本功，因篇幅限制，我也不喜放这些东西，贴个项目地址吧</li>
 </ul>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/CodeReview<i class="fas fa-external-link-alt"></i></a></p>
 <h4 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>前文我有提到，FreeMarker 的 SSTI 必须得是获取到 HTML，再把它转换成模板，从而引发漏洞，所以这里要复现，只能把 HTML 语句插入到 .ftl 里面，太生硬了简直。。。。。不过和 F1or 师傅一起挖出来的 0day 则是比较灵活，有兴趣的师傅可以滴一下我</p>
 <p>payload：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=<span class="string">&quot;freemarker.template.utility.Execute&quot;</span>?<span class="keyword">new</span>()&gt;$&#123;value(<span class="string">&quot;Calc&quot;</span>)&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FreeMarkerExectorPayload.png" class>
 
 <p>构造出这个 PoC 的原因是 <code>freemarker.template.utility.Execute</code> 类里面存在如下图所示的命令执行方法，都写到脸上来了。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ExecuteVul.png" class>
 
 <p>漏洞复现如图</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ExecuteCalc.png" class>
 
 <h4 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>我们要分析的是，MVC 的思维，以及如何走到这个危险类 ———— <code>freemarker.template.utility.Execute</code> 去的。</p>
 <p>下一个断点在 <code>org.springframework.web.servlet.view.UrlBasedViewResolver#createView</code>，开始调试</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/createView.png" class>
 
 <p>跟进 <code>super.createView()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperCreateView.png" class>
 
 <p>进一步跟进 <code>loadView()</code> 以及 <code>buildView()</code>，这些方法的业务意义都比较好理解，先 create 一个 View 视图，再将其 load 进来，最后再 build。</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/loadView.png" class>
 
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/buildView.png" class>
 
-
-
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperBuildView.png" class>
 
 <p>在 <code>buildView()</code> 方法当中，先通过 <code>this.instantiateView()</code> 的方式 new 了一个 <code>FreeMarkerView</code> 类，又进行了一些基础赋值，将我们的 View Build 了出来（也就是 View 变得有模有样了）</p>
 <p>继续往下走，回到 <code>loadView()</code> 方法，<code>loadView()</code> 方法调用了 <code>view.checkResource()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/checkResource.png" class>
 
 <p><code>checkResource()</code> 方法做了两件事，第一件事是判断 <code>Resource</code> 当中的 url 是否为空，也就是判断是否存在 resource，如果 url 都没东西，那么后续的模板引擎加载就更不用说了；第二件事是进行 <code>template</code> 的获取，也可以把这理解为准备开始做模板引擎加载的业务了。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/checkResourceBusiness.png" class>
 
 <p>跟进 <code>getTemplate()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getTemplate.png" class>
 
 <p>首先做了一些赋值判断，再判断 Template 的存在，我们跟进 <code>this.cache.getTemplate</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/MaybeMissingTemplate.png" class>
 
 <p>这里从 cache 里面取值，而在我们 <code>putTemplate</code> 设置模板的时候，也会将至存储到 cache中。</p>
 <p>跟进 <code>getTemplateInternal()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getTemplateInternal.png" class>
 
 <p>先做了一些基本的判断，到 202 行，跟进 <code>lookupTemplate()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupTemplate.png" class>
 
 <p>这里代码很冗杂，最后的结果是跟进 &#96;freemarker.cache.TemplateCache#lookupWithLocalizedThenAcquisitionStrategy</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupWithLocalizedThenAcquisitionStrategy.png" class>
 
 <p>代码会先拼接 <code>_zh_CN</code>，再寻找未拼接 <code>_zh_CN</code> 的模板名，调用 <code>this.findTemplateSource(path)</code> 获取模板实例。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/findTemplateSource.png" class>
 
 <p>这里就获取到了 handle 执行返回的模板视图实例，这里我 IDEA 没有走过去，就跟着奶思师傅的文章先分析了。</p>
 <p><code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code> 流程</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doDispatch.png" class>
 
 <p>handle 执行完成后调用 <code>this.processDispatchResult(processedRequest, response, mappedHandler, mv, (Exception)dispatchException);</code> 进行模板解析。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processDispatchResult.png" class>
 
 <p>调用 <code>view.render(mv.getModelInternal(), request, response);</code> 一路跟进至 <code>org.springframework.web.servlet.view.freemarker.FreeMarkerView#doRender</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doRender.png" class>
 
 <p>跟进 <code>this.processTemplate()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processTemplate.png" class>
 
 <p>跟进 <code>process()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuperProcess.png" class>
 
 <ul>
 <li><code>process()</code> 方法是做了一个输出（生成） HTML 文件或其他文件的工作，相当于渲染的最后一步了。</li>
 </ul>
 <p>在 <code>process()</code> 方法中，会对 ftl 的文件进行遍历，读取一些信息，下面我们先说对于正常语句的处理，再说对于 ftl 表达式的处理。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/visitForeach.png" class>
 
 <blockquote>
 <p>在读取到每一条 freeMarker 表达式语句的时候，会二次调用 <code>visit()</code> 方法，而 <code>visit()</code> 方法又调用了 <code>element.accept()</code>，跟进</p>
 </blockquote>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/accept.png" class>
 
 <p>跟进 <code>calculateInterpolatedStringOrMarkup()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/calculateInterpolatedStringOrMarkup.png" class>
 
 <p><code>calculateInterpolatedStringOrMarkup()</code> 方法做的业务是将模型强制为字符串或标记，跟进 <code>eval()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/eval.png" class>
 
 <p><code>eval()</code> 方法简单判断了 <code>constantValue</code> 是否为 null，这里 <code>constantValue</code> 为 null，跟进 <code>this._eval()</code>，一般的 <code>_eval()</code> 方法只是将 evn 获取一下，但是对于 ftl 语句就不是这样了，一般的 <code>_eval()</code> 方法如下</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/normalEval.png" class>
 
 <p>而对于 ftl 表达式来说，<code>accept</code> 方法是这样的</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/elementThis.png" class>
 
 <p>跟进一下 <code>accept()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FtlAccept.png" class>
 
 <p>做了一系列基础判断，先判断 <code>namespaceExp</code> 是否为 null，接着又判断 <code>this.operatorType </code> 是否等于 65536，到第 105 行，跟进 <code>eval()</code> 方法，再跟进 <code>_eval()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/evalFtl.png" class>
 
-
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/execftl.png" class>
 
 <p>我们可以看到 <code>targetMethod</code> 目前就是我们在 ftl 语句当中构造的那个能够进行命令执行的类，也就是说这一个语句相当于</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> targetMethod.exec(argumentStrings);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"></span><br><span class="line"><span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> freemarker.template.utility.Execute.exec(argumentStrings);</span><br></pre></td></tr></table></figure>
 
 <p>而这一步并非直接进行命令执行，而是先把这个类通过 <code>newInstance()</code> 的方式进行初始化。</p>
 <p>命令执行的参数，会被拿出来，在下一次的同样流程中作为命令被执行，如图</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Calc.png" class>
 
 <p>至此，分析结束，很有意思的一个流程分析。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/End.png" class>
 
 <h3 id="FreeMarker-SSTI-的攻防二象性"><a href="#FreeMarker-SSTI-的攻防二象性" class="headerlink" title="FreeMarker SSTI 的攻防二象性"></a>FreeMarker SSTI 的攻防二象性</h3><p>我们目前的 PoC 是这么打的</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=&quot;freemarker.template.utility.Execute&quot;?new()&gt;$&#123;value(&quot;Calc&quot;)&#125;</span><br></pre></td></tr></table></figure>
@@ -474,12 +474,12 @@
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> freemarker;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> freemarker.cache.StringTemplateLoader;</span><br><span class="line"><span class="keyword">import</span> freemarker.core.TemplateClassResolver;</span><br><span class="line"><span class="keyword">import</span> freemarker.template.Configuration;</span><br><span class="line"><span class="keyword">import</span> freemarker.template.Template;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.OutputStreamWriter;</span><br><span class="line"><span class="keyword">import</span> java.io.StringWriter;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">freemarker_ssti</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置模板</span></span><br><span class="line">        HashMap&lt;String, String&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, String&gt;();</span><br><span class="line">        <span class="type">String</span> <span class="variable">poc</span> <span class="operator">=</span><span class="string">&quot;&lt;#assign aaa=\&quot;freemarker.template.utility.Execute\&quot;?new()&gt; $&#123; aaa(\&quot;open -a Calculator.app\&quot;) &#125;&quot;</span>;</span><br><span class="line">        System.out.println(poc);</span><br><span class="line">        <span class="type">StringTemplateLoader</span> <span class="variable">stringLoader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringTemplateLoader</span>();</span><br><span class="line">        <span class="type">Configuration</span> <span class="variable">cfg</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Configuration</span>();</span><br><span class="line">        stringLoader.putTemplate(<span class="string">&quot;name&quot;</span>,poc);</span><br><span class="line">        cfg.setTemplateLoader(stringLoader);</span><br><span class="line">        <span class="comment">//cfg.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);</span></span><br><span class="line">        <span class="comment">//处理解析模板</span></span><br><span class="line">        <span class="type">Template</span> <span class="variable">Template_name</span> <span class="operator">=</span> cfg.getTemplate(<span class="string">&quot;name&quot;</span>);</span><br><span class="line">        <span class="type">StringWriter</span> <span class="variable">stringWriter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringWriter</span>();</span><br><span class="line"></span><br><span class="line">        Template_name.process(Template_name,stringWriter);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SuccessFreeMarkerDefense.png" class>
 
 <h2 id="0x03-Velocity-SSTI"><a href="#0x03-Velocity-SSTI" class="headerlink" title="0x03 Velocity SSTI"></a>0x03 Velocity SSTI</h2><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><p><code>#</code> 关键字<br>Velocity关键字都是使用 <code>#</code>开头的，如 <code>#set</code>、<code>#if</code>、<code>#else</code>、<code>#end</code>、<code>#foreach</code> 等<br><code>$</code>变量<br>Velocity变量都是使用$开头的，如：<code>$name</code>、<code>$msg</code><br><code>&#123;&#125;</code>变量<br>Velocity对于需要明确表示的Velocity变量，可以使用 <code>&#123;&#125;</code> 将变量包含起来。<br><code>！</code>变量<br>如果某个Velocity变量不存在，那么页面中就会显示<code>$xxx</code>的形式，为了避免这种形式，可以在变量名称前加上！。如页面中含有<code>$msg</code>，如果msg有值，将显示msg的值；如果不存在就会显示<code>$msg</code>。这是我们不希望看到的，为了把不存在的变量显示为空白，可以使用<code>$!msg</code>。</p>
 <p>直接打是可以的，当然配合 FJ 更优雅。</p>
 <p>此处的攻击面还是以文件上传和模板编写为主，在 jpress 的代码审计当中，师傅们可以看到那就是一个模板编写的攻击手法。</p>
-<h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>这已在 jpress 中分析过了，不再赘述，对应地址：<a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11832#toc-4%EF%BC%8C%E8%99%BD%E7%84%B6%E9%82%A3%E4%B8%AA%E6%A1%86%E6%9E%B6%E6%98%AF" >https://xz.aliyun.com/t/11832#toc-4，虽然那个框架是<i class="fas fa-external-link-alt"></i></a> jBoot，但是总体上是大差不差的</p>
+<h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>这已在 jpress 中分析过了，不再赘述，对应地址：<a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11832#toc-4%EF%BC%8C%E8%99%BD%E7%84%B6%E9%82%A3%E4%B8%AA%E6%A1%86%E6%9E%B6%E6%98%AF">https://xz.aliyun.com/t/11832#toc-4，虽然那个框架是<i class="fas fa-external-link-alt"></i></a> jBoot，但是总体上是大差不差的</p>
 <h2 id="0x04-Thymeleaf-SSTI"><a href="#0x04-Thymeleaf-SSTI" class="headerlink" title="0x04 Thymeleaf SSTI"></a>0x04 Thymeleaf SSTI</h2><h3 id="Thymeleaf-语法基础"><a href="#Thymeleaf-语法基础" class="headerlink" title="Thymeleaf 语法基础"></a>Thymeleaf 语法基础</h3><p>Thymeleaf 表达式可以有以下类型：</p>
 <ul>
 <li><code>$&#123;...&#125;</code>：变量表达式 —— 通常在实际应用，一般是OGNL表达式或者是 Spring EL，如果集成了Spring的话，可以在上下文变量（context variables ）中执行</li>
@@ -505,150 +505,150 @@
 <h3 id="Spring-MVC-对于-Thymeleaf-的解析流程"><a href="#Spring-MVC-对于-Thymeleaf-的解析流程" class="headerlink" title="Spring MVC 对于 Thymeleaf 的解析流程"></a>Spring MVC 对于 Thymeleaf 的解析流程</h3><ul>
 <li>大致流程图可以参照下图</li>
 </ul>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/mvc.png" class>
 
 <p>下个断点在 <code>org.springframework.web.servlet.DispatcherServlet#doService</code>，因为 <code>DispatcherServlet</code> 是 Spring 对前端控制器的默认拦截器。</p>
-<h4 id="获取-Handler"><a href="#获取-Handler" class="headerlink" title="获取 Handler"></a>获取 Handler</h4>
+<h4 id="获取-Handler"><a href="#获取-Handler" class="headerlink" title="获取 Handler"></a>获取 Handler</h4><img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doService.png" class>
 
 <p>到 429 行，调用了 <code>this.doDispatch()</code> 方法，去寻找对应的 Handler Mappings，再由 Handle Mapping 返回 Controller，再去寻找对应的 Controller</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doDispatchThymeleaf.png" class>
 
 <p>要寻找对应的 Handler Mappings，需要先获取到 <code>Handler</code>，所以在第 484 行调用了 <code>getHandler()</code> 方法，跟进一下。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandler.png" class>
 
 <p>现在我们的 <code>Handler Mappings</code> 里存在五个 Handler，程序会通过迭代器进行遍历，我们跟进一下具体 Handler 的 <code>getHandler()</code> 方法做了什么业务。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/HandlerSeek.png" class>
 
 <p>再跟进 <code>getHandlerInternal()</code> 方法，以及跟进父类的 <code>getHandlerInternal()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandlerInternal.png" class>
 
 <p>关注一下返回值，是 var4，而 var4 是通过 <code>this.lookupHandlerMethod()</code> 调用获得的。所以此处，我们跟进 <code>lookupHandlerMethod()</code> 方法</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/superGetHandlerInternal.png" class>
 
 <p><code>lookupHandlerMethod()</code> 方法首先把 Web 应用程序被访问的子域拿出来，保存到一个数字当中，这个子域的变量名为 <code>lookupPath</code>，如果无法通过 uri 进行直接匹配，则对所有的注册的 RequestMapping 进行匹配。</p>
 <p>这里无法通过 uri 匹配的情况主要有三种： </p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ①在RequestMapping中定义的是PathVariable，如/user/detail/&#123;id&#125;； </span></span><br><span class="line"><span class="comment">// ②在RequestMapping中定义了问号表达式，如/user/?etail； </span></span><br><span class="line"><span class="comment">// ③在RequestMapping中定义了*或**匹配，如/user/detail/** // No choice but to go through all mappings...</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/lookupPath.png" class>
 
 <h4 id="获取-Controller-并返回-Model-And-View"><a href="#获取-Controller-并返回-Model-And-View" class="headerlink" title="获取 Controller 并返回 Model And View"></a>获取 Controller 并返回 Model And View</h4><p>使用一个比较器，对匹配的结果进行排序，获取相似度最高的一个作为结果返回，也就是 <code>get(0)</code>，而当存在两个匹配结果重合度一致的时候，抛出异常。这里匹配的结果是去 Controller 当中找的，寻找哪个接口与 path 最符合，因为有时候接口名相同，但传参不同。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Comparator.png" class>
 
 <p>很明显看到这里，返回的是 <code>GET /path</code> </p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/GetSortedPath.png" class>
 
 <ul>
 <li>至此，<code>getHandler()</code> 的分析流程结束了，我们能够很明显的看出来它是在做 Handler Mapping 的获取与比对的操作，是为了下一步 Controller 服务的。</li>
 </ul>
 <p>回到 <code>DispatcherServlet</code> 一路往下走，到第 490 行，跟进 <code>getHandlerAdapter()</code> 方法看一下。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getHandlerAdapter.png" class>
 
 <p>找到目标处理器的适配器，用适配器执行目标方法。继续往下走，调用 <code>applyPreHandle()</code> 方法做了一个预处理。跟进 <code>interceptor.preHandle()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/applyPreHandle.png" class>
 
-
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/preHandle.png" class>
 
 <ul>
 <li>基本上的正常请求都是会返回 true 的，一些非常规请求很可能返回 false</li>
 </ul>
 <p>回到 <code>DispatcherServlet</code>，在它的第 504 行，进行了 <code>handle</code> 处理，实现执行 Controller 中 (Handler) 的方法,返回 ModelAndView 视图。跟进</p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handle.png" class>
 
-
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handleInternal.png" class>
 
 <p>跟进至 <code>invokeHandlerMethod()</code>，才到了真正的业务方法。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeHandlerMethod.png" class>
 
 <p><code>invokeHandlerMethod()</code> 方法先执行目标的 <code>HandlerMethod</code>，并返回一个 <code>ModelAndView</code> 对象。比较重要的方法在第 520 行，此处的 handlerMethod 其实是 <code>com.drunkbaby.ssti.controller.ThymeleafController#path(String)</code>，这一个方法，通过 <code>this.createInvocableHandlerMethod()</code> 方法，将其封装成 <code>ServletInvocableHandlerMethod</code> 类，并让其具有 invoke 执行能力。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/createInvocableHandlerMethod.png" class>
 
 <p>后续，给 <code>invocableMethod</code> 的各大属性赋值，在赋值完毕后 new 了一个 <code>ModelAndViewContainer</code> 对象，后续会将所有的值保存到这一个对象中。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ModelAndViewContainer.png" class>
 
 <p>往下走，先调用 <code>AsyncWebRequest</code> 进行异步请求的包装，后续针对是否是异步请求，做不同的处理。继续往下走，到 553 行的地方是关键点，它调用了 <code>ServletInvocableHandlerMethod.invokeAndHandle()</code> 方法，调用这个方法的作用主要是获取到了 returnValueHandlers，跟进看一下。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeAndHandleSpecfic.png" class>
 
 <p>跟进 <code>invokeForRequest()</code>，先获取到参数，再调用 <code>this.doInvoke()</code> </p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/invokeForRequest.png" class>
 
 <p>跟进 <code>doInvoke()</code>，会反射调用路由中类中的方法，并将参数进行传递</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/doInvoke.png" class>
 
 <p>此处 f8，会走到我们定义接口的方法中去。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ControllerPass.png" class>
 
 <p>执行完毕后，回到 <code>org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod</code>，一路往下走，到第 69 行，调用了 <code>handleReturnValue()</code>，跟进 <code>handler.handleReturnValue()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/handleReturnValue.png" class>
 
 <p>上面判断如果<code>redirect:</code>开头，如果是的话则设置重定向的属性</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/viewNameMethodReturnValueHandler.png" class>
 
 <p>回到<code>org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter#invokeHandlerMethod</code></p>
 <p>这里调用 <code>this.getModelAndView</code> 获取获取 <code>ModelAndView</code> 对象</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/getModelAndView.png" class>
 
 <h4 id="View-Resolver-与执行模板渲染"><a href="#View-Resolver-与执行模板渲染" class="headerlink" title="View Resolver 与执行模板渲染"></a>View Resolver 与执行模板渲染</h4><ul>
 <li>目前程序已获取到了 <code>ModelAndView</code>，应当进行下一步的模板渲染工作了，回到 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code> 方法。</li>
 </ul>
 <p>之前断点是下在 504 行的位置 ———— <code>ha.handle()</code> 处，我们继续往下走，到第 510 行，调用了 <code>mappedHandler.applyPostHandle()</code> 方法，mappedHandler 是一个 HandlerExecutionChain，类似于处理器的执行链。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/applyPostHandle.png" class>
 
 <p>遍历执行拦截器postHandle，与之前获取 Handler 的流程是一致的。遍历拦截器的过程在 mvc 架构当中非常常见，比如 S2 系列的漏洞分析，也会经过拦截器的遍历。</p>
 <p>在遍历结束后，会走到 <code>this.processDispatchResult()</code> 这里，它会将 Dispatch 的结果进行加工处理，猜测这里很可能会做视图解析与渲染的工作。跟进一下</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/processDispatchResultRender.png" class>
 
 <p>在判断完 <code>ModelAndView</code> 不为空之后，调用 <code>render()</code> 方法，<code>render()</code> 方法在 Java 的模板引擎当中一般都是作为模板渲染的方法，跟进一下。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ThymeleafRender.png" class>
 
 <p>就简单分析一下代码，前面做的是一些国际化的判断，以及赋值等，将一些属性都放到 view 这个对象当中。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/view.png" class>
 
 <p>往下分析，到第 739 行，通过自己的模板引擎进行渲染，如果此处是 FreeMarker，就会去 <code>FreeMarkerView.render()</code>，如果是 Velocity，就会去 <code>VelocityView.render()</code>，我们此处是 Thymeleaf，会去到 <code>ThymeleafView.render()</code>，跟进。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/ThymeleafViewRender.png" class>
 
 <p>跟进 <code>renderFragment()</code> 方法。在第 101 行，判断 <code>getTemplateName</code> 当中是否存在 <code>::</code> 这一字符，如果不存在，则不做解析处理。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/contains.png" class>
 
 <p>继续往下走，第 109 行，调用了 <code>(FragmentExpression)parser.parseExpression()</code>，对我们输入的这一串字符进行了处理。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/parseExpression.png" class>
 
 <p>继续跟进 <code>StandardExpressionPreprocessor.preprocess()</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/preprocess.png" class>
 
 <ul>
 <li>先判断，input 里面是否有存在 <code>_</code> 字符，如果不存在则直接返回，不做解析处理。</li>
 </ul>
 <p>接着，调用 <code>PREPROCESS_EVAL_PATTERN.matcher(input);</code>，进行正则提取，这里提取的是 <code>_</code> 中间的内容。</p>
 <p>提取后获取到的内容是 <code>$&#123;new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec(&quot;Calc&quot;).getInputStream()).next()&#125;</code></p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/exporessionText.png" class>
 
 <p>继续往下走，到了 <code>expression.execute()</code>，也就是命令执行的地方，语句就变成了</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">java</span>.util.Scanner(T(java.lang.Runtime).getRuntime().exec(<span class="string">&quot;Calc&quot;</span>).getInputStream()).next().execute()</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/expressionExecute.png" class>
 
 <blockquote>
 <p>至此分析过程结束。</p>
 </blockquote>
-<h3 id="Thymeleaf-SSTI-Bypass"><a href="#Thymeleaf-SSTI-Bypass" class="headerlink" title="Thymeleaf SSTI Bypass"></a>Thymeleaf SSTI Bypass</h3><p>以下内容大多数摘自 <a class="link"   target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html" >https://www.cnpanda.net/sec/1063.html<i class="fas fa-external-link-alt"></i></a></p>
+<h3 id="Thymeleaf-SSTI-Bypass"><a href="#Thymeleaf-SSTI-Bypass" class="headerlink" title="Thymeleaf SSTI Bypass"></a>Thymeleaf SSTI Bypass</h3><p>以下内容大多数摘自 <a class="link" target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html">https://www.cnpanda.net/sec/1063.html<i class="fas fa-external-link-alt"></i></a></p>
 <p>在正常攻击，毫无防护的时候，我们的 PoC 是这样的</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">__$&#123;<span class="keyword">new</span> <span class="title class_">java</span>.util.Scanner(T(java.lang.Runtime).getRuntime().exec(<span class="string">&quot;touch executed&quot;</span>).getInputStream()).next()&#125;__::.x</span><br><span class="line"></span><br><span class="line">__$&#123;T(java.lang.Thread).sleep(<span class="number">10000</span>)&#125;__::...</span><br></pre></td></tr></table></figure>
 
 <p>以 <code>__xxx__</code> 作为 PoC 主要部分，以 <code>::</code> 结尾</p>
 <p>针对上文中的 SSSTI 漏洞，Thymeleaf 实际上做了修复</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/Thymeleaf3012.png" class>
 
 <h4 id="传参检测与绕过"><a href="#传参检测与绕过" class="headerlink" title="传参检测与绕过"></a>传参检测与绕过</h4><p>先说 payload</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/path?lang=__$%7bnew%20java.util.Scanner(T%<span class="number">20</span>(java.lang.Runtime).getRuntime().exec(%22id%<span class="number">22</span>).getInputStream()).next()%7d__::.x</span><br></pre></td></tr></table></figure>
 
 <p>在 <strong>3.0.12</strong> 版本，Thymeleaf 在 <code>util</code>目录下增加了一个名为<code>SpringStandardExpressionUtils.java</code>的文件：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/3012Fix.png" class>
 
 <p>在该文件中，就有说明：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/UtilsFix.png" class>
 
 <p>当调用表达式的时候，会经过该函数的判断：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/judge.png" class>
 
 <p>来看看该函数，可以看到其主要逻辑是首先 倒序检测是否包含 <code>wen</code>关键字、在<code>(</code>的左边的字符是否是<code>T</code>，如包含，那么认为找到了一个实例化对象，返回<code>true</code>，阻止该表达式的执行。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">containsSpELInstantiationOrStatic</span><span class="params">(<span class="keyword">final</span> String expression)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">explen</span> <span class="operator">=</span> expression.length();</span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> explen;</span><br><span class="line">        <span class="type">int</span> <span class="variable">ni</span> <span class="operator">=</span> <span class="number">0</span>; <span class="comment">// index for computing position in the NEW_ARRAY</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">si</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line">        <span class="type">char</span> c;</span><br><span class="line">        <span class="keyword">while</span> (n-- != <span class="number">0</span>) &#123;</span><br><span class="line"></span><br><span class="line">            c = expression.charAt(n);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (ni &lt; NEW_LEN</span><br><span class="line">                    &amp;&amp; c == NEW_ARRAY[ni]</span><br><span class="line">                    &amp;&amp; (ni &gt; <span class="number">0</span> || ((n + <span class="number">1</span> &lt; explen) &amp;&amp; Character.isWhitespace(expression.charAt(n + <span class="number">1</span>))))) &#123;</span><br><span class="line">                ni++;</span><br><span class="line">                <span class="keyword">if</span> (ni == NEW_LEN &amp;&amp; (n == <span class="number">0</span> || !Character.isJavaIdentifierPart(expression.charAt(n - <span class="number">1</span>)))) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="literal">true</span>; <span class="comment">// we found an object instantiation</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (ni &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                n += ni;</span><br><span class="line">                ni = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">if</span> (si &lt; n) &#123;</span><br><span class="line">                    <span class="comment">// This has to be restarted too</span></span><br><span class="line">                    si = -<span class="number">1</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            ni = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (c == <span class="string">&#x27;)&#x27;</span>) &#123;</span><br><span class="line">                si = n;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (si &gt; n &amp;&amp; c == <span class="string">&#x27;(&#x27;</span></span><br><span class="line">                        &amp;&amp; ((n - <span class="number">1</span> &gt;= <span class="number">0</span>) &amp;&amp; (expression.charAt(n - <span class="number">1</span>) == <span class="string">&#x27;T&#x27;</span>))</span><br><span class="line">                        &amp;&amp; ((n - <span class="number">1</span> == <span class="number">0</span>) || !Character.isJavaIdentifierPart(expression.charAt(n - <span class="number">2</span>)))) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (si &gt; n &amp;&amp; !(Character.isJavaIdentifierPart(c) || c == <span class="string">&#x27;.&#x27;</span>)) &#123;</span><br><span class="line">                si = -<span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
@@ -662,30 +662,30 @@
 <li>在 Thymeleaf 3.0.12 版本当中对这一漏洞也进行了修复。</li>
 </ul>
 <p>实际上在 3.0.12 版本，除了加了<code>SpringStandardExpressionUtils.java</code>，同样还增加了 <code>SpringRequestUtils.java</code>文件：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringRequestUtils.png" class>
 
 <blockquote>
 <p>如果视图名称包含在 URL 的路径或参数中，请避免将视图名称作为片段表达式执行</p>
 </blockquote>
 <p>意思就是如果视图的名字和 path 一致，那么就会经过 <code>SpringRequestUtils.java</code> 中的 <code>checkViewNameNotInRequest</code> 函数检测：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringRequestUtilsCheckViewName.png" class>
 
 <p>可以看到，如果 <code>requestURI</code> 不为空，并且不包含 <code>vn</code> 的值，即可进入判断，从而经过 <code>checkViewNameNotInRequest</code> 的“良民”认证。</p>
 <p>首先按照上文中的 Poc：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__$&#123;T%<span class="number">20</span>(java.lang.Runtime).getRuntime().exec(%22open%<span class="number">20</span>-a%20calculator%<span class="number">22</span>)&#125;__::.x/</span><br></pre></td></tr></table></figure>
 
 <p>我们可以得到 <code>vn</code> 的值为<code>doc/__$&#123;newjava.util.scanner(t(java.lang.runtime).getruntime().exec(&quot;calc&quot;).getinputstream()).next()&#125;__::</code>，并且此时我们的 found 为 true，意思就是在 vn 当中存在恶意性的字符，我们的目标是让 found 为 false，以及绕过检测。</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/FoundTrueThrow.png" class>
 
 <p>思考一下比较流行与常规的绕过方式：大小写绕过，Unicode 绕过，URL 绕过，在尝试之后都失败了。</p>
 <p>那么是不是么办法了？答案是否定的（废话，三梦师傅给出了答案）</p>
 <p>我们先看 <code>requestURI</code> 是怎么来的：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/requestURL.png" class>
 
 <p>跟进 <code>unescapeUriPath</code> 方法，再跟进 <code>UriEscapeUtil.unescape()</code></p>
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/unescapeUriPath.png" class>
 
-
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/unescape.png" class>
 
 <p>该函数首先检测传入的字符中是否是<code>%</code>(ESCAPE_PREFIX)或者<code>+</code>，如果是，那么进行二次处理：</p>
 <ul>
@@ -703,10 +703,10 @@
 
 <p>只需要在 home 的后面加上一个分号即可</p>
 <p>这是因为在 SpringBoot 中，SpringBoot 有一个功能叫做矩阵变量，默认是禁用状态：</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/SpringBootSemiTrue.png" class>
 
 <p>如果发现路径中存在分号，那么会调用 <code>removeSemicolonContent()</code> 方法来移除分号</p>
-
+<img src="/2022/11/07/Java-OWASP-SSTI-%E5%AD%A6%E4%B9%A0/remove.png" class>
 
 <p>这样一来使得传入的字符和 <code>vn</code> 不相同，并且又满足路由条件！成功绕过 <code>checkViewNameNotInRequest</code> 的检测</p>
 <p><strong>Bypass 技巧 2：</strong></p>
@@ -722,7 +722,7 @@
 <p>只是无法回显，但依旧可以进行命令执行。</p>
 <h3 id="防御措施"><a href="#防御措施" class="headerlink" title="防御措施"></a>防御措施</h3><p>1、配置<code>@ResponseBody</code>或者<code>@RestController</code>，经以上注解后不会进行View解析而是直接返回。<br>2、在方法参数中加上 <code>HttpServletResponse</code>参数  ，此时spring会认为已经处理了response响应而不再进行视图解析。<br>3、在返回值前面加上 “<code>redirect:</code>“——经<code>RedirectView</code>处理。</p>
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>挺有意思的，但是也难，仿佛看到了当时复现 log4j2 的攻防二象性。</p>
-<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16212784.html" >https://www.cnblogs.com/nice0e3/p/16212784.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://tttang.com/archive/1412" >https://tttang.com/archive/1412<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html" >https://www.cnpanda.net/sec/1063.html<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/16212784.html">https://www.cnblogs.com/nice0e3/p/16212784.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://tttang.com/archive/1412">https://tttang.com/archive/1412<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.cnpanda.net/sec/1063.html">https://www.cnpanda.net/sec/1063.html<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

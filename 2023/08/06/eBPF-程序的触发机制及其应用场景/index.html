@@ -296,7 +296,7 @@
 <h1 id="各类-eBPF-程序的触发机制及其应用场景"><a href="#各类-eBPF-程序的触发机制及其应用场景" class="headerlink" title="各类 eBPF 程序的触发机制及其应用场景"></a>各类 eBPF 程序的触发机制及其应用场景</h1><p>在上一讲中曾也提到，并不是所有的辅助函数都可以在 eBPF 程序中随意使用，不同类型的 eBPF 程序所支持的辅助函数是不同的。</p>
 <p>那么，eBPF 程序都有哪些类型，而不同类型的 eBPF 程序又有哪些独特的应用场景呢？今天，就一起来看看。</p>
 <h2 id="几类-eBPF-程序"><a href="#几类-eBPF-程序" class="headerlink" title="几类 eBPF 程序"></a>几类 eBPF 程序</h2><p>eBPF 程序类型决定了一个 eBPF 程序可以挂载的事件类型和事件参数，这也就意味着，内核中不同事件会触发不同类型的 eBPF 程序。</p>
-<p>根据内核头文件 <a class="link"   target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.13/source/include/uapi/linux/bpf.h#L908" >include&#x2F;uapi&#x2F;linux&#x2F;bpf.h<i class="fas fa-external-link-alt"></i></a> 中  bpf_prog_type 的定义，Linux 内核 v5.13 已经支持 30 种不同类型的 eBPF 程序（注意， <code>BPF_PROG_TYPE_UNSPEC</code> 表示未定义）：</p>
+<p>根据内核头文件 <a class="link" target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.13/source/include/uapi/linux/bpf.h#L908">include&#x2F;uapi&#x2F;linux&#x2F;bpf.h<i class="fas fa-external-link-alt"></i></a> 中  bpf_prog_type 的定义，Linux 内核 v5.13 已经支持 30 种不同类型的 eBPF 程序（注意， <code>BPF_PROG_TYPE_UNSPEC</code> 表示未定义）：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">bpf_prog_type</span> &#123;</span></span><br><span class="line">  BPF_PROG_TYPE_UNSPEC, <span class="comment">/* Reserve 0 as invalid program type */</span></span><br><span class="line">  BPF_PROG_TYPE_SOCKET_FILTER,</span><br><span class="line">  BPF_PROG_TYPE_KPROBE,</span><br><span class="line">  BPF_PROG_TYPE_SCHED_CLS,</span><br><span class="line">  BPF_PROG_TYPE_SCHED_ACT,</span><br><span class="line">  BPF_PROG_TYPE_TRACEPOINT,</span><br><span class="line">  BPF_PROG_TYPE_XDP,</span><br><span class="line">  BPF_PROG_TYPE_PERF_EVENT,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_SKB,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_SOCK,</span><br><span class="line">  BPF_PROG_TYPE_LWT_IN,</span><br><span class="line">  BPF_PROG_TYPE_LWT_OUT,</span><br><span class="line">  BPF_PROG_TYPE_LWT_XMIT,</span><br><span class="line">  BPF_PROG_TYPE_SOCK_OPS,</span><br><span class="line">  BPF_PROG_TYPE_SK_SKB,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_DEVICE,</span><br><span class="line">  BPF_PROG_TYPE_SK_MSG,</span><br><span class="line">  BPF_PROG_TYPE_RAW_TRACEPOINT,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_SOCK_ADDR,</span><br><span class="line">  BPF_PROG_TYPE_LWT_SEG6LOCAL,</span><br><span class="line">  BPF_PROG_TYPE_LIRC_MODE2,</span><br><span class="line">  BPF_PROG_TYPE_SK_REUSEPORT,</span><br><span class="line">  BPF_PROG_TYPE_FLOW_DISSECTOR,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_SYSCTL,</span><br><span class="line">  BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE,</span><br><span class="line">  BPF_PROG_TYPE_CGROUP_SOCKOPT,</span><br><span class="line">  BPF_PROG_TYPE_TRACING,</span><br><span class="line">  BPF_PROG_TYPE_STRUCT_OPS,</span><br><span class="line">  BPF_PROG_TYPE_EXT,</span><br><span class="line">  BPF_PROG_TYPE_LSM,</span><br><span class="line">  BPF_PROG_TYPE_SK_LOOKUP,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <p>对于具体的内核来说，因为不同内核的版本和编译配置选项不同，一个内核并不会支持所有的程序类型。你可以在命令行中执行下面的命令，来查询当前系统支持的程序类型：</p>
@@ -316,14 +316,14 @@
 <h2 id="跟踪类-eBPF-程序"><a href="#跟踪类-eBPF-程序" class="headerlink" title="跟踪类 eBPF 程序"></a>跟踪类 eBPF 程序</h2><p>先看第一类，也就是跟踪类 eBPF 程序。</p>
 <p><strong>跟踪类 eBPF 程序主要用于从系统中提取跟踪信息，进而为监控、排错、性能优化等提供数据支撑</strong>。比如，我们前几讲中的 Hello World 示例就是一个 <code>BPF_PROG_TYPE_KPROBE</code> 类型的跟踪程序，它的目的是跟踪内核函数是否被某个进程调用了。</p>
 <p>为了方便你查询，我把常见的跟踪类 BPF 程序的主要功能以及使用限制整理成了一个表格，你可以在需要时参考。</p>
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/traceClass.png" class>
 
-
-<p>这其中，KPROBE、TRACEPOINT 以及 PERF_EVENT 都是最常用的 eBPF 程序类型，大量应用于监控跟踪、性能优化以及调试排错等场景中。我们前几讲中提到的 <a class="link"   target="_blank" rel="noopener" href="https://github.com/iovisor/bcc" >BCC<i class="fas fa-external-link-alt"></i></a>工具集，其中包含的绝大部分工具也都属于这个类型。</p>
+<p>这其中，KPROBE、TRACEPOINT 以及 PERF_EVENT 都是最常用的 eBPF 程序类型，大量应用于监控跟踪、性能优化以及调试排错等场景中。我们前几讲中提到的 <a class="link" target="_blank" rel="noopener" href="https://github.com/iovisor/bcc">BCC<i class="fas fa-external-link-alt"></i></a>工具集，其中包含的绝大部分工具也都属于这个类型。</p>
 <h2 id="网络类-eBPF-程序"><a href="#网络类-eBPF-程序" class="headerlink" title="网络类 eBPF 程序"></a>网络类 eBPF 程序</h2><p>看完跟踪类 eBPF 程序，我们再来看看网络类 eBPF 程序。</p>
 <p><strong>网络类 eBPF 程序主要用于对网络数据包进行过滤和处理，进而实现网络的观测、过滤、流量控制以及性能优化等各种丰富的功能</strong>。根据事件触发位置的不同，网络类 eBPF 程序又可以分为 XDP（eXpress Data Path，高速数据路径）程序、TC（Traffic Control，流量控制）程序、套接字程序以及 cgroup 程序，下面我们来分别看看。</p>
 <h2 id="XDP-程序"><a href="#XDP-程序" class="headerlink" title="XDP 程序"></a>XDP 程序</h2><p>XDP 程序的类型定义为 <code>BPF_PROG_TYPE_XDP</code>，它在<strong>网络驱动程序刚刚收到数据包时</strong>触发执行。由于无需通过繁杂的内核网络协议栈，XDP 程序可用来实现高性能的网络处理方案，常用于 DDoS 防御、防火墙、4 层负载均衡等场景。</p>
 <p>你需要注意，XDP 程序并不是绕过了内核协议栈，它只是在内核协议栈之前处理数据包，而处理过的数据包还可以正常通过内核协议栈继续处理。你可以通过下面的图片（图片来自 iovisor.org）加深对  XDP 相对内核协议栈位置的理解：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/XDP.png" class>
 
 <p>根据网卡和网卡驱动是否原生支持 XDP 程序，XDP 运行模式可以分为下面这三种：</p>
 <ul>
@@ -332,7 +332,7 @@
 <li>卸载模式。它需要网卡固件支持 XDP 卸载，XDP 程序直接运行在网卡上，而不再需要消耗主机的 CPU 资源，具有最好的性能。</li>
 </ul>
 <p>无论哪种模式，XDP 程序在处理过网络包之后，都需要根据 eBPF 程序执行结果，决定数据包的去处。这些执行结果对应以下 5 种 XDP 程序结果码：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/FiveResultCodeXDP.png" class>
 
 <p>通常来说，XDP 程序通过 <code>ip link</code> 命令加载到具体的网卡上，加载格式为：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># eth1 为网卡名</span></span><br><span class="line"><span class="comment"># xdpgeneric 设置运行模式为通用模式</span></span><br><span class="line"><span class="comment"># xdp-example.o 为编译后的 XDP 字节码</span></span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> dev eth1 xdpgeneric object xdp-example.o</span><br></pre></td></tr></table></figure>
@@ -343,12 +343,12 @@
 <p>除了 <code>ip link</code> 之外， BCC 也提供了方便的库函数，让我们可以在同一个程序中管理 XDP 程序的生命周期：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> bcc <span class="keyword">import</span> BPF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译XDP程序</span></span><br><span class="line">b = BPF(src_file=<span class="string">&quot;xdp-example.c&quot;</span>)</span><br><span class="line">fn = b.load_func(<span class="string">&quot;xdp-example&quot;</span>, BPF.XDP)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载XDP程序到eth0网卡</span></span><br><span class="line">device = <span class="string">&quot;eth0&quot;</span></span><br><span class="line">b.attach_xdp(device, fn, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 其他处理逻辑</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载XDP程序</span></span><br><span class="line">b.remove_xdp(device)</span><br></pre></td></tr></table></figure>
 
-<h2 id="TC-程序"><a href="#TC-程序" class="headerlink" title="TC 程序"></a>TC 程序</h2><p>TC 程序的类型定义为 <code>BPF_PROG_TYPE_SCHED_CLS</code> 和 <code>BPF_PROG_TYPE_SCHED_ACT</code>，分别作为 <a class="link"   target="_blank" rel="noopener" href="https://tldp.org/HOWTO/Traffic-Control-HOWTO/index.html" >Linux 流量控制<i class="fas fa-external-link-alt"></i></a> 的分类器和执行器。Linux 流量控制通过网卡队列、排队规则、分类器、过滤器以及执行器等，实现了对网络流量的整形调度和带宽控制。</p>
+<h2 id="TC-程序"><a href="#TC-程序" class="headerlink" title="TC 程序"></a>TC 程序</h2><p>TC 程序的类型定义为 <code>BPF_PROG_TYPE_SCHED_CLS</code> 和 <code>BPF_PROG_TYPE_SCHED_ACT</code>，分别作为 <a class="link" target="_blank" rel="noopener" href="https://tldp.org/HOWTO/Traffic-Control-HOWTO/index.html">Linux 流量控制<i class="fas fa-external-link-alt"></i></a> 的分类器和执行器。Linux 流量控制通过网卡队列、排队规则、分类器、过滤器以及执行器等，实现了对网络流量的整形调度和带宽控制。</p>
 <p>下图（图片来自 linux-ip.net）展示了  HTB（Hierarchical Token Bucket，层级令牌桶）流量控制的工作原理：</p>
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/HTBucketOri.png" class>
 
-
-<p>得益于内核 v4.4 引入的 <a class="link"   target="_blank" rel="noopener" href="https://docs.cilium.io/en/v1.8/bpf/#tc-traffic-control" >direct-action<i class="fas fa-external-link-alt"></i></a> 模式，TC 程序可以直接在一个程序内完成分类和执行的动作，而无需再调用其他的 TC 排队规则和分类器，具体如下图所示：</p>
-
+<p>得益于内核 v4.4 引入的 <a class="link" target="_blank" rel="noopener" href="https://docs.cilium.io/en/v1.8/bpf/#tc-traffic-control">direct-action<i class="fas fa-external-link-alt"></i></a> 模式，TC 程序可以直接在一个程序内完成分类和执行的动作，而无需再调用其他的 TC 排队规则和分类器，具体如下图所示：</p>
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/TCProgram.png" class>
 
 <p>同 XDP 程序相比，TC 程序可以<strong>直接获取内核解析后的网络报文数据结构</strong> <code>sk_buff</code>（XDP 则是 <code>xdp_buff</code>），并且可在网卡的接收和发送两个方向上执行（XDP 则只能用于接收）。下面我们来具体看看  TC 程序的执行位置：</p>
 <ul>
@@ -361,21 +361,21 @@
 
 <h2 id="套接字程序"><a href="#套接字程序" class="headerlink" title="套接字程序"></a>套接字程序</h2><p>套接字程序用于过滤、观测或重定向套接字网络包，具体的种类也比较丰富。根据类型的不同，套接字 eBPF 程序可以挂载到套接字（socket）、控制组（cgroup ）以及网络命名空间（netns）等各个位置。你可以根据具体的应用场景，选择一个或组合多个类型的 eBPF 程序，去控制套接字的网络包收发过程。</p>
 <p>这里，我把常见的套接字程序类型，以及它们的应用场景和挂载方法整理成了一个表格，你可以在需要时参考：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/socket.png" class>
 
 <h2 id="cgroup-程序"><a href="#cgroup-程序" class="headerlink" title="cgroup 程序"></a>cgroup 程序</h2><p>cgroup 程序用于<strong>对 cgroup 内所有进程的网络过滤、套接字选项以及转发等进行动态控制</strong>，它最典型的应用场景是对容器中运行的多个进程进行网络控制。</p>
 <p>cgroup 程序的种类比较丰富，我也帮你整理了一个表格，方便你在需要时查询：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/cgroup.png" class>
 
 <p>这些类型的 BPF 程序都可以通过 BPF 系统调用的 <code>BPF_PROG_ATTACH</code> 命令来进行挂载，并设置挂载类型为匹配的 <code>BPF_CGROUP_xxx</code> 类型。比如，在挂载 <code>BPF_PROG_TYPE_CGROUP_DEVICE</code> 类型的 BPF 程序时，需要设置 <code>bpf_attach_type</code> 为 <code>BPF_CGROUP_DEVICE</code>：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">bpf_attr</span> <span class="title">attr</span> =</span> &#123;&#125;;</span><br><span class="line">attr.target_fd = target_fd;            <span class="comment">// cgroup文件描述符</span></span><br><span class="line">attr.attach_bpf_fd = prog_fd;          <span class="comment">// BPF程序文件描述符</span></span><br><span class="line">attr.attach_type = BPF_CGROUP_DEVICE;  <span class="comment">// 挂载类型为BPF_CGROUP_DEVICE</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (bpf(BPF_PROG_ATTACH, &amp;attr, <span class="keyword">sizeof</span>(attr)) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> -errno;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
 <p>注意，这几类网络 eBPF 程序是在不同的事件触发时执行的，因此，在实际应用中我们通常可以把多个类型的 eBPF 程序结合起来，一起使用，来实现复杂的网络控制功能。比如，最流行的 Kubernetes 网络方案 Cilium 就大量使用了 XDP、TC 和套接字 eBPF 程序，如下图（图片来自 Cilium 官方文档，图中黄色部分即为 Cilium eBPF 程序）所示：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/CiliumeBPF.png" class>
 
 <h2 id="其他类-eBPF-程序"><a href="#其他类-eBPF-程序" class="headerlink" title="其他类 eBPF 程序"></a>其他类 eBPF 程序</h2><p>除了上面的跟踪和网络 eBPF 程序之外，Linux 内核还支持很多其他的类型。这些类型的 eBPF 程序虽然不太常用，但在需要的时候也可以帮你解决很多特定的问题。</p>
 <p>我将这些无法划分到网络和跟踪的 eBPF 程序都归为其他类，并帮你整理了一个表格：</p>
-
+<img src="/2023/08/06/eBPF-%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%8F%8A%E5%85%B6%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/OthereBPF.png" class>
 
 <p>这个表格列出了一些不太常用的 eBPF 程序类型，可以先大致浏览下，在需要的时候再去深入了解。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>根据具体功能和应用场景的不同，我们可以把 eBPF 程序分为跟踪、网络和其他三类：</p>

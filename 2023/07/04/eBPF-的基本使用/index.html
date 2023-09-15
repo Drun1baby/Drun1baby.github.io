@@ -308,7 +308,7 @@
 <p>第三步，通过 bpf 系统调用，把 BPF 字节码提交给内核；</p>
 <p>第四步，内核验证并运行 BPF 字节码，并把相应的状态保存到 BPF 映射中；</p>
 <p>第五步，用户程序通过 BPF 映射查询 BPF 字节码的运行状态。</p>
-
+<img src="/2023/07/04/eBPF-%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/eBPFRoutine.png" class>
 
 <p>这里我们使用 bcc 来开发 eBPF 程序，如果使用 bcc 来开发 eBPF 程序的话，可以将前面所说的五步简化为三步</p>
 <h3 id="第一步：使用-C-开发一个-eBPF-程序"><a href="#第一步：使用-C-开发一个-eBPF-程序" class="headerlink" title="第一步：使用 C 开发一个 eBPF 程序"></a>第一步：使用 C 开发一个 eBPF 程序</h3><ul>
@@ -329,7 +329,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo python3 hello.py</span><br></pre></td></tr></table></figure>
 
 <p>输出如图</p>
-
+<img src="/2023/07/04/eBPF-%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/successSout.png" class>
 
 <p>这就是一个简单的 eBPF 程序了，但是我们可以看到这个 eBPF 程序当中有几个缺点</p>
 <ol>
@@ -351,7 +351,7 @@
 <p>然后我们需要编写一个用户态的调用程序</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> bcc <span class="keyword">import</span> BPF</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载bpf代码</span></span><br><span class="line">b = BPF(src_file=<span class="string">&quot;trace-open.c&quot;</span>)</span><br><span class="line">b.attach_kprobe(event=<span class="string">&quot;do_sys_openat2&quot;</span>, fn_name=<span class="string">&quot;hello_world&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 格式化输出</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;%-18s %-16s %-6s %-16s&quot;</span> % (<span class="string">&quot;TIME(s)&quot;</span>, <span class="string">&quot;COMM&quot;</span>, <span class="string">&quot;PID&quot;</span>, <span class="string">&quot;FILE&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里是一个回调函数来进行数据处理 </span></span><br><span class="line">start = <span class="number">0</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">print_event</span>(<span class="params">cpu, data, size</span>):</span><br><span class="line">    <span class="keyword">global</span> start</span><br><span class="line">    event = b[<span class="string">&quot;events&quot;</span>].event(data)</span><br><span class="line">    <span class="keyword">if</span> start == <span class="number">0</span>:</span><br><span class="line">            start = event.ts</span><br><span class="line">    time_s = (<span class="built_in">float</span>(event.ts - start)) / <span class="number">1000000000</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;%-18.9f %-16s %-6d %-16s&quot;</span> % (time_s, event.comm, event.pid, event.fname))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义名为 “events” 的 Perf 事件映射，然后循环调用读取</span></span><br><span class="line">b[<span class="string">&quot;events&quot;</span>].open_perf_buffer(print_event)</span><br><span class="line"><span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        b.perf_buffer_poll()</span><br><span class="line">    <span class="keyword">except</span> KeyboardInterrupt:</span><br><span class="line">        exit()</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/07/04/eBPF-%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/ModifyResult.png" class>
 
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>简单接触一下 eBPF 的使用</p>
 <h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><p>极客时间 eBPF 核心技术与实战</p>

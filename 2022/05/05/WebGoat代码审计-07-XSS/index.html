@@ -292,7 +292,7 @@
 
                 <p>WebGoat代码审计-07-XSS</p>
 <span id="more"></span>
-<h1 id="WebGoat代码审计-07-XSS"><a href="#WebGoat代码审计-07-XSS" class="headerlink" title="WebGoat代码审计-07 XSS"></a>WebGoat代码审计-07 XSS</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近刷 Port 上的 Web Cache 投毒好累，醉了，真的费精力。<br>WebGoat 这里的题目偏向代码审计，一些简单的题目就不在这里呈现了，有需要可以传送到 <a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/elephantxiang/article/details/115016330" >仙女象师傅<i class="fas fa-external-link-alt"></i></a>的文章。</p>
+<h1 id="WebGoat代码审计-07-XSS"><a href="#WebGoat代码审计-07-XSS" class="headerlink" title="WebGoat代码审计-07 XSS"></a>WebGoat代码审计-07 XSS</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>最近刷 Port 上的 Web Cache 投毒好累，醉了，真的费精力。<br>WebGoat 这里的题目偏向代码审计，一些简单的题目就不在这里呈现了，有需要可以传送到 <a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/elephantxiang/article/details/115016330">仙女象师傅<i class="fas fa-external-link-alt"></i></a>的文章。</p>
 <h2 id="0x02-XSS-开搞"><a href="#0x02-XSS-开搞" class="headerlink" title="0x02 XSS 开搞"></a>0x02 XSS 开搞</h2><h3 id="1-XSS-PageLesson7-反射型-XSS"><a href="#1-XSS-PageLesson7-反射型-XSS" class="headerlink" title="1. XSS PageLesson7 反射型 XSS"></a>1. XSS PageLesson7 反射型 XSS</h3><ul>
 <li>题意让我们查找出一个易受到攻击的 XSS 字段，要对这些框进行逐个测试。</li>
 </ul>
@@ -305,12 +305,12 @@
 <ul>
 <li>最终发现在 Credit card number 界面存在反射型 XSS</li>
 </ul>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/DownReflectXSS.png" class>
 
 <h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
 <li>是比较容易理解的</li>
 </ul>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/ReflectXSSCode.png" class>
 
 <p>44 - 46 行，定义了关于过滤 XSS 语句的正则，这个正则后续会用到；<br>52 - 55 行，定义参数；定义的这些参数在 61 行进行了计算，并且后续无拼接操作，所以上面四个框内是不存在 XSS 的。</p>
 <p>63 - 68 行，定义一个新的 StringBuffer 类，这里我们看到明显两个参数是可控的，但是 WebGoat 的写法让我们只能对 Field1 进行注入。</p>
@@ -321,20 +321,20 @@
 <h4 id="题目部分-1"><a href="#题目部分-1" class="headerlink" title="题目部分"></a>题目部分</h4><p>题意：在生产期间保留在应用程序中的测试代码的路由是什么</p>
 <p>这是一种真正意义上的通过代码审计进行攻击的方式，需要我们一层一层去翻，去找 JS</p>
 <p>由于 DOM XSS 全部都是由前端进行触发的，所以我们关注的代码都在前端，直接点开 f12 对 JS 进行全局搜索，搜索内容为 <code>route</code>，得到的结果不多，都审计一下。</p>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/RouteSelect.png" class>
 
 <ul>
 <li>重点关注 <strong>GoatRouter.js</strong></li>
 </ul>
 <p>这里我们找到了 <strong>testRoute</strong> 这一 function</p>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/TestRoute.png" class>
 
 <p>进一步探，param 参数被传入了 lessonController 的 testHandler 方法，我们进一步去找 testHandler 方法。遵循 MVC 三层，很好找的。</p>
 <p>OK 找到 testHandler，继续探，去找 lessonContentView.js 中的 showTestParam 方法。</p>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/FoundTestHandler.png" class>
 
 <p>成功找到 lessonContentView.js 中的 showTestParam 方法。</p>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/FoundShowTestParam.png" class>
 
 <p>showTestParam 方法这里未处理，直接可以构造 XSS，但是这种构造是需要条件的，不是傻乎乎直接在对应的框内输入 XSS 的 Payload 就可以的。存在 XSS 的地方其实是测试环境，而给我们看的都是生产环境。</p>
 <p>哦差点把正事儿给忘了，先把 WebGoat 题目的答案写出来 ———— <code>start.mvc#test</code></p>
@@ -349,7 +349,7 @@
 
 
 <h4 id="代码审计"><a href="#代码审计" class="headerlink" title="代码审计"></a>代码审计</h4><p>这一块不是后端要去审计的部分，而是属于前端的 JS 的问题了。”象征性” 地挂一下代码 ~</p>
-
+<img src="/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/DOMXSS_BaseCode.png" class>
 
 
 <h3 id="2-XSS-PageLesson11-DOM-型-XSS"><a href="#2-XSS-PageLesson11-DOM-型-XSS" class="headerlink" title="2. XSS PageLesson11 DOM 型 XSS"></a>2. XSS PageLesson11 DOM 型 XSS</h3><ul>

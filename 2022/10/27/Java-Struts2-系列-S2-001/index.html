@@ -297,7 +297,7 @@
 <span id="more"></span>
 <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>对于 Struts2 这块的漏洞，我本人一直都是懒癌犯了的状态，一直没有看这一块的漏洞。</p>
 <p>懒癌真可怕，原本是打算 10.27 学习这块内容的，结果现在是 11.2 才开始写 …………</p>
-<p>关于 S2-001 的环境搭建 ——— <a class="link"   target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md" >https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md<i class="fas fa-external-link-alt"></i></a></p>
+<p>关于 S2-001 的环境搭建 ——— <a class="link" target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md">https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA.md<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x02-S2-001-漏洞复现"><a href="#0x02-S2-001-漏洞复现" class="headerlink" title="0x02 S2-001 漏洞复现"></a>0x02 S2-001 漏洞复现</h2><h3 id="漏洞影响范围"><a href="#漏洞影响范围" class="headerlink" title="漏洞影响范围"></a>漏洞影响范围</h3><p>WebWork 2.1 (with altSyntax enabled)<br>WebWork 2.2.0 - WebWork 2.2.5<br>Struts 2.0.0 - Struts 2.0.8</p>
 <p>而 Struts2 对 OGNL 表达式的解析使用了开源组件 <code>opensymphony.xwork 2.0.3</code> 所以会有漏洞</p>
 <h3 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h3><ul>
@@ -313,98 +313,98 @@
 <li>执行 Action 请求, 也就是第 172 行的 <code>serviceAction()</code> 方法</li>
 </ul>
 <p>所以我们可以先去这个 Filter 的 <code>doFilter()</code> 方法下个断点，开始调试。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/FilterDispatcher.png" class>
 
 <p>前面先做了一系列判断与基础赋值，到 172 行这里，跟进 <code>serviceAction()</code> 方法</p>
 <p>首先获取当前请求是否已经有 ValueStack 对象, 这样做的目的是在接受到 chain 跳转方式的请求时, 可以直接接管上次请求的 action。如果没有 ValueStack 对象，获取当前线程的ActionContext对象；如果有 ValueStack 对象，将事先处理好的请求中的参数 put 到 ValueStack 中，获取 ActionMapping 中配置的 namespace, name, method 值</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/serviceAction.png" class>
 
 <p>通过 ActionProxyFactory 的 <code>createActionProxy()</code> 类初始化一个 ActionProxy，在这过程中也会创建 <code>StrutsActionProxy</code> 的实例，<code>StrutsActionProxy</code> 是继承自<code>com.opensymphony.xwork2.DefaultActionProxy</code> 的, 在这个代理对象内部实际上就持有了<code>DefaultActionInvocation</code> 的一个实例。所以有的文章里面会说其实是创建了<code>DefaultActionInvocation</code> 的一个实例。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/ActionProxyFactory.png" class>
 
 <p>DefaultActionInvocation 对象中保存了 Action 调用过程中需要的一切信息，继续往下走，跟进 <code>proxy.execute()</code></p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/execute.png" class>
 
 <p>获取到了上下文环境，并调用 setter 方式赋值上下文，接着继续跟进 <code>invoke()</code> 方法。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/invoke.png" class>
 
 <p>在 <code>invoke()</code> 方法中，首先会顺序的递归执行当前 Action 中所配置的所有的拦截器, <strong>直到拦截器遍历完毕调用真正的 Action</strong>，此处是一个 <code>interceptor</code> 迭代器在进行遍历操作，对应遍历的内容是 struts2 包内的 struts-default.xml 里面的 <code>interceptors</code> 标签中的内容</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/interceptor.png" class>
 
 
 <p>在众多迭代器里面，<code>param</code> 这一个迭代器是用来处理我们输入的参数的，所以想到，会不会对应的迭代器里就有所谓的 OGNL 表达式的处理捏？从漏洞发现者的角度思考，一定是这样的，因为本质上来说，就是要去找 Struts2 的哪个地方调用了 OGNL 表达式，这里被找到之后，关于 S2 系列的漏洞才是开始一石激起千层浪。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/ParametersInterceptor.png" class>
 
 <p>我们点进去这个类看一下，先看注释</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/ParametersInterceptorValueHandle.png" class>
 
 <p>大致意思就是，最开始在登录框中的 username 和 password 会被保存到 stack 里面，师傅们可以观察一下确实是的。通过 <code>ActionContext.getParameters()</code> 方法将 stack 里面的值拿出来，再通过 <code>ValueStack.setValue(String, Object)</code> 方法把值 set 进去。</p>
 <p>接着在后文，它表明了这个类能够处理 OGNL 表达式，并且已经考虑了安全性问题，不过似乎考虑的并不到位。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/OGNLSafe.png" class>
 
 <p>而此处的迭代的部分调用栈如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">intercept:<span class="number">155</span>, ServletConfigInterceptor (org.apache.struts2.interceptor)</span><br><span class="line">doProfiling:<span class="number">224</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">doProfiling:<span class="number">223</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">profile:<span class="number">455</span>, UtilTimerStack (com.opensymphony.xwork2.util.profiling)</span><br><span class="line">invoke:<span class="number">221</span>, DefaultActionInvocation (com.opensymphony.xwork2)</span><br><span class="line">intercept:<span class="number">123</span>, AliasInterceptor (com.opensymphony.xwork2.interceptor)</span><br><span class="line">doProfiling:<span class="number">224</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">doProfiling:<span class="number">223</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">profile:<span class="number">455</span>, UtilTimerStack (com.opensymphony.xwork2.util.profiling)</span><br><span class="line">invoke:<span class="number">221</span>, DefaultActionInvocation (com.opensymphony.xwork2)</span><br><span class="line">intercept:<span class="number">176</span>, ExceptionMappingInterceptor (com.opensymphony.xwork2.interceptor)</span><br><span class="line">doProfiling:<span class="number">224</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">doProfiling:<span class="number">223</span>, DefaultActionInvocation$<span class="number">2</span> (com.opensymphony.xwork2)</span><br><span class="line">profile:<span class="number">455</span>, UtilTimerStack (com.opensymphony.xwork2.util.profiling)</span><br><span class="line">invoke:<span class="number">221</span>, DefaultActionInvocation (com.opensymphony.xwork2)</span><br><span class="line">execute:<span class="number">50</span>, StrutsActionProxy (org.apache.struts2.impl)</span><br><span class="line">serviceAction:<span class="number">504</span>, Dispatcher (org.apache.struts2.dispatcher)</span><br><span class="line">doFilter:<span class="number">419</span>, FilterDispatcher (org.apache.struts2.dispatcher)</span><br><span class="line">internalDoFilter:<span class="number">193</span>, ApplicationFilterChain (org.apache.catalina.core)</span><br><span class="line">doFilter:<span class="number">166</span>, ApplicationFilterChain (org.apache.catalina.core)</span><br></pre></td></tr></table></figure>
 
 <p>师傅们可以自行跟一下，我觉得这里逻辑相当简单，就不放上来了，关键点是在这一个类里面，进行了对应的迭代器判断。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/ServletConfigInterceptor.png" class>
 
 <p>这里的调试并非有趣，同时也比较 meaningless，直接一路 f9，直至迭代器为 params 为止，跟进。跟进之后会到 <code>ParametersInterceptor.doIntercept()</code> 方法处</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/GetValueStack.png" class>
 
 <p>跟进到 <code>setParameters()</code> 方法里面，再从这里面跟进 <code>setValue()</code> 方法，为什么要跟进 <code>setValue()</code> 方法呢？其实是根据它的注释来的，因为 OGNL 的语句会被送到 <code>OgnlValueStack#setValue</code> 处进行处理。</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/OGNLSetValue.png" class>
 
 <p>继续跟进再跟进</p>
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/Ognl.png" class>
 
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/OgnlUtil.png" class>
 
-
-
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/SimpleNode.png" class>
 
 <p>这里过程就很复杂了，我们再来慢慢分析</p>
 <p>在经历过一系列迭代器之后，所以迭代器都处理完毕了，执行了 <code>invokeActionOnly()</code> 方法</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/invokeActionOnly.png" class>
 
 <p>通过反射调用执行了 action 实现类里的 execute 方法，开始处理用户的逻辑信息</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/ReflectExecute.png" class>
 
 <p>处理完毕用户的逻辑信息之后，我们继续往下走，跟进 <code>executeResult()</code></p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/executeResult.png" class>
 
 <p>首先 <code>createResult()</code> 这里创建了一个 Result 对象，对应的方法<code>com.opensymphony.xwork2.DefaultActionInvocation#createResult</code></p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/createResult.png" class>
 
 <p>如果当时调用 Action 返回了 Result 对象, 则直接返回；否则, 通过 proxy 对象获取配置信息, 根据 resultCode 获取到 Result 对象。</p>
 <p>继续往下走，<code>executeResult()</code> 方法中调用了 <code>execute()</code> 方法；跟进 <code>doExecute()</code></p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/doExecute.png" class>
 
 <p>准备执行环境: request, pageContext 等等后，发送真正的响应信息，可以看到我们自己配置时候返回结果是 <code>jsp</code> 文件</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/finaLocation.png" class>
 
 <p>之后调用<code>JspServlet</code>来处理请求，在解析标签的时候，在标签的开始和结束位置，会分别调用对应实现类如<code>org.apache.struts2.views.jsp.ComponentTagSupport</code> 中的 <code>doStartTag()</code>（一些初始化操作) 及 <code>doEndTag()</code> （标签解析后调用end方法)方法，这下终于到了我们漏洞触发的地方，这里会调用组件 <code>org.apache.struts2.components.UIBean</code> 的<code>end()</code> 方法</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/doEndTag.png" class>
 
 <p>跟进 <code>evaluateParams()</code> 方法</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/evaluateParams.png" class>
 
 <p>由于 <code>altSyntax</code> 默认开启了，接下来会调用 <code>findValue()</code> 方法寻找参数值</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/findValue.png" class>
 
 <p>继续跟进 <code>translateVariables()</code> 方法</p>
 
 
 <p>最终触发点是：<code>TextParseUtil#translateVariables</code>，在此处下了断点之后，可以看到依次进入了好几次，不同时候的 <code>expression</code> 的值都会有所不同，我们找到值为 <code>password</code> 时开始分析。比较有意思的是，在调试这里的过程中，比如现在是 password，那么 password 框就不会出现。这其实也是之前 <code>findValue()</code> 处所带来的不一样的地方。 </p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/password.png" class>
 
 <p>经过两次如下代码之后，将其生成了 OGNL 表达式，返回了<code>%&#123;password&#125;</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> XWorkConverter.getInstance().convertValue(stack.getContext(), result, asType);</span><br></pre></td></tr></table></figure>
 
 <p>然后这次的判断不会直接走到 return，来到后面，取出 <code>%&#123;password&#125;</code> 中间的值 <code>password</code> 赋给 <code>var</code></p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/passwordSecond.png" class>
 
 <p>然后通过 <code>Object o = stack.findValue(var, asType)</code> 获得到 password 的值为<code>%&#123;1+1&#125;</code></p>
 <p>然后重新赋值给 expression，进行下一次循环</p>
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/expression.png" class>
 
 <p>在这一次循环的时候，就再次解析了 <code>%&#123;1+1&#125;</code> 这个 OGNL 表达式，并将其赋值给了<code>o</code></p>
 <p>最后 <code>expression</code> 的值就变成了2，不是 OGNL 表达式时就会直接进入</p>
@@ -419,7 +419,7 @@
 <p>或者是</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;#a=(<span class="keyword">new</span> <span class="title class_">java</span>.lang.ProcessBuilder(<span class="keyword">new</span> <span class="title class_">java</span>.lang.String[]&#123;<span class="string">&quot;cmd&quot;</span>,<span class="string">&quot;-c&quot;</span>,<span class="string">&quot;clac&quot;</span>&#125;)).redirectErrorStream(<span class="literal">true</span>).start(),#b=#a.getInputStream(),#c=<span class="keyword">new</span> <span class="title class_">java</span>.io.InputStreamReader(#b),#d=<span class="keyword">new</span> <span class="title class_">java</span>.io.BufferedReader(#c),#e=<span class="keyword">new</span> <span class="title class_">char</span>[<span class="number">50000</span>],#d.read(#e),#f=#context.get(<span class="string">&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;</span>),#f.getWriter().println(<span class="keyword">new</span> <span class="title class_">java</span>.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/S2Success.png" class>
 
 <h2 id="0x03-漏洞修复"><a href="#0x03-漏洞修复" class="headerlink" title="0x03 漏洞修复"></a>0x03 漏洞修复</h2><p>通过之前的漏洞分析可以看到，由于 struts2 错误的使用了递归来进行验证，导致OGNL表达式的执行</p>
 <p>官方给出的修复</p>
@@ -430,7 +430,7 @@
 
 <p>判断了循环的次数，从而在解析到 <code>%&#123;1+1&#125;</code> 的时候不会继续向下递归</p>
 <h2 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h2><p>本质上还是去寻找如何执行 OGNL 表达式的。</p>
-<h2 id="0x05-Ref"><a href="#0x05-Ref" class="headerlink" title="0x05 Ref"></a>0x05 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2672" >https://xz.aliyun.com/t/2672<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/yanghyun/p/4472374.html" >https://www.cnblogs.com/yanghyun/p/4472374.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/s2-001%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Struts2-001.md" >https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/s2-001%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Struts2-001.md<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x05-Ref"><a href="#0x05-Ref" class="headerlink" title="0x05 Ref"></a>0x05 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2672">https://xz.aliyun.com/t/2672<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.cnblogs.com/yanghyun/p/4472374.html">https://www.cnblogs.com/yanghyun/p/4472374.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/s2-001%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Struts2-001.md">https://github.com/Y4tacker/JavaSec/blob/main/7.Struts2%E4%B8%93%E5%8C%BA/s2-001%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Struts2-001.md<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

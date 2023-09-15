@@ -300,7 +300,7 @@
 <p>当 Tomcat 接收到请求时候，依次会经过 Listener -&gt; Filter -&gt; Servlet</p>
 <h3 id="Servlet"><a href="#Servlet" class="headerlink" title="Servlet"></a>Servlet</h3><h4 id="什么是-Servlet"><a href="#什么是-Servlet" class="headerlink" title="什么是 Servlet"></a>什么是 Servlet</h4><p>Java Servlet 是运行在 Web 服务器或应用服务器上的程序，它是作为来自 Web 浏览器或其他 HTTP 客户端的请求和 HTTP 服务器上的数据库或应用程序之间的中间层。</p>
 <p>它在应用程序中一般在这个位置，我个人把它理解成半个中间件，不同于其他业务性能很强的中间件，</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/ServletLike.png" class>
 
 <h4 id="请求的处理过程"><a href="#请求的处理过程" class="headerlink" title="请求的处理过程"></a>请求的处理过程</h4><p>客户端发起一个 http 请求，比如 get 类型。</p>
 <p>Servlet 容器接收到请求，根据请求信息，封装成 HttpServletRequest 和HttpServletResponse 对象。这步也就是我们的传参。</p>
@@ -321,7 +321,7 @@
 <p>4）由 JVM 进行垃圾回收。</p>
 <h3 id="Filter"><a href="#Filter" class="headerlink" title="Filter"></a>Filter</h3><h4 id="Filter-简介"><a href="#Filter-简介" class="headerlink" title="Filter 简介"></a>Filter 简介</h4><p>filter 也称之为过滤器，是对 Servlet 技术的一个强补充，其主要功能是在 HttpServletRequest 到达 Servlet 之前，拦截客户的 HttpServletRequest ，根据需要检查 HttpServletRequest，也可以修改 HttpServletRequest 头和数据；在 HttpServletResponse 到达客户端之前，拦截 HttpServletResponse ，根据需要检查 HttpServletResponse，也可以修改 HttpServletResponse 头和数据。</p>
 <p>工作原理如图所示</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/filterWorking.png" class>
 
 <ul>
 <li>其实这个地方，我们想办法在 Filter 前自己创建一个 filter 并且将其放到最前面，我们的 filter 就会最先执行，当我们在 filter 中添加恶意代码，就会进行命令执行，这样也就成为了一个内存 Webshell</li>
@@ -345,7 +345,7 @@
 
 <h4 id="Filter链"><a href="#Filter链" class="headerlink" title="Filter链"></a>Filter链</h4><p>当多个 Filter 同时存在的时候，组成了 Filter 链。Web 服务器根据 Filter 在 web.xml 文件中的注册顺序，决定先调用哪个 Filter。当第一个 Filter 的 doFilter 方法被调用时，web服务器会创建一个代表 Filter 链的 FilterChain 对象传递给该方法，通过判断 FilterChain 中是否还有 Filter 决定后面是否还调用 Filter。</p>
 <p>如图</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/FilterChain.png" class>
 
 <ul>
 <li>这个在后续的 Filter 流程分析里面也会细讲</li>
@@ -365,11 +365,11 @@
 <h3 id="Tomcat-与-Servlet-的关系"><a href="#Tomcat-与-Servlet-的关系" class="headerlink" title="Tomcat 与 Servlet 的关系"></a>Tomcat 与 Servlet 的关系</h3><p>我们根据上面的基础知识可以知道 <strong>Tomcat 是 Web 应用服务器，是一个 Servlet&#x2F;JSP 容器</strong>，而 Servlet 容器从上到下分别是  Engine、Host、Context、Wrapper。</p>
 <p>在 Tomcat 中 Wrapper 代表一个独立的 servlet 实例， StandardWrapper 是 Wrapper 接口的标准实现类（StandardWrapper 的主要任务就是载入 Servlet 类并且进行实例化），同时其从 ContainerBase 类继承过来，表示他是一个容器，只是他是最底层的容器，不能再含有任何的子容器了，且其父容器只能是 context。而我们在也就是需要在这里去载入我们自定义的 Servlet 加载我们的内存马。</p>
 <h2 id="0x04-Tomcat-架构"><a href="#0x04-Tomcat-架构" class="headerlink" title="0x04 Tomcat 架构"></a>0x04 Tomcat 架构</h2><h3 id="Tomcat-架构原理"><a href="#Tomcat-架构原理" class="headerlink" title="Tomcat 架构原理"></a>Tomcat 架构原理</h3><p>Tomcat 的框架如下图所示，主要有 server、service、connector、container 四个部分</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/TomcatStage.png" class>
 
 <p>图中可以看出 Tomcat 的心脏是两个组件：Connector 和 Container：<br>Connector 主要负责对外交流，进行 Socket 通信(基于 TCP&#x2F;IP)，解析 HTTP 报文，对应下图中的http服务器；</p>
 <p>Container 主要处理 Connector 接受的请求，主要是处理内部事务，加载和管理 Servlet，由 Servlet 具体负责处理 Request 请求，对应下图中的 servlet 容器。</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/TomcatUse.png" class>
 
 <h3 id="server"><a href="#server" class="headerlink" title="server"></a>server</h3><p>即服务器，代表整个 Tomcat 服务器，它要能够提供一个接口让其它程序能够访问到这个 Service 集合、同时要维护它所包含的所有 Service 的生命周期，包括如何初始化、如何结束服务、如何找到别人要访问的 Service。还有其它的一些次要的任务，如您住在这个地方要向当地政府去登记啊、可能还有要配合当地公安机关日常的安全检查什么的。</p>
 <p>一个 Tomcat 只有一个 Server Server 中包含至少一个 Service 组件，用于提供具体服务。</p>
@@ -392,7 +392,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">connector.getService().getContainer().getPipeline().getFirst().invoke(request, response);</span><br></pre></td></tr></table></figure>
 
 <p>一个总的 Tomcat Connector 功能如图所示</p>
-
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/TomcatConnector.png" class>
 
 <h3 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h3><p>Container（又名Catalina）用于处理Connector发过来的servlet连接请求，它是容器的父接口，所有子容器都必须实现这个接口，Container 容器的设计用的是典型的责任链的设计模式，它有四个子容器组件构成，分别是：Engine、Host、Context、Wrapper，这四个组件不是平行的，而是父子关系，Engine 包含 Host，Host 包含 Context，Context 包含 Wrapper。</p>
 <p>Tomcat 设计了 4 种容器: <code>Engine、Host、Context、Wrapper</code> ，这四种容器是父子关系</p>
@@ -404,15 +404,15 @@
 </ul>
 <p>通常一个 Servlet class 对应一个 Wrapper，如果有多个 Servlet 就可以定义多个 Wrapper，如果有多个 Wrapper 就要定义一个更高的 Container。</p>
 <p>举个🌰，a.com和b.com分别对应着两个Host</p>
-  
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/TomcatContainer.png" class>  
 <p>每一个 Context 都有唯一的 path。这里的 path 不是指 servlet 绑定的 WebServlet 地址，而是指独立的一个 Web 应用地址。就好比 Tomat 默认的 &#x2F; 地址和 &#x2F;manager 地址就是两个不同的 web 应用，所以对应两个不同的 Context。要添加 Context 需要在 server.xml 中配置 docbase。 </p>
 <p>如下图所示， 在一个 web 应用中创建了 2 个 servlet 服务，WebServlet 地址分别是 &#x2F;Demo1 和 &#x2F;Demo2 。 因为它们属于同一个 Web 应用所以 Context 一样，但访问地址不一样所以 Wrapper 不一样。 &#x2F;manager 访问的 Web 应用是 Tomcat 默认的管理页面，是另外一个独立的 web 应用， 所以 Context 与前两个不一样。</p>
- 
+<img src="/2022/08/19/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-01-%E5%9F%BA%E7%A1%80%E5%86%85%E5%AE%B9%E5%AD%A6%E4%B9%A0/TomcatContext.png" class> 
 
 <h2 id="0x05-Tomcat-的类加载机制"><a href="#0x05-Tomcat-的类加载机制" class="headerlink" title="0x05 Tomcat 的类加载机制"></a>0x05 Tomcat 的类加载机制</h2><p>由于 Tomcat 中有多个 WebApp 同时要确保之间相互隔离，所以 Tomcat 的类加载机制也不是传统的双亲委派机制。</p>
 <p>Tomcat 自定义的类加载器 WebAppClassloader 为了确保隔离多个 WebApp 之间相互隔离，所以打破了双亲委托机制。每个 WebApp 用一个独有的 ClassLoader 实例来优先处理加载。它首先尝试自己加载某个类，如果找不到再交给父类加载器，其目的是优先加载 WEB 应用自己定义的类。</p>
 <p>同时为了防止 WEB 应用自己的类覆盖 JRE 的核心类，在本地 WEB 应用目录下查找之前，先使用 ExtClassLoader（使用双亲委托机制）去加载，这样既打破了双亲委托，同时也能安全加载类。</p>
-<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="http://miku233.viewofthai.link/2022/05/29/Tomcat/" >http://miku233.viewofthai.link/2022/05/29/Tomcat/<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34101364/article/details/120856415" >https://blog.csdn.net/qq_34101364/article/details/120856415<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/321975.html" >https://www.freebuf.com/articles/web/321975.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/5.%E5%86%85%E5%AD%98%E9%A9%AC%E5%AD%A6%E4%B9%A0/Tomcat/Tomcat%E4%BB%8B%E7%BB%8D/Tomcat%E4%BB%8B%E7%BB%8D.md" >https://github.com/Y4tacker/JavaSec/blob/main/5.%E5%86%85%E5%AD%98%E9%A9%AC%E5%AD%A6%E4%B9%A0/Tomcat/Tomcat%E4%BB%8B%E7%BB%8D/Tomcat%E4%BB%8B%E7%BB%8D.md<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="http://miku233.viewofthai.link/2022/05/29/Tomcat/">http://miku233.viewofthai.link/2022/05/29/Tomcat/<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34101364/article/details/120856415">https://blog.csdn.net/qq_34101364/article/details/120856415<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/321975.html">https://www.freebuf.com/articles/web/321975.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/blob/main/5.%E5%86%85%E5%AD%98%E9%A9%AC%E5%AD%A6%E4%B9%A0/Tomcat/Tomcat%E4%BB%8B%E7%BB%8D/Tomcat%E4%BB%8B%E7%BB%8D.md">https://github.com/Y4tacker/JavaSec/blob/main/5.%E5%86%85%E5%AD%98%E9%A9%AC%E5%AD%A6%E4%B9%A0/Tomcat/Tomcat%E4%BB%8B%E7%BB%8D/Tomcat%E4%BB%8B%E7%BB%8D.md<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

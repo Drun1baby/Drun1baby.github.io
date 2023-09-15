@@ -351,9 +351,9 @@
 <li>DefaultWebSecurityManager</li>
 <li>ShiroFilterFactoryBean</li>
 </ul>
-<p>关于环境搭建与开发学习可以具体看我这一篇文章，这里不再赘述 <a class="link"   target="_blank" rel="noopener" href="http://localhost:4000/2022/07/07/Java%E5%BC%80%E5%8F%91%E4%B9%8Bshiro%E5%AD%A6%E4%B9%A0/" >http://localhost:4000/2022/07/07/Java%E5%BC%80%E5%8F%91%E4%B9%8Bshiro%E5%AD%A6%E4%B9%A0/<i class="fas fa-external-link-alt"></i></a></p>
+<p>关于环境搭建与开发学习可以具体看我这一篇文章，这里不再赘述 <a class="link" target="_blank" rel="noopener" href="http://localhost:4000/2022/07/07/Java%E5%BC%80%E5%8F%91%E4%B9%8Bshiro%E5%AD%A6%E4%B9%A0/">http://localhost:4000/2022/07/07/Java%E5%BC%80%E5%8F%91%E4%B9%8Bshiro%E5%AD%A6%E4%B9%A0/<i class="fas fa-external-link-alt"></i></a></p>
 <p>可以用我已经搭建好的现成环境，需要配置一下 SQL</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/shiro" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/shiro<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/shiro">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/shiro<i class="fas fa-external-link-alt"></i></a></p>
 <p>其中关键代码在这儿</p>
 <p><strong>ShiroConfig.java</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span>  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ShiroConfig</span> &#123;  </span><br><span class="line">    <span class="comment">// ShiroFilterFactoryBean  </span></span><br><span class="line">    <span class="meta">@Bean</span>  </span><br><span class="line">    <span class="keyword">public</span> ShiroFilterFactoryBean <span class="title function_">getShiroFilterFactoryBean</span><span class="params">(  </span></span><br><span class="line"><span class="params">            <span class="meta">@Qualifier(&quot;getDefaultWebSecurityManager&quot;)</span> DefaultWebSecurityManager defaultWebSecurityManager)</span>&#123;  </span><br><span class="line">        <span class="type">ShiroFilterFactoryBean</span> <span class="variable">bean</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ShiroFilterFactoryBean</span>();  </span><br><span class="line">        <span class="comment">// 设置安全管理器  </span></span><br><span class="line">        bean.setSecurityManager(defaultWebSecurityManager);  </span><br><span class="line">  </span><br><span class="line">        <span class="comment">// 添加 shiro 的内置过滤器  </span></span><br><span class="line">        <span class="comment">/*  </span></span><br><span class="line"><span class="comment">        anon：无需认证即可访问  </span></span><br><span class="line"><span class="comment">        authc：必须认证了才能访问  </span></span><br><span class="line"><span class="comment">        user：必须拥有 记住我功能才能使用  </span></span><br><span class="line"><span class="comment">        perms：拥有对某个资源的权限才能访问  </span></span><br><span class="line"><span class="comment">        role：拥有某个角色权限  </span></span><br><span class="line"><span class="comment">         */</span>  </span><br><span class="line">        <span class="comment">// 拦截  </span></span><br><span class="line">        Map&lt;String, String &gt; filterMap = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();  </span><br><span class="line">  </span><br><span class="line">        filterMap.put(<span class="string">&quot;/user/add&quot;</span>,<span class="string">&quot;perms[user:add]&quot;</span>);  </span><br><span class="line">        filterMap.put(<span class="string">&quot;/user/update&quot;</span>,<span class="string">&quot;perms[user:update]&quot;</span>);  </span><br><span class="line">  </span><br><span class="line">        filterMap.put(<span class="string">&quot;/user/*&quot;</span>, <span class="string">&quot;authc&quot;</span>);  </span><br><span class="line">        bean.setFilterChainDefinitionMap(filterMap);  </span><br><span class="line">  </span><br><span class="line">        bean.setLoginUrl(<span class="string">&quot;/toLogin&quot;</span>);  </span><br><span class="line">        bean.setUnauthorizedUrl(<span class="string">&quot;/noauth&quot;</span>);  </span><br><span class="line">        <span class="keyword">return</span> bean;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// DefaultWebSecurityManager  </span></span><br><span class="line">    <span class="meta">@Bean</span>  </span><br><span class="line">    <span class="keyword">public</span> DefaultWebSecurityManager <span class="title function_">getDefaultWebSecurityManager</span><span class="params">(<span class="meta">@Qualifier(&quot;userRealm&quot;)</span> UserRealm userRealm)</span>&#123;  </span><br><span class="line">        <span class="type">DefaultWebSecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultWebSecurityManager</span>();  </span><br><span class="line">  </span><br><span class="line">        <span class="comment">// 关联 UserRealm        securityManager.setRealm(userRealm);  </span></span><br><span class="line">        <span class="keyword">return</span> securityManager;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 创建 realm 对象  </span></span><br><span class="line">    <span class="meta">@Bean</span>  </span><br><span class="line">    <span class="keyword">public</span> UserRealm <span class="title function_">userRealm</span><span class="params">()</span>&#123;  </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">UserRealm</span>();  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -362,61 +362,61 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 自定义的 Realmpublic class UserRealm extends AuthorizingRealm &#123;  </span></span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Autowired</span>  </span><br><span class="line">    UserService userService;  </span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 授权  </span></span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">protected</span> AuthorizationInfo <span class="title function_">doGetAuthorizationInfo</span><span class="params">(PrincipalCollection principals)</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;执行了=&gt;授权doGetAuthorizationInfo&quot;</span>);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">SimpleAuthorizationInfo</span> <span class="variable">info</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SimpleAuthorizationInfo</span>();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Subject</span> <span class="variable">subject</span> <span class="operator">=</span> SecurityUtils.getSubject();  </span><br><span class="line">        <span class="type">User</span> <span class="variable">currentUser</span> <span class="operator">=</span> (User) subject.getPrincipal();  </span><br><span class="line">  </span><br><span class="line">        info.addStringPermission(currentUser.getPerms());  </span><br><span class="line">        <span class="keyword">return</span> info;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">protected</span> AuthenticationInfo <span class="title function_">doGetAuthenticationInfo</span><span class="params">(AuthenticationToken token)</span> <span class="keyword">throws</span> AuthenticationException &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;执行了=&gt;认证doGetAuthorizationInfo&quot;</span>);  </span><br><span class="line">  </span><br><span class="line">        <span class="comment">// 数据库中取用户名与密码  </span></span><br><span class="line">  </span><br><span class="line">        <span class="type">UsernamePasswordToken</span> <span class="variable">userToken</span> <span class="operator">=</span> (UsernamePasswordToken) token;  </span><br><span class="line">  </span><br><span class="line">        <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> userService.queryUserByName(userToken.getUsername());  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> (user == <span class="literal">null</span>)&#123;  </span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>; <span class="comment">// 自动抛出异常  </span></span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        <span class="comment">// 密码认证，shiro 完成  </span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">SimpleAuthenticationInfo</span>(user,user.getPwd(),<span class="string">&quot;&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="Shiro-认证流程分析"><a href="#Shiro-认证流程分析" class="headerlink" title="Shiro 认证流程分析"></a>Shiro 认证流程分析</h3><h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p><code>ShiroFilterFactoryBean</code> 类实现了 <code>FactoryBean</code> 接口，那么 Spring 在初始化的时候必然会调用 <code>ShiroFilterFactoryBean.getObject()</code> 方法获取实例</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getObject.png" class>
 
 <p>在 <code>getObject()</code> 方法中会调用 <code>createInstance()</code> 方法，跟进。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/securityManager.png" class>
 
 <p>先获取到我们配置的 <code>SecurityManager</code>，这个获取是向上获取的，也就是去找 <code>ShiroConfig</code> 这个文件当中的 <code>SecurityManager</code>，在这里是 <code>ShiroConfig#DefaultWebSecurityManager</code></p>
 <p>接着往下判断 <code>securityManager</code> 是否为 null，以及是否为 <code>WebSecurityManager</code>，如果是的话就抛出异常。如果不是的话，则创建一个 <code>FilterChainManager</code>，这个类的主要功能是链式过滤。我们跟进看一下这个类是怎么被创建出来的，以及其中存储了哪些信息。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/createFilterChainManager.png" class>
 
 <p>第一步 new 了一个 <code>DefaultFilterChainManager</code> 类，在它的构造方法中将 filters 和 filterChains 两个成员变量都初始化为一个能保持插入顺序的 <code>LinkedHashMap</code>，之后再调用 <code>addDefaultFilters()</code> 方法添加 Shiro 内置的一些过滤器。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/defaultFilterChain.png" class>
 
 <p>往下，将所有的 filters 保存到了 var3 这个迭代器中，再将 var3 丢进循环里面</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/applyGlobalPropertiesIfNecessary.png" class>
 
 <p><code>applyGlobalPropertiesIfNecessary()</code> 方法遍历过滤器，并给过滤器添加了很多属性</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/applyGlobalPropertiesIfNecessaryDown.png" class>
 
 <p>在这个方法中调用了三个方法，三个方法逻辑是一样的，分别是设置 <code>loginUrl</code>、<code>successUrl</code> 和<code>unauthorizedUrl</code>，我们就看第一个 <code>applyLoginUrlIfNecessary</code>，跟进</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/applyLoginUrlIfNecessary.png" class>
 
 <p>这个方法做的业务是将 <code>loginUrl</code> 赋值给 filter 去，在代码当中的逻辑是这样的；如果我们配置了<code>loginUrl</code>，那么会将 <code>AccessControlFilter</code> 中默认的 <code>loginUrl</code> 替换为我们设置的值，默认的 <code>loginUrl</code> 为 <code>/login.jsp</code></p>
 <p>后面两个方法道理一样，都是将我们设置的参数替换进去，只不过第三个认证失败跳转 URL 的默认值为 null。</p>
 <p>这里的 <code>this.getLoginUrl();</code>是从我们 shiroFilter Bean 中，<code>setLoginUrl</code> 的值</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/loginUrl.png" class>
 
 <ul>
 <li>回到 <code>org.apache.shiro.spring.web.ShiroFilterFactoryBean#createFilterChainManager</code> 代码中</li>
 </ul>
 <p>在迭代器工作结束之后，继续往下看。先获取到自定义的过滤器，将内容保存在 <code>filters</code> 中，<code>filters</code> 变量默认为空，如果我们配置了自定义的过滤器，那么会将其添加到 filters 中。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/filters.png" class>
 
 <p>继续往下，通过 <code>getFilterChainDefinitionMap()</code> 方法把自定义过滤器的规则拿出来，并放进迭代器循环。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getFilterChainDefinitionMap.png" class>
 
 <p>跟进 <code>createChain()</code> 方法，<code>chainName</code> 是我们配置的过滤路径，<code>chainDefinition</code> 是该路径对应的过滤器，通常我们都是一对一的配置，比如：<code>filterMap.put(&quot;/login&quot;, &quot;anon&quot;);</code>，但看到这个方法我们知道了一个过滤路径其实是可以通过传入<code>[&quot;filter1&quot;,&quot;filter2&quot;...]</code>配置多个过滤器的。在这里会根据我们配置的过滤路径和过滤器映射关系一步步配置过滤器执行链。</p>
 <ul>
 <li>其实这也就是之前说的，shiro 支持链语句表达式</li>
 </ul>
 <p>将 shiro 规则拿出来之后，会进行循环迭代，将原本的规则数据 ———— <code>perms[user:update]</code> 转换为 <code>[&quot;perms&quot;,&quot;user:update&quot;]</code>，再调用 <code>addToChain()</code> 方法将规则添加到对应的  chain 中，跟进 <code>addToChain()</code> 方法</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/addToChain.png" class>
 
 <p><code>addToChain()</code> 方法先从 filters 中根据 filterName 获取对应过滤器，然后调用 <code>ensureChain()</code> 方法，<code>ensureChain()</code> 方法会先从 filterChains 根据 chainName 获取 NamedFilterList，获取不到就创建一个并添加到 filterChains 然后返回。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/ensureChain.png" class>
 
 <p>因为过滤路径和过滤器是一对多的关系，所以 <code>ensureChain()</code> 方法返回的 <code>NamedFilterList</code> 其实就是一个有着 name 称属性的 <code>List&lt;Filter&gt;</code>，这个 name 保存的就是过滤路径，List 保存着我们配置的过滤器。获取到 <code>NamedFilterList</code> 后在将过滤器加入其中，这样过滤路径和过滤器映射关系就初始化好了。</p>
 <p>至此，<code>createInstance()</code> 方法中的 <code>createFilterChainManager()</code> 方法才算执行完成，它返回了一个 <code>FilterChainManager</code> 实例。之后再将这个 <code>FilterChainManager</code> 注入 <code>PathMatchingFilterChainResolver</code> 中，它是一个过滤器执行链解析器。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/FilterChainManager.png" class>
 
 <p>回到 <code>createInstance()</code> 方法下，跟进 <code>new PathMatchingFilterChainResolver()</code>，这里需要提前在 <code>getChain()</code> 方法处下一个断点</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getChain.png" class>
 
 <p>看到形参中 <code>ServletRequest</code> 和 <code>ServletResponse</code> 这两个参数，我们每次请求服务器都会调用这个方法，根据请求的 URL 去匹配过滤器执行链中的过滤路径，匹配上了就返回其对应的过滤器进行过滤。</p>
 <p>这个方法中的 <code>filterChainManager.getChainNames()</code> 返回的是根据我们的配置配置生成的执行链的过滤路径集合，执行链生成的顺序跟我们的配置的顺序相同。从前文中我们也提到，在 <code>DefaultFilterChainManager</code> 的构造方法中将 <code>filterChains</code> 初始化为一个 <code>LinkedHashMap</code>。如果第一个匹配的过滤路径就是 <code>/**</code> 那后面的过滤器永远也匹配不上。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/filterChains.png" class>
 
 <h4 id="过滤实现"><a href="#过滤实现" class="headerlink" title="过滤实现"></a>过滤实现</h4><ul>
 <li>如果之前分析过 Tomcat 的流程，这个过滤实现其实相当好理解</li>
@@ -426,46 +426,46 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">getChain:<span class="number">98</span>, PathMatchingFilterChainResolver (org.apache.shiro.web.filter.mgt)</span><br><span class="line">getExecutionChain:<span class="number">415</span>, AbstractShiroFilter (org.apache.shiro.web.servlet)</span><br><span class="line">executeChain:<span class="number">448</span>, AbstractShiroFilter (org.apache.shiro.web.servlet)</span><br><span class="line">call:<span class="number">365</span>, AbstractShiroFilter$<span class="number">1</span> (org.apache.shiro.web.servlet)</span><br><span class="line">doCall:<span class="number">90</span>, SubjectCallable (org.apache.shiro.subject.support)</span><br><span class="line">call:<span class="number">83</span>, SubjectCallable (org.apache.shiro.subject.support)</span><br><span class="line">execute:<span class="number">387</span>, DelegatingSubject (org.apache.shiro.subject.support)</span><br><span class="line">doFilterInternal:<span class="number">362</span>, AbstractShiroFilter (org.apache.shiro.web.servlet)</span><br><span class="line">doFilter:<span class="number">125</span>, OncePerRequestFilter (org.apache.shiro.web.servlet)</span><br><span class="line">internalDoFilter:<span class="number">189</span>, ApplicationFilterChain (org.apache.catalina.core)</span><br></pre></td></tr></table></figure>
 
 <p>我们去到 <code>OncePerRequestFilter</code> 类的 <code>doFilter()</code> 方法处下个断点，在成功登录并具有 <code>perms:add</code> 权限后，访问。一开始加载的是 <code>SpringShiroFilter</code> 这个类，它是 shiro 与 spring 程序进行整合的默认 Filter，每一个请求都会经过这个 Filter。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SpringShiroFilter.png" class>
 
 <p>第一段的请求如上面调用栈所示，会最终去到 <code>PathMatchingFilterChainResolver.getChain()</code></p>
 <p>通过 <code>getFilterChainResolver()</code> 就拿到了上面提到的过滤器执行链解析器<code>PathMatchingFilterChainResolver</code>，然后再调用它的 <code>getChain()</code> 匹配获取过滤器，最终过滤器在<code>executeChain()</code> 中被执行。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getExecutionChain.png" class>
 
 <p><code>PathMatchingFilterChainResolver.getChain()</code> 将过滤路径与过滤规则拿出去，具体的业务在 <code>pathMatches()</code> 下</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/filterChainsFor.png" class>
 
-
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/pathMatches.png" class>
 
 <p>跟进 <code>pathMatcher.matches()</code> 方法</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/matches.png" class>
 
 <p>一通跟进，到了 <code>org.apache.shiro.util.AntPathMatcher#doMatch()</code> 方法，这个方法说来很玄乎啊，因为之前从 <code>ShiroConfig.java</code> 里面获取过所有的 url 路径，这个路径其实和对应的鉴权规则是一个键值对，所以在获取路径的时候同时也把鉴权规则获取了，只要判断当前路径与所有路径当中的某个匹配，就可以拿到那个路径对应的鉴权规则。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/doMatch.png" class>
 
 <p>比如这里已经判断路径相同了，跟进 <code>filterChainManager.proxy()</code>，跟进 <code>getChain(chianName)</code> 方法，这一步把鉴权规则赋值给 configured 变量。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/configured.png" class>
 
-
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/get.png" class>
 
 <p>这里用枚举列出了所有 Shiro 内置过滤器的实例。（虽然具体流程找了很多资料，包括自己分析，没看到是哪里去匹配的，后续空了再看看吧）</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">DefaultFilter</span> &#123;</span><br><span class="line">    anon(AnonymousFilter.class),</span><br><span class="line">    authc(FormAuthenticationFilter.class),</span><br><span class="line">    authcBasic(BasicHttpAuthenticationFilter.class),</span><br><span class="line">    logout(LogoutFilter.class),</span><br><span class="line">    noSessionCreation(NoSessionCreationFilter.class),</span><br><span class="line">    perms(PermissionsAuthorizationFilter.class),</span><br><span class="line">    port(PortFilter.class),</span><br><span class="line">    rest(HttpMethodPermissionFilter.class),</span><br><span class="line">    roles(RolesAuthorizationFilter.class),</span><br><span class="line">    ssl(SslFilter.class),</span><br><span class="line">    user(UserFilter.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这里我们的权限是 <code>perms:add</code>，对应的过滤器是 <code>org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter</code>，所以在 <code>SpringShiroFilter</code> 对请求处理完毕之后，就会用 <code>PermissionsAuthorizationFilter</code> 来处理请求。如图，这也是第二次请求</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/PermissionsAuthorizationFilter.png" class>
 
 <p>往下，调用了 <code>doFilterInternal()</code> 方法，跟进</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/doFilterInternal.png" class>
 
 <p>关于 <code>continueChain</code> 这里调用了 <code>preHandle()</code> 方法来判断这个请求是否合理，可以跟进去看一下代码逻辑，比较简单。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/preHandle.png" class>
 
 <p>简单来说就是将 <code>this.appliedPaths</code>，也就是我们之前在 ShiroConfig 里面定义要进行处理的 url，shiro 会判断目前请求的 url 与设置的是否相同（经过循环）；如果相同则返回 true，继续进行对应的权限 Filter 处理。如果不同则跳出，直接将请求完成。</p>
 <p>回到 <code>doFilterInternal()</code> 方法下，判断 <code>continueChain</code> 是否为 true，如果为 true 则执行 <code>executeChain()</code> 方法，跟进。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/executeChain.png" class>
 
 <p>继续跟进 <code>doFilter()</code> 方法，判断了 <code>this.filters</code> 是否为空，如果不，则继续调用 <code>this.orig.doFilter()</code> 方法</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/doFilter.png" class>
 
 <p>跟进，会发现进到了 <code>ApplicationFilterChain</code> 类的 <code>doFilter()</code> 方法，后面的请求都是由 Tomcat 来完成的</p>
 <table>
@@ -478,55 +478,55 @@
 <tbody>
 <tr>
 <td>anon</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/AnonymousFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.AnonymousFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/AnonymousFilter.html" target="_blank">org.apache.shiro.web.filter.authc.AnonymousFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>authc</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/FormAuthenticationFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.FormAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/FormAuthenticationFilter.html" target="_blank">org.apache.shiro.web.filter.authc.FormAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>authcBasic</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/BasicHttpAuthenticationFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/BasicHttpAuthenticationFilter.html" target="_blank">org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>authcBearer</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/BearerHttpAuthenticationFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.BearerHttpAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/BearerHttpAuthenticationFilter.html" target="_blank">org.apache.shiro.web.filter.authc.BearerHttpAuthenticationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>invalidRequest</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html"  target="_blank">org.apache.shiro.web.filter.InvalidRequestFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/InvalidRequestFilter.html" target="_blank">org.apache.shiro.web.filter.InvalidRequestFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>logout</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/LogoutFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.LogoutFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/LogoutFilter.html" target="_blank">org.apache.shiro.web.filter.authc.LogoutFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>noSessionCreation</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/session/NoSessionCreationFilter.html"  target="_blank">org.apache.shiro.web.filter.session.NoSessionCreationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/session/NoSessionCreationFilter.html" target="_blank">org.apache.shiro.web.filter.session.NoSessionCreationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>perms</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/PermissionsAuthorizationFilter.html"  target="_blank">org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/PermissionsAuthorizationFilter.html" target="_blank">org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>port</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/PortFilter.html"  target="_blank">org.apache.shiro.web.filter.authz.PortFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/PortFilter.html" target="_blank">org.apache.shiro.web.filter.authz.PortFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>rest</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/HttpMethodPermissionFilter.html"  target="_blank">org.apache.shiro.web.filter.authz.HttpMethodPermissionFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/HttpMethodPermissionFilter.html" target="_blank">org.apache.shiro.web.filter.authz.HttpMethodPermissionFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>roles</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/RolesAuthorizationFilter.html"  target="_blank">org.apache.shiro.web.filter.authz.RolesAuthorizationFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/RolesAuthorizationFilter.html" target="_blank">org.apache.shiro.web.filter.authz.RolesAuthorizationFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>ssl</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/SslFilter.html"  target="_blank">org.apache.shiro.web.filter.authz.SslFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authz/SslFilter.html" target="_blank">org.apache.shiro.web.filter.authz.SslFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 <tr>
 <td>user</td>
-<td><a class="link"   href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/UserFilter.html"  target="_blank">org.apache.shiro.web.filter.authc.UserFilter<i class="fas fa-external-link-alt"></i></a></td>
+<td><a class="link" href="https://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/filter/authc/UserFilter.html" target="_blank">org.apache.shiro.web.filter.authc.UserFilter<i class="fas fa-external-link-alt"></i></a></td>
 </tr>
 </tbody>
 </table>
@@ -534,7 +534,7 @@
 <h2 id="0x03-CVE-2010-3863"><a href="#0x03-CVE-2010-3863" class="headerlink" title="0x03 CVE-2010-3863"></a>0x03 CVE-2010-3863</h2><h3 id="漏洞详情"><a href="#漏洞详情" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p>Shiro 在路径控制的时候，未能对传入的 url 编码进行 decode 解码，导致攻击者可以绕过过滤器，访问被过滤的路径。</p>
 <h3 id="漏洞影响版本"><a href="#漏洞影响版本" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>Shiro 1.0.0-incubating</p>
 <p>对应 Maven Repo 里面也有</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/shiro1.png" class>
 
 <h3 id="环境搭建-1"><a href="#环境搭建-1" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>这个比 Shiro550、Shiro721 要增加一些东西，首先看 pom.xml 这个配置文件，因为漏洞是 shiro 1.0.0 版本的</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.shiro<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>shiro-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0-incubating<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.shiro<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>shiro-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0-incubating<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.shiro<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>shiro-spring<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0-incubating<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -550,7 +550,7 @@
 
 
 <p>用 PoC 打能够打通</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/2010Poc.png" class>
 
 <ul>
 <li>至此环境搭建完毕，当然搭建环境的时候可能会遇到如下这个报错</li>
@@ -559,22 +559,22 @@
 
 <p>这个问题的解决方法是清除浏览器缓存即可。</p>
 <h3 id="漏洞复现与分析"><a href="#漏洞复现与分析" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>先说 PoC，未标准化路径造成 <code>/./</code> 越权访问</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/2010Poc.png" class>
 
 <p>把断点下在 <code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain()</code> 处，开始调试</p>
 <p><code>getChain()</code> 方法会先将所有的 URI 保存到变量名为 <code>i$</code> 的迭代器当中，然后逐一循环，进行 <code>pathMatches()</code> 的匹配。在循环两次之后，我们来看处理 <code>/./secret.html</code> 的代码。跟进 <code>pathMatches()</code> 方法</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/pathMatchesShiro1.png" class>
 
 <p>跟进 <code>pathMatcher.matches()</code>，再跟进，最终是来到 <code>org.apache.shiro.util.AntPathMatcher#doMatch()</code>，这个方法做了具体的实现业务。</p>
 <p>首先判断目前请求的 URL 开头与目标 URL 的开头是否都为 <code>/</code>，如果不是则 <code>return false</code>；往下，调用了 <code>StringUtils.tokenizeToStringArray()</code> 方法，之前的 <code>/secret.html</code> 转化成了 <code>[&quot;secret.html&quot;]</code> 这个数组，<code>/./secret.html</code> 转换成了 <code>[&quot;.&quot;,&quot;secret.html&quot;]</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/tokenizeToStringArray.png" class>
 
 <p>继续往下，判断了 <code>patDir</code> 中是否存在 <code>**</code> 字符，如果存在就 <code>break</code>；继续往下走，判断 html 的目录与当前请求的目录是否相同，因为我们请求被拆分出来是 <code>[&quot;.&quot;,&quot;secret.html&quot;]</code>，<code>.</code> 和 <code>secret.html</code> 不相同，所以会返回 false</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro1ReturnFalse.png" class>
 
 <p>由于其不能与我们之前定的所有 URL 匹配，导致进入了 <code>/**</code> 的匹配范围，这里之前我们设定的访问方式是 <code>/**,anon</code> 无需认证即可访问，由此造成越权</p>
 <p>基于这个逻辑，<code>/;/secret.html</code> 的 bypass 方式也是合理的，可能一些其他特殊字符也是可以的，前提是对请求并不造成影响，像 <code>..</code>，<code>#</code> 这类字符就会产生问题。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro1Bypass.png" class>
 
 <p>报错字符报错信息如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Invalid character found in the request target [/\/secret.html ]. The valid characters are defined in RFC <span class="number">7230</span> and RFC <span class="number">3986</span></span><br></pre></td></tr></table></figure>
@@ -582,25 +582,25 @@
 <blockquote>
 <p>漏洞分析至此结束</p>
 </blockquote>
-<h3 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p><code>Shiro</code> 在 <a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab8294940a19743583d91f0c7e29b405d197cc34" >Commit<i class="fas fa-external-link-alt"></i></a> 更新中添加了标准化路径函数。<br>对 <code>/</code>、<code>//</code>、<code>/./</code>、<code>/../</code> 等进行了处理。</p>
+<h3 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p><code>Shiro</code> 在 <a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab8294940a19743583d91f0c7e29b405d197cc34">Commit<i class="fas fa-external-link-alt"></i></a> 更新中添加了标准化路径函数。<br>对 <code>/</code>、<code>//</code>、<code>/./</code>、<code>/../</code> 等进行了处理。</p>
 <h2 id="0x04-CVE-2014-0074（shiro460"><a href="#0x04-CVE-2014-0074（shiro460" class="headerlink" title="0x04 CVE-2014-0074（shiro460)"></a>0x04 CVE-2014-0074（shiro460)</h2><h3 id="漏洞详情-1"><a href="#漏洞详情-1" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p>当程序使 用<code>LDAP</code> 服务器并启用非身份验证绑定时，远程攻击者可借助空的用户名或密码利用该漏洞绕过身份验证。</p>
 <h3 id="漏洞影响版本-1"><a href="#漏洞影响版本-1" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>Shiro &lt; 1.2.3</p>
 <h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>这里我没有复现这个洞，有兴趣的师傅可以看一下 su18 师傅的复现文章，这个洞本质上来说是配置文件的冲突。</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://su18.org/post/shiro-1/#cve-2014-0074" >https://su18.org/post/shiro-1/#cve-2014-0074<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://su18.org/post/shiro-1/#cve-2014-0074">https://su18.org/post/shiro-1/#cve-2014-0074<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x05-CVE-2016-6802"><a href="#0x05-CVE-2016-6802" class="headerlink" title="0x05 CVE-2016-6802"></a>0x05 CVE-2016-6802</h2><h3 id="漏洞详情-2"><a href="#漏洞详情-2" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p><code>Shiro</code> 未对 <code>ContextPath</code> 做路径标准化导致权限绕过</p>
 <h3 id="漏洞影响版本-2"><a href="#漏洞影响版本-2" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>Shiro &lt; 1.3.2</p>
 <h3 id="环境搭建-2"><a href="#环境搭建-2" class="headerlink" title="环境搭建"></a>环境搭建</h3><ul>
 <li>一开始还是用的之前的环境，最终复现的时候出了问题，最后查了不少的资源终于发现。。。。其实是因为我的项目包还是 SpringBoot 包，但其实这个洞是 Servlet Context Path 的问题，所以导致一直打不通。</li>
 </ul>
-<p>最终借用了一个 Servlet Shiro 的项目包，代码在此处 <a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/CVE-2016-6802" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/CVE-2016-6802<i class="fas fa-external-link-alt"></i></a></p>
+<p>最终借用了一个 Servlet Shiro 的项目包，代码在此处 <a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/CVE-2016-6802">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Shiro/CVE-2016-6802<i class="fas fa-external-link-alt"></i></a></p>
 <h3 id="漏洞复现与分析-1"><a href="#漏洞复现与分析-1" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><h4 id="按照网上的-payload-复现"><a href="#按照网上的-payload-复现" class="headerlink" title="按照网上的 payload 复现"></a>按照网上的 payload 复现</h4><ul>
 <li>漏洞复现</li>
 </ul>
 <p>访问 <code>/drunkbaby/listProduct.jsp</code> 回显 302。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro20162802_302.png" class>
 
 <p>尝试 payload bypass <code>/aa/../drunkbaby/listProduct.jsp</code>，成功 200，造成越权。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro20162802_200.png" class>
 
 <blockquote>
 <p>漏洞分析</p>
@@ -612,28 +612,28 @@
 <li>但其实这个洞和我自己认为的 payload <code>/./</code> 与 <code>/;/</code> 是两种的攻击方式，因为当时只是用 <code>/drunkbaby/listProduct.jsp</code> 探测的，所以没发现问题。</li>
 </ul>
 <p>按照漏洞描述，是 <code>context_path</code> 存在的 bypass，所以我们应该是在 <code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain()</code> 的第 53 行跟进 <code>getPathWithinApplication()</code>，用的 PoC 是 <code>/aa/../drunkbaby/listProduct.jsp</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro6802Getchain.png" class>
 
 <p>跟进至 <code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication()</code> 方法，这时候我们请求的 url 还是 <code>/aa/../drunkbaby/listProduct.jsp</code>，且 context path 为 <code>/aa/../drunkbaby</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802WebUtils.png" class>
 
 <p>跟进 <code>getContextPath()</code> 方法，一路跟进</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802getContextPath.png" class>
 
 <p>最后是到了 <code>org.apache.catalina.connector.Request#getContextPath()</code> 方法，这里的关键点是 <code>lashSlash</code> 变量</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802lastSlash.png" class>
 
 <p><code>lashSlash</code> 为 1，进入到 else 里面的判断逻辑。往下是 <code>for</code> 的循环，其中定义了 pos 变量，pos 变量是由 <code>this.nextSlash()</code> 方法得到的，跟进 <code>nextSlash()</code> 方法可以很简单的看出来这个方法就是以 <code>/</code> 进行截断，返回值是 <code>/</code> 前面的长度。而后面的 <code>condidate</code> 变量是去截取 url 里面的 <code>/</code> 内容</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802pos.png" class>
 
 <p>往下走到下一个循环里面，这里先判断 <code>contextPath</code> 和 <code>candidate</code> 是否相同，如果不相同的话，会一直往下取 url，直到相同为止。比如这里我们先获取到的 candidate 其实是 <code>/aa</code>，它和 <code>contextPath ———— /drunkbaby</code> 不同，所以会继续往下取，往下取的 candidate 是 <code>/..</code>，还是不相同，直到取到相同为止。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802candidate.png" class>
 
 <p>等到目前的 candidate 和 contextPath 相同之后，将后面的一段取出来。最后返回的是 <code>/aa/../drunkbaby</code>。而 <code>/aa/../drunkbaby</code> 与 <code>/drunkbaby</code> 并不相同，这就导致不会走进到 <code>String path = requestUri.substring(contextPath.length());</code> 的逻辑</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802startsWithIgnoreCase.png" class>
 
 <p>这一段关于 contextPath 的处理与分析结束了，后续是去处理 requestUri 的，现在 requestUri 的值为 <code>/drunkbaby/listProduct.jsp</code>，我们的 shiro 鉴权仅限于是 <code>/listProduct.jsp</code> 的鉴权，所以说这一个请求其实根本就没有经过 shiro 了，那么它最后就变成了一个正常的请求，请求了 ———— <code>/drunkbaby/listProduct.jsp</code>，无需鉴权。（后面发现这个调用过程似乎不是这么简单）</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802matches.png" class>
 
 <p>所以说这个洞本质上来说是因为 ContextPath 和 RequestURI 处理不一致。如果我修复的话肯定会对 ContextPath 下手。</p>
 <h4 id="自己发现的-bypass-的分析，同时不带-contextPath"><a href="#自己发现的-bypass-的分析，同时不带-contextPath" class="headerlink" title="自己发现的 bypass 的分析，同时不带 contextPath"></a>自己发现的 bypass 的分析，同时不带 contextPath</h4><blockquote>
@@ -644,32 +644,32 @@
 <li>这里感觉上也差不多，对于 <code>contextPath</code> 这一块的处理时返回的 url 为 <code>/</code></li>
 </ul>
 <p>最后这里会去找 <code>request.getServletPath()</code>，这里的值实际上就是正常请求的值</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802getServletPath.png" class>
 
 <p>由此我们的请求才是完成，不论是 <code>/aa/../</code> 还是简单的 <code>/;/</code> 都可以直接让 <code>requestUri</code> 返回错误的结果，从而导致这个结果不会被 shiro 鉴权模式匹配。</p>
 <p>讲完了最开始的 bypass 发现与分析，这里我们把不带 contextPath 也分析一下</p>
 <ul>
 <li>先放个 PoC</li>
 </ul>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802302.png" class>
 
-
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802NewBypass.png" class>
 
 <p>开始调试，直接看 <code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication()</code> 方法，之前的漏洞里面因为是 contextPath 的解析问题，所以跟进了 <code>getContextPath()</code> 方法。此时，uri 为 null，所以会将全部的请求 uri 拿进来，也就是 <code>/;/listProduct.jsp</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802CopyUri.png" class>
 
 <p>先跟进 <code>decodeAndCleanUriString()</code> 方法，<code>indexOf(59)</code> 也就是第一次出现 <code>;</code> 的位置，返回为 1，所以最后截取的 uri 也就是 <code>/</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802IndexOf59.png" class>
 
 <p>跟进 <code>normalize()</code>，这个方法其实是 CVE-2010-3863 这个洞的修复手段。说白了就是过滤了 <code>/./</code>，<code>/../</code> 以及 <code>//</code>，这里我们的 uri 是 <code>/</code>，是不会有任何过滤的。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802normalize.png" class>
 
 <p>回到 <code>WebUtils</code> 类当中，因为目前 contextPath 为空，所以直接走到 <code>startsWithIgnoreCase()</code> 方法判断后为 true 的逻辑当中。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802UriHandle.png" class>
 
 <p>同理，最后既然返回的是 <code>/</code> 这个 url，不属于是 shiro 鉴权的 uri，所以会去加载后面的 <code>getServletPath</code></p>
-<h3 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>Shiro 官方修复如链接 <a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/b15ab927709ca18ea4a02538be01919a19ab65af" >Commit<i class="fas fa-external-link-alt"></i></a></p>
-
+<h3 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>Shiro 官方修复如链接 <a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/b15ab927709ca18ea4a02538be01919a19ab65af">Commit<i class="fas fa-external-link-alt"></i></a></p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/6802Fix.png" class>
 
 <p>先做了 <code>normalize(decodeRequestString())</code> 的过滤，这里其实并没有解决 <code>/;/</code> 的 bypass，只是解决了最原始的 payload <code>/aa/../</code></p>
 <p>我们可以思考一下，根据上面的代码逻辑，这里如果存在 contextPath，前面带有 <code>/;/</code>，最终拿到的 contextPath 是为空的，如此一来，就还是会走到 contextPath 为空的逻辑里面，也就是我上面分析的那一段。</p>
@@ -685,20 +685,20 @@
 <h4 id="漏洞影响版本-3"><a href="#漏洞影响版本-3" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.5.0</p>
 <h4 id="环境搭建-3"><a href="#环境搭建-3" class="headerlink" title="环境搭建"></a>环境搭建</h4><p>环境同最开始 Shiro 流程分析的环境，修改一下 Shiro 版本即可。</p>
 <h4 id="漏洞复现与分析-2"><a href="#漏洞复现与分析-2" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><h4 id="Shiro682-的攻击方式"><a href="#Shiro682-的攻击方式" class="headerlink" title="Shiro682 的攻击方式"></a>Shiro682 的攻击方式</h4><p>直接访问 <code>authc</code> 路径，302</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682302.png" class>
 
 <p>修改 url，也就是在最后面加上 <code>/</code>，成功 bypass</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682Success.png" class>
 
 <ul>
 <li>既然是个 Spring 和 Shiro 的解析差异，那么应该去 Shiro 的处理 uri 的地方和 Spring 处理 uri 的地方下两个断点进行调试。</li>
 </ul>
 <p>Shiro 的 uri 处理还是在 <code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain()</code>，spring 对于 uri 中结尾带 <code>/</code> 的处理是在这里 <code>org.springframework.web.servlet.mvc.condition.PatternsRequestCondition#getMatchingPatterns()</code>；这里先做 Shiro 的鉴权，再做 spring 的 uri 识别。</p>
 <p>Shiro 的鉴权，不会把 <code>/user/add</code> 识别为 <code>/user/add/</code>，如图</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682ShiroRecongnize.png" class>
 
 <p>跟进 <code>pathMatches()</code> 方法，最终是返回 false</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682doMatch.png" class>
 
 <ul>
 <li>接着我们来看 Spring 的处理，spring 在分发请求时 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch</code>，会根据我们请求的 URI 选择一个最合适的 handler，其实就是从 <code>DispatcherServlet#handlerMappings</code> 找到能匹配路径的 Handler</li>
@@ -707,43 +707,43 @@
 <p>整条调用栈如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">getMatchingPatterns:<span class="number">236</span>, PatternsRequestCondition (org.springframework.web.servlet.mvc.condition)</span><br><span class="line">getMatchingCondition:<span class="number">221</span>, PatternsRequestCondition (org.springframework.web.servlet.mvc.condition)</span><br><span class="line">getMatchingCondition:<span class="number">240</span>, RequestMappingInfo (org.springframework.web.servlet.mvc.method)</span><br><span class="line">getMatchingMapping:<span class="number">94</span>, RequestMappingInfoHandlerMapping (org.springframework.web.servlet.mvc.method)</span><br><span class="line">getMatchingMapping:<span class="number">58</span>, RequestMappingInfoHandlerMapping (org.springframework.web.servlet.mvc.method)</span><br><span class="line">addMatchingMappings:<span class="number">427</span>, AbstractHandlerMethodMapping (org.springframework.web.servlet.handler)</span><br><span class="line">lookupHandlerMethod:<span class="number">393</span>, AbstractHandlerMethodMapping (org.springframework.web.servlet.handler)</span><br><span class="line">getHandlerInternal:<span class="number">367</span>, AbstractHandlerMethodMapping (org.springframework.web.servlet.handler)</span><br><span class="line">getHandlerInternal:<span class="number">449</span>, RequestMappingHandlerMapping (org.springframework.web.servlet.mvc.method.annotation)</span><br><span class="line">getHandlerInternal:<span class="number">67</span>, RequestMappingHandlerMapping (org.springframework.web.servlet.mvc.method.annotation)</span><br><span class="line">getHandler:<span class="number">393</span>, AbstractHandlerMapping (org.springframework.web.servlet.handler)</span><br><span class="line">getHandler:<span class="number">1234</span>, DispatcherServlet (org.springframework.web.servlet)</span><br><span class="line">doDispatch:<span class="number">1016</span>, DispatcherServlet (org.springframework.web.servlet)</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SpringGetMatchingPatterns.png" class>
 
 <p>这里其实就可以看到 <code>matches()</code> 的判断为 true</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/trueSpring.png" class>
 
 <p>跟进 <code>matches()</code>，最终这里判断的代码其实是 <code>org.springframework.web.servlet.handler.AbstractUrlHandlerMapping#match()</code> 方法</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/endSpringMatch.png" class>
 
-
-<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/pull/127/files" >Commit<i class="fas fa-external-link-alt"></i></a> 地址如链接，这是高版本用于修复 Shiro682 的补丁，本质上只是进行了尾部的 <code>/</code> 的处理，迁就了 Spring</p>
-
+<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/pull/127/files">Commit<i class="fas fa-external-link-alt"></i></a> 地址如链接，这是高版本用于修复 Shiro682 的补丁，本质上只是进行了尾部的 <code>/</code> 的处理，迁就了 Spring</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro682Fix.png" class>
 
 <p>而关于 Shiro682 的处理，我们可以看到对于 Spring 不同版本实际上也有处理，但更为关键的是 Shiro 的处理。</p>
 <h3 id="关于-CVE-2020-1957-的漏洞"><a href="#关于-CVE-2020-1957-的漏洞" class="headerlink" title="关于 CVE-2020-1957 的漏洞"></a>关于 CVE-2020-1957 的漏洞</h3><h4 id="自己发现的一种-bypass，在高版本-SpringBoot-中可用"><a href="#自己发现的一种-bypass，在高版本-SpringBoot-中可用" class="headerlink" title="自己发现的一种 bypass，在高版本 SpringBoot 中可用"></a>自己发现的一种 bypass，在高版本 SpringBoot 中可用</h4><p>说是 <code>/user;/add</code> 的 bypass，虽然也有一种说法，说这一种攻击才是正统的 CVE payload（后面发现这是我自己乱搞出来的，笑死</p>
 <p>从 <code>PathMatchingFilterChainResolver.getChain()</code> 下断点，跟进到 <code>this.getPathWithinApplication()</code> 方法，这里 <code>uri = request.getRequestURI();</code> 出来的 uri 还是我们原始请求的那一个，往下走，跟进 <code>normalize(decodeAndCleanUriString(request, uri))</code> ，这个方法之前我们提到过，会处理 <code>/../</code>，<code>/./</code> 这一系列的 uri</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682IndexOf.png" class>
 
 <p>通过 <code>indexOf()</code> 截取到了 <code>;</code> 之前的内容，所以 uri 最后返回回来的值的为 <code>/user</code>，那么后续自然而然，<code>/user</code> 与 <code>/user/add</code> 肯定不匹配，返回 false</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682ShiroFalse.png" class>
 
 <blockquote>
 <p>下面我们去看 Spring 是怎么处理请求的，其实当时看的参考文章和我的不太一样，这里算是踩坑了，不过还是自己分析吧，也是很快的 。</p>
 </blockquote>
 <p>倒也不完全是，我发现这里很多文章写的 payload 都是 <code>/xxx/..;/user/add</code> 这一种的越权，实际测试下来发现这一种不行，有的文章里面说是因为 SpringBoot 版本太高了，既然如此，能够有这一种的方便 bypass，还是自己分析一下吧。后续会简单提一下之前的 payload 是怎么打的。</p>
 <p>这里我先把断点下在了 <code>org.springframework.web.servlet.DispatcherServlet#doDispatch()</code> 方法处，因为这个方法是用来做 SpringBoot 的处理的，相当于是一个前端控制器。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682DispatcherServlet.png" class>
 
 <p>往下走，第 1043 行，<code>DispatcherServlet</code> 类收到请求调用 <code>HandlerMapping</code> 处理器映射器。处理器映射器根据请求 url 找到具体的处理器，生成处理器对象 Handler 及处理器拦截器(如果有则生成)一并返回给DispatcherServlet。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682handlerMappings.png" class>
 
 <p>这里匹配到的第一个 —— <code>RequestMappingHandlerMapping</code> 就是，我们跟进 <code>getHandler()</code> 方法看一下，一路跟进至 <code>org.springframework.web.servlet.handler.AbstractHandlerMethodMapping#getHandlerInternal</code> 方法，在这个方法里做了具体业务，当然这里我们继续跟进 <code>initLookupPath()</code> 方法。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682initLookupPath.png" class>
 
 <p><code>initLookupPath()</code> 方法主要是做了 Uri 处理的初始化，这个 Uri 变量最终还是要经过一些处理，继续跟进 <code>removeSemicolonContent()</code> 方法。<code>removeSemicolonContent()</code> 方法的意思是判断是否需要删除分号内容，如果需要则跟进 <code>removeSemicolonContentInternal()</code> 方法，如果不需要的话就销毁此 session，将 Uri 返回，这一 Uri 就是正确的 Uri 了。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682removeSemicolonContent.png" class>
 
 <p>这里我们需要去除分号，所以跟进 <code>removeSemicolonContentInternal(requestUri)</code> 方法</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682DeteleSemicolon.png" class>
 
 <p>后续就是老一套的 MVC 了，这里不再赘述。</p>
 <h4 id="顺带再提一提-xxx-user-add-这个-payload"><a href="#顺带再提一提-xxx-user-add-这个-payload" class="headerlink" title="顺带再提一提 /xxx/..;/user/add 这个 payload"></a>顺带再提一提 <code>/xxx/..;/user/add</code> 这个 payload</h4><ul>
@@ -762,8 +762,8 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String <span class="title function_">removeSemicolonContent</span><span class="params">(String requestUri)</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">this</span>.removeSemicolonContent ? <span class="built_in">this</span>.removeSemicolonContentInternal(requestUri) : <span class="built_in">this</span>.removeJsessionid(requestUri);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String <span class="title function_">removeSemicolonContentInternal</span><span class="params">(String requestUri)</span> &#123;</span><br><span class="line">      <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">semicolonIndex</span> <span class="operator">=</span> requestUri.indexOf(<span class="number">59</span>); semicolonIndex != -<span class="number">1</span>; semicolonIndex = requestUri.indexOf(<span class="number">59</span>, semicolonIndex)) &#123;</span><br><span class="line">          <span class="type">int</span> <span class="variable">slashIndex</span> <span class="operator">=</span> requestUri.indexOf(<span class="number">47</span>, semicolonIndex);</span><br><span class="line">          <span class="type">String</span> <span class="variable">start</span> <span class="operator">=</span> requestUri.substring(<span class="number">0</span>, semicolonIndex);</span><br><span class="line">          requestUri = slashIndex != -<span class="number">1</span> ? start + requestUri.substring(slashIndex) : start;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> requestUri;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 
 <p>这里分别依次调用三个方法,分别用来过滤<code>;</code>、urldecode、过滤<code>//</code>，这就导致最后返回的其实就是 <code>/admin/index</code></p>
-<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 1.5.2 版本中对其进行了<a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce#diff-98f7bc5c0391389e56531f8b3754081aR139" >修复<i class="fas fa-external-link-alt"></i></a>，获取 requestURI 的方式从 <code>request.getRequestUri</code> 直接获取的方式更改为获取 request 的 ContextPath，ServletPath，PathInfo，然后再重新拼接而成。</p>
-
+<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 1.5.2 版本中对其进行了<a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce#diff-98f7bc5c0391389e56531f8b3754081aR139">修复<i class="fas fa-external-link-alt"></i></a>，获取 requestURI 的方式从 <code>request.getRequestUri</code> 直接获取的方式更改为获取 request 的 ContextPath，ServletPath，PathInfo，然后再重新拼接而成。</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/682Fix.png" class>
 
 <p>输入的 <code>/xxx/..;/user/add</code>，将会被拼接为 <code>//xxx/user/add</code> 再进行 URI 路径匹配，则无法绕过拦截器。或者就返回 404，导致无法成功越权。</p>
 <h2 id="0x07-CVE-2020-11989-x2F-CVE-2020-13933"><a href="#0x07-CVE-2020-11989-x2F-CVE-2020-13933" class="headerlink" title="0x07 CVE-2020-11989&#x2F;CVE-2020-13933"></a>0x07 CVE-2020-11989&#x2F;CVE-2020-13933</h2><h3 id="CVE-2020-11989"><a href="#CVE-2020-11989" class="headerlink" title="CVE-2020-11989"></a>CVE-2020-11989</h3><h4 id="漏洞详情-4"><a href="#漏洞详情-4" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>此漏洞有两种绕过方式，一种是之前我们说的<code>/;/user/add</code> 的绕过方式，且并不局限于 context-path，因为前面自己分析过了，就不再分析了。</p>
@@ -776,77 +776,77 @@
 <p>且添加 shiro 鉴权</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">filterMap.put(<span class="string">&quot;/toJsonList/*&quot;</span>, <span class="string">&quot;authc&quot;</span>);</span><br></pre></td></tr></table></figure>
 <h4 id="漏洞复现与分析-3"><a href="#漏洞复现与分析-3" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>只有 Shiro 1.5.2 版本是可以的，其他版本使用都是 400，不知道是不是我自己环境搭建的问题。访问未授权路径 302</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989_302.png" class>
 
 <p>越权访问，payload <code>/toJsonList/r%25%32%66oot</code>，注意看。。。我当时这里被坑了</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989_200.png" class>
 
 <p>测试发现下面四种组合只有前两组可以绕过</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">yes</span><br><span class="line">/toJsonList/a%25%32%66a</span><br><span class="line">/toJsonList/%25%32%66</span><br><span class="line"></span><br><span class="line">no</span><br><span class="line">/toJsonList/%25%32%66a</span><br><span class="line">/toJsonList/a%25%32%66</span><br></pre></td></tr></table></figure>
 
 <p>简单分析一下这个漏洞，因为还是老一套的断点 + 跟进，这里我就不再赘述了，直接讲最重要的部分 <code>org.apache.shiro.web.util.WebUtils#getRequestUri()</code>，我们楷爷先看一下 request 里面的 url 是什么</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11989URLPreHandle.png" class>
 
 <p>我们原本的输入先经过自动的 url 一次解码，<code>decodeAndCleanUriString()</code> 方法是用来消除 <code>;</code> 的，所以没什么影响，最后拿到的 url 是 <code>/toJsonList/r/oot</code>，那么这一个路径不是 <code>/toJsonList/*</code>，而是 <code>/toJsonList/r/*</code>，所以 shiro 鉴权变得无效了。</p>
 <p>后续通过 <code>@PathVariable</code> 注解，却会自动拼接 <code>r%2foot</code>，从而 200。</p>
 <p>观感来来说这种 bypass 非常鸡肋，我暂时想不到有什么能够利用的角度</p>
-<h4 id="漏洞修复-4"><a href="#漏洞修复-4" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/01887f645f92d276bbaf7dc644ad28ed4e82ef02" >Commit<i class="fas fa-external-link-alt"></i></a> 如链接所示</p>
+<h4 id="漏洞修复-4"><a href="#漏洞修复-4" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/01887f645f92d276bbaf7dc644ad28ed4e82ef02">Commit<i class="fas fa-external-link-alt"></i></a> 如链接所示</p>
 <p>可以看到，<code>shiro</code>建议使用 <code>getPathWithinApplication()</code> 方法获取路径减去上下文路径，或直接调用 <code>HttpServletRequest.getRequestURI()</code> 方法获取。</p>
 <p>在 <code>WebUtils#getPathWithinApplication</code> 方法，修改了使用 <code>RequestUri</code> 去除 <code>ContextPath</code> 的方式，改为使用 <code>getServletPath(request) + getPathInfo(request))</code>。然后使用 <code>removeSemicolon</code> 方法处理分号问题，<code>normalize</code> 方法进行路径标准化。</p>
 <p>而那一种  bypass，我觉得 Shiro 官方认为这是一种鸡肋的攻击方式，且利用条件比较苛刻，所以没有进行修复。</p>
 <h3 id="CVE-2020-13933"><a href="#CVE-2020-13933" class="headerlink" title="CVE-2020-13933"></a>CVE-2020-13933</h3><h4 id="漏洞详情-5"><a href="#漏洞详情-5" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>其实就是上文讲的鸡肋 bypass 的一种 bypass，虽然从利用角度来说很鸡肋，但是能找到这个漏洞确实是厉害。</p>
 <h4 id="漏洞影响版本-5"><a href="#漏洞影响版本-5" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>影响版本 shiro &lt; 1.6.0</p>
 <h4 id="漏洞复现与分析-4"><a href="#漏洞复现与分析-4" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>payload 比较不一样，之前是二次的 url 编码，这次是 <code>/toJsonList/%3broot</code>，访问未授权界面 302</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933_302.png" class>
 
 <p>通过 payload bypass</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933_200bypass.png" class>
 
 <p>关键处是在 <code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication()</code></p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933getPathWithinApplicationCode.png" class>
 
 <p><code>removeSemicolon()</code> 方法会把分号给移除，我们跟进看一下，这里挺重要的</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933removeSemicolon.png" class>
 
 <p>由于截取的是 <code>;</code> 所在的位置，这就导致返回的 url 其实是 <code>/toJsonList/</code>，和 shiro 鉴权比较是 false 的</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933NotMatchShiro.png" class>
 
 <p>而在 spring 当中 <code>org.springframework.web.util.UrlPathHelper#decodeAndCleanUriString</code></p>
 <p>这里流程是先去除;再解码，因此出现了问题</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> String <span class="title function_">decodeAndCleanUriString</span><span class="params">(HttpServletRequest request, String uri)</span> &#123;</span><br><span class="line">  uri = <span class="built_in">this</span>.removeSemicolonContent(uri);</span><br><span class="line">  uri = <span class="built_in">this</span>.decodeRequestString(request, uri);</span><br><span class="line">  uri = <span class="built_in">this</span>.getSanitizedPath(uri);</span><br><span class="line">  <span class="keyword">return</span> uri;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="漏洞修复-5"><a href="#漏洞修复-5" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/dc194fc977ab6cfbf3c1ecb085e2bac5db14af6d" >Commit<i class="fas fa-external-link-alt"></i></a> 漏洞修复如链接</p>
+<h4 id="漏洞修复-5"><a href="#漏洞修复-5" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p><a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/dc194fc977ab6cfbf3c1ecb085e2bac5db14af6d">Commit<i class="fas fa-external-link-alt"></i></a> 漏洞修复如链接</p>
 <p><code>shiro</code>在<code>1.6.0</code> 版本中，<code>org.apache.shiro.spring.web#ShiroFilterFactoryBean</code> 中增加了 <code>/**</code> 的默认路径配置，使其可以全局匹配进行过滤校验。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933Fix.png" class>
 
 <p>默认的<code>/**</code>配置对应一个全局的 <code>filter</code>：<code>InvalidRequestFilter</code>，这个类继承了 <code>AccessControlFilter</code>。用来过滤特殊字符（分号、反斜线、非ASCII码字符)，并返回 <code>400</code> 状态码。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/13933filter.png" class>
 
 <h2 id="0x08-CVE-2020-17510-x2F-CVE-2020-17523"><a href="#0x08-CVE-2020-17510-x2F-CVE-2020-17523" class="headerlink" title="0x08 CVE-2020-17510&#x2F;CVE-2020-17523"></a>0x08 CVE-2020-17510&#x2F;CVE-2020-17523</h2><h3 id="CVE-2020-17510"><a href="#CVE-2020-17510" class="headerlink" title="CVE-2020-17510"></a>CVE-2020-17510</h3><h4 id="漏洞详情-6"><a href="#漏洞详情-6" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>同样是 bypass，同之前两种的 bypass 不太一样，用的是 <code>.</code> bypass</p>
 <h4 id="漏洞影响版本-6"><a href="#漏洞影响版本-6" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.7.0</p>
 <h4 id="漏洞复现与分析-5"><a href="#漏洞复现与分析-5" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>同样是 <code>@PathVariable</code> 才能打通，payload 为 <code>/toJsonList/%2e</code>，这个洞就更鸡肋了</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/11633_200.png" class>
 
 <p>我觉得这个洞更为鸡肋的一点就是，它和之前的洞不一样，之前的洞的 name 是可控的，这里完全只能是 <code>%2e</code>，或者是其他 payload，但也仅限于此。</p>
 <p>当 <code>Shiro</code> 获得的 <code>uri</code> 为 <code>/toJsonList</code> 时，是无法和 <code>/hello/*</code> 匹配的，所以就在 <code>/hello</code> 后面加上 <code>%2e</code>，这样 <code>Shiro</code> 解码之后变成 <code>/hello/.</code>，然后路径标准化成为 <code>/hello</code>，绕过身份验证。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/17510URIHandle.png" class>
 
 <p>下面的 <code>payload</code> 都可以使用，但还是那个问题，局限性比较大</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/%2e</span><br><span class="line">/%2e/</span><br><span class="line">/%2e%2e</span><br><span class="line">/%2e%2e/</span><br></pre></td></tr></table></figure>
 
-<h4 id="漏洞修复-6"><a href="#漏洞修复-6" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在<a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6acaaee9bb3a27927b599c37fabaeb7dd6109403" >Commit<i class="fas fa-external-link-alt"></i></a>中发现 <code>org.apache.shiro.spring.web</code> 下新增了 <code>ShiroUrlPathHelper</code> 类，属于<code>UrlPathHelper</code> 的子类，重写了 <code>getPathWithinApplication</code> 和 <code>getPathWithinServletMapping</code> 两个方法</p>
-
+<h4 id="漏洞修复-6"><a href="#漏洞修复-6" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在<a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6acaaee9bb3a27927b599c37fabaeb7dd6109403">Commit<i class="fas fa-external-link-alt"></i></a>中发现 <code>org.apache.shiro.spring.web</code> 下新增了 <code>ShiroUrlPathHelper</code> 类，属于<code>UrlPathHelper</code> 的子类，重写了 <code>getPathWithinApplication</code> 和 <code>getPathWithinServletMapping</code> 两个方法</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/17510Fix.png" class>
 
 <ul>
-<li>其实这里修复的可以说是很差，有点敷衍了事且需要打补丁，具体这里我就不详细写了，有兴趣的师傅可以看 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-42" >https://xz.aliyun.com/t/11633#toc-42<i class="fas fa-external-link-alt"></i></a></li>
+<li>其实这里修复的可以说是很差，有点敷衍了事且需要打补丁，具体这里我就不详细写了，有兴趣的师傅可以看 <a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-42">https://xz.aliyun.com/t/11633#toc-42<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <h3 id="CVE-2020-17523"><a href="#CVE-2020-17523" class="headerlink" title="CVE-2020-17523"></a>CVE-2020-17523</h3><h4 id="漏洞详情-7"><a href="#漏洞详情-7" class="headerlink" title="漏洞详情"></a>漏洞详情</h4><p>是 CVE-2020-17510 修复后的 bypass，这个漏洞可以使用空格 <code>%20</code> 进行绕过</p>
 <p>我们输入 payload 为 <code>http://localhost:8080/toJsonList/%20</code> 能够完成越权。</p>
 <h4 id="漏洞影响版本-7"><a href="#漏洞影响版本-7" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h4><p>Shiro &lt; 1.7.1</p>
 <h4 id="漏洞复现与分析-6"><a href="#漏洞复现与分析-6" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h4><p>payload <code>http://localhost:8080/toJsonList/%20</code></p>
 <p>同样的问题，不再赘述了</p>
-<h4 id="漏洞修复-7"><a href="#漏洞修复-7" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 <a class="link"   target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab1ea4a2006f6bd6a2b5f72740b7135662f8f160#diff-ce9ba3462f7d76e68c79bec5b9a3aea9bbd0d22ffb5e738f1b621cae49037b92" >Commit<i class="fas fa-external-link-alt"></i></a>中，主要修复点 <code>AntPathMatcher.java</code>，在 <code>tokenizeToStringArray</code> 方法中加了 <code>false</code> 和 <code>true</code> 两个参数</p>
-
+<h4 id="漏洞修复-7"><a href="#漏洞修复-7" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 <a class="link" target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab1ea4a2006f6bd6a2b5f72740b7135662f8f160#diff-ce9ba3462f7d76e68c79bec5b9a3aea9bbd0d22ffb5e738f1b621cae49037b92">Commit<i class="fas fa-external-link-alt"></i></a>中，主要修复点 <code>AntPathMatcher.java</code>，在 <code>tokenizeToStringArray</code> 方法中加了 <code>false</code> 和 <code>true</code> 两个参数</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/Shiro171Fix.png" class>
 
 <blockquote>
 <p>这里稍微总结一下，当然也是我自己的吐槽罢了，CVE-2020-13933 这四个类型的洞其实本质上都是同一个洞。</p>
@@ -860,11 +860,11 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ResponseBody</span>  </span><br><span class="line"><span class="meta">@GetMapping(&quot;/toJsonList/&#123;name&#125;/index&quot;)</span>  </span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">namePage</span><span class="params">(<span class="meta">@PathVariable</span> String name)</span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> name;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="漏洞复现与分析-7"><a href="#漏洞复现与分析-7" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>参考三梦师傅的文章，这里主要是配置文件的利用角度，利用上比较有局限性，且只是 Shiro 1.7.1 版本特有的存在</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/" >https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/<i class="fas fa-external-link-alt"></i></a></p>
-<p>根据<a class="link"   target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/" >threedr3am师傅<i class="fas fa-external-link-alt"></i></a>博客提供的方向，看了一下 Shiro 1.7.1 前后 <code>PathMatchingFilterChainResolver#getChain</code> 的对比，上面的是 1.7.1 版本的，下面是 1.7.0 版本的</p>
+<p><a class="link" target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/">https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/<i class="fas fa-external-link-alt"></i></a></p>
+<p>根据<a class="link" target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/">threedr3am师傅<i class="fas fa-external-link-alt"></i></a>博客提供的方向，看了一下 Shiro 1.7.1 前后 <code>PathMatchingFilterChainResolver#getChain</code> 的对比，上面的是 1.7.1 版本的，下面是 1.7.0 版本的</p>
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/171GetChainCode.png" class>
 
-
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/170GetChainCode.png" class>
 
 <p>发现在 <code>1.7.1</code> 版本中，先是对 pathPattern 和 requestURI 进行比较，比较成功，返回：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">filterChainManager.proxy(originalChain, pathPattern);</span><br></pre></td></tr></table></figure>
@@ -874,18 +874,18 @@
 
 <p>这就说明了其实我们如果构造两个 shiro 的鉴权，然后让它们经过处理之后能够 bypass 最终的鉴权即可。所以经过之前环境搭建那一步的铺垫，相信师傅们已经知道这个 bypass payload 了，也就是 <code>/toJsonList/xxx/index</code>，因为 shiro 的鉴权是从上往下的，先进行 <code>toJsonList/*</code> 的鉴权判断，再去做 <code>toJsonList/index</code> 的鉴权，同样不匹配，从而造成 bypass</p>
 <p>可是 Spring 还是会将 uri 解读成原本的。</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/2021BypassPic.png" class>
 
 <p>本质上还是由于鉴权出现的逻辑问题而造成的权限绕过</p>
 <h3 id="漏洞修复-8"><a href="#漏洞修复-8" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>直接将 <code>filterChainManager.proxy</code> 的第二个参数改为 <code>pathPattern</code>，直接传配置中的 <code>uri</code> 了</p>
-
+<img src="/2023/03/16/Java-Shiro-%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E5%A4%9A%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/41303Fix.png" class>
 
 <h2 id="0x10-CVE-2022-32532"><a href="#0x10-CVE-2022-32532" class="headerlink" title="0x10 CVE-2022-32532"></a>0x10 CVE-2022-32532</h2><p>比较难以利用</p>
 <h3 id="漏洞详情-9"><a href="#漏洞详情-9" class="headerlink" title="漏洞详情"></a>漏洞详情</h3><p>在 <code>1.9.1</code> 之前的 <code>Apache Shiro</code> 中，<code>RegexRequestMatcher</code> 可能会被错误配置，从而在某些 <code>servlet</code> 容器上被绕过。应用程序使用 <code>RegExPatternMatcher</code> 与 <code>.</code> 的正则表达式可能容易被授权绕过。</p>
 <h3 id="漏洞影响版本-9"><a href="#漏洞影响版本-9" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p>shiro &lt; 1.9.1</p>
-<h3 id="漏洞复现与分析-8"><a href="#漏洞复现与分析-8" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>详情可以看这位师傅写的文章 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-50" >https://xz.aliyun.com/t/11633#toc-50<i class="fas fa-external-link-alt"></i></a></p>
+<h3 id="漏洞复现与分析-8"><a href="#漏洞复现与分析-8" class="headerlink" title="漏洞复现与分析"></a>漏洞复现与分析</h3><p>详情可以看这位师傅写的文章 <a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633#toc-50">https://xz.aliyun.com/t/11633#toc-50<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x11-小结"><a href="#0x11-小结" class="headerlink" title="0x11 小结"></a>0x11 小结</h2><p>终于把一系列漏洞复现完了，前面的流程分析起来还是挺有意思的，后面的主要是为自己漏洞挖掘能够提供一些思路。</p>
-<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633" >https://xz.aliyun.com/t/11633<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://tttang.com/archive/1592" >https://tttang.com/archive/1592<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11633">https://xz.aliyun.com/t/11633<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://tttang.com/archive/1592">https://tttang.com/archive/1592<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

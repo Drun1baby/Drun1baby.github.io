@@ -301,14 +301,14 @@
 <p>常见的请求伪造有两种，第一种跨站请求伪造也就是我们的 CSRF，第二种服务端请求伪造也就是我们的 SSRF。</p>
 <p>CSRF 通俗的说就是构造 payload 然后诱导受害者点击，从而利用受害者的身份去做一些事情。</p>
 <p>SSRF 服务端请求伪造简单的来说就是，这个请求是服务端发起的，通常有的功能会存在从第三方的链接等获取资源，但是如果没有对资源来源进行一个限定那么就可以导致我们可以利用服务端来请求他本地或者他其中的内网信息。</p>
-<h2 id="0x02-CSRF"><a href="#0x02-CSRF" class="headerlink" title="0x02 CSRF"></a>0x02 CSRF</h2><h3 id="1-CSRF-PageLesson3-CSRF-Poc-初体验"><a href="#1-CSRF-PageLesson3-CSRF-Poc-初体验" class="headerlink" title="1. CSRF PageLesson3 CSRF Poc 初体验"></a>1. CSRF PageLesson3 CSRF Poc 初体验</h3><h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4>
+<h2 id="0x02-CSRF"><a href="#0x02-CSRF" class="headerlink" title="0x02 CSRF"></a>0x02 CSRF</h2><h3 id="1-CSRF-PageLesson3-CSRF-Poc-初体验"><a href="#1-CSRF-PageLesson3-CSRF-Poc-初体验" class="headerlink" title="1. CSRF PageLesson3 CSRF Poc 初体验"></a>1. CSRF PageLesson3 CSRF Poc 初体验</h3><h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/CSRFPoc.png" class>
 
 <p>首先要明确的一点，其实 CSRF 也是钓鱼攻击，而不是像 SQL 注入那么直接与暴力。因此这里我们借用第三方的 WebWolf 作为受害者进行操作。</p>
 <p>借用 Burpsuite 的 CSRF Poc，CSRF 的原理我就不阐述了，有兴趣的师傅们可以移步至 <a href="https://drun1baby.github.io/2022/05/08/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1CSRF/">从0到1完全掌握CSRF</a></p>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/CSRFBasicUse.png" class>
 
 <p>接着将其发送到 WebWolf 上，点击链接即可，再输入我们的答案。</p>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/SuccessBasicCSRF.png" class>
 
 
 <h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>文件位置在 <strong>CSRFGetFlag</strong> 文件处，未对 CSRF 进行任何请求上的针对。</p>
@@ -316,7 +316,7 @@
 <li>题意：从其他网站以当前用户身份提交一条评论</li>
 </ul>
 <p>其实攻击手段都是差不多的，我这里就加速过了</p>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/SecondCSRF.png" class>
 
 <h3 id="3-CSRF-PageLesson7"><a href="#3-CSRF-PageLesson7" class="headerlink" title="3. CSRF PageLesson7"></a>3. CSRF PageLesson7</h3><ul>
 <li>题意：从其他网站向webgoat服务器发送下图中的JSON消息</li>
@@ -350,11 +350,11 @@
 <ul>
 <li>靶场界面如图所示</li>
 </ul>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/SSRF1Index.png" class>
 
 <p>题目要求我们将 Tom 的图片修改成 jerry 的图片，我们这里先点开图片，然后将 images 修改为 jerry.png。一般这种情况，暴露出路径，而且未处理的话，是更有可能造成文件上传的 Getshell 的。</p>
 <p>用 Burpsuite 抓包，将 tom 修改成 jerry 即可。</p>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/ChangeTom2Jerry.png" class>
 
 
 <h3 id="2-SSRF-PageLesson3"><a href="#2-SSRF-PageLesson3" class="headerlink" title="2. SSRF PageLesson3"></a>2. SSRF PageLesson3</h3><ul>
@@ -365,7 +365,7 @@
 
 <p>就是单纯的这种 Payload，不要自作聪明将 http 后面加上 IP 与端口。</p>
 <p>同样 bp 抓包后，修改 url 为 <code>http://ifconfig.pro</code> 即可。</p>
-
+<img src="/2022/05/08/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-09-%E8%B7%A8%E7%AB%99%E7%82%B9%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0/SSRFEnd.png" class>
 
 <h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><p>因为最近自己也打算开发靶场的，就怎么说呢。。。</p>
 <p>其实我觉得 CSRF 设计的还是不错的，就是少了一点绕过手段与防御讲解，CSRF 本来考点，或者说是利用点就不是那么多，不用该只是如此潦草地设计的。</p>

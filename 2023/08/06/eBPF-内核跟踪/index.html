@@ -297,7 +297,7 @@
 <p>上一讲中提到过，跟踪类 eBPF 程序主要包含内核插桩（<code>BPF_PROG_TYPE_KPROBE</code>）、跟踪点（<code>BPF_PROG_TYPE_TRACEPOINT</code>）以及性能事件（<code>BPF_PROG_TYPE_PERF_EVENT</code>）等程序类型，而每类 eBPF 程序类型又可以挂载到不同的内核函数、内核跟踪点或性能事件上。当这些内核函数、内核跟踪点或性能事件被调用的时候，挂载到其上的 eBPF 程序就会自动执行。</p>
 <p>那么，你可能想问了：当我不知道内核中都有哪些内核函数、内核跟踪点或性能事件的时候，可以在哪里查询到它们的列表呢？对于内核函数和内核跟踪点，在需要跟踪它们的传入参数和返回值的时候，又该如何查询这些数据结构的定义格式呢？别担心，接下来就跟我一起去探索下吧。</p>
 <h2 id="bpftrace-查询跟踪点的几种方法"><a href="#bpftrace-查询跟踪点的几种方法" class="headerlink" title="bpftrace 查询跟踪点的几种方法"></a>bpftrace 查询跟踪点的几种方法</h2><blockquote>
-<p>官方文档 <a class="link"   target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md" >https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md<i class="fas fa-external-link-alt"></i></a></p>
+<p>官方文档 <a class="link" target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md">https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <h3 id="利用调试信息查询跟踪点"><a href="#利用调试信息查询跟踪点" class="headerlink" title="利用调试信息查询跟踪点"></a>利用调试信息查询跟踪点</h3><p>实际上，作为一个软件系统，内核也经常会发生各种各样的问题，比如安全漏洞、逻辑错误、性能差，等等。因此，内核本身的调试与跟踪一直都是内核提供的核心功能之一。</p>
 <p>比如，为了方便调试，内核把所有函数以及非栈变量的地址都抽取到了  <code>/proc/kallsyms</code>  中，这样调试器就可以根据地址找出对应的函数和变量名称。很显然，具有实际含义的名称要比 16 进制的地址易读得多。对内核插桩类的 eBPF 程序来说，它们要挂载的内核函数就可以从  <code>/proc/kallsyms</code>  这个文件中查到。</p>
@@ -305,7 +305,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> /proc/kallsyms | <span class="built_in">wc</span> -l</span><br><span class="line">165694</span><br></pre></td></tr></table></figure>
 
 <p>不过需要提醒你的是，这些符号表不仅包含了内核函数，还包含了非栈数据变量。而且，并不是所有的内核函数都是可跟踪的，只有显式导出的内核函数才可以被 eBPF 进行动态跟踪。因而，通常我们并不直接从内核符号表查询可跟踪点，而是使用我接下来介绍的方法。</p>
-<p>为了方便内核开发者获取所需的跟踪点信息，内核<a class="link"   target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/filesystems/debugfs.html" >调试文件系统<i class="fas fa-external-link-alt"></i></a>还向用户空间提供了内核调试所需的基本信息，如内核符号列表、跟踪点、函数跟踪（ftrace）状态以及参数格式等。你可以在终端中执行  <code>sudo ls /sys/kernel/debug</code>  来查询内核调试文件系统的具体信息。比如，执行下面的命令，就可以查询  <code>execve</code>  系统调用的参数格式：</p>
+<p>为了方便内核开发者获取所需的跟踪点信息，内核<a class="link" target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/filesystems/debugfs.html">调试文件系统<i class="fas fa-external-link-alt"></i></a>还向用户空间提供了内核调试所需的基本信息，如内核符号列表、跟踪点、函数跟踪（ftrace）状态以及参数格式等。你可以在终端中执行  <code>sudo ls /sys/kernel/debug</code>  来查询内核调试文件系统的具体信息。比如，执行下面的命令，就可以查询  <code>execve</code>  系统调用的参数格式：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">cat</span> /sys/kernel/debug/tracing/events/syscalls/sys_enter_execve/format</span><br></pre></td></tr></table></figure>
 
 <p>注意，eBPF 程序的执行也依赖于调试文件系统。如果你的系统没有自动挂载它，那么我推荐你把它加入到系统开机启动脚本里面，这样机器重启后 eBPF 程序也可以正常运行。</p>
@@ -313,10 +313,10 @@
 <p>除了内核函数和跟踪点之外，性能事件又该如何查询呢？你可以使用 Linux 性能工具  perf  来查询性能事件的列表。如下面的命令所示，你可以不带参数查询所有的性能事件，也可以加入可选的事件类型参数进行过滤：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo perf list [hw|sw|cache|tracepoint|pmu|sdt|metric|metricgroup]</span><br></pre></td></tr></table></figure>
 
-<h3 id="利用-bpftrace-查询跟踪点"><a href="#利用-bpftrace-查询跟踪点" class="headerlink" title="利用 bpftrace 查询跟踪点"></a>利用 bpftrace 查询跟踪点</h3><p>虽然你可以利用内核调试信息和 perf 工具查询内核函数、跟踪点以及性能事件的列表，但它们的位置比较分散，并且用这种方法也不容易查询内核函数的定义格式。所以，我再给你推荐一个更好用的 eBPF 工具  <a class="link"   target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md" >bpftrace<i class="fas fa-external-link-alt"></i></a>。</p>
+<h3 id="利用-bpftrace-查询跟踪点"><a href="#利用-bpftrace-查询跟踪点" class="headerlink" title="利用 bpftrace 查询跟踪点"></a>利用 bpftrace 查询跟踪点</h3><p>虽然你可以利用内核调试信息和 perf 工具查询内核函数、跟踪点以及性能事件的列表，但它们的位置比较分散，并且用这种方法也不容易查询内核函数的定义格式。所以，我再给你推荐一个更好用的 eBPF 工具  <a class="link" target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md">bpftrace<i class="fas fa-external-link-alt"></i></a>。</p>
 <p>bpftrace 在 eBPF 和 BCC 之上构建了一个简化的跟踪语言，通过简单的几行脚本，就可以实现复杂的跟踪功能。并且，多行的跟踪指令也可以放到脚本文件中执行（脚本后缀通常为  <code>.bt</code>）。</p>
 <p>如下图（图片来自 bpftrace文档）所示，bpftrace 会把你开发的脚本借助 BCC 编译加载到内核中执行，再通过 BPF 映射获取执行的结果：</p>
-
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/bpfTraceResult.png" class>
 
 <p>因此，在编写简单的 eBPF 程序，特别是编写的 eBPF 程序用于临时的调试和排错时，你可以考虑直接使用 bpftrace ，而不需要用 C 或 Python 去开发一个复杂的程序。</p>
 <ul>
@@ -342,7 +342,7 @@
 </ul>
 <p>使用  <code>top</code>、<code>ps</code>  等性能工具很难发现这类短时进程，这是因为它们都只会按照给定的时间间隔采样，而不会实时采集到所有新创建的进程。那要如何才能采集到所有的短时进程呢？你肯定已经想到了，那就是<strong>利用 eBPF 的事件触发机制，跟踪内核每次新创建的进程</strong>，这样就可以揪出这些短时进程。</p>
 <p>要跟踪内核新创建的进程，首先得找到要跟踪的内核函数或跟踪点。如果你了解过 Linux 编程中创建进程的过程，我想你已经知道了，创建一个新进程通常需要调用  <code>fork()</code>  和  <code>execve()</code>  这两个标准函数，它们的调用过程如下图所示：</p>
-
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/newProcess.png" class>
 
 <p>因为我们要关心的主要是新创建进程的基本信息，而像进程名称和参数等信息都在  <code>execve()</code>  的参数里，所以我们就要找出  <code>execve()</code>  所对应的内核函数或跟踪点。</p>
 <p>借助刚才提到的  <code>bpftrace</code>  工具，你可以执行下面的命令，查询所有包含  <code>execve</code>  关键字的跟踪点：</p>
@@ -368,7 +368,7 @@
 <p>由于 <code>execve()</code> 和 <code>execveat()</code> 这两个系统调用的入口参数文件名 <code>filename</code> 和命令行选项 <code>argv</code> ，以及返回值  ret  的定义都是一样的，因而我们可以把这两个跟踪点放到一起来处理。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo bpftrace -e <span class="string">&#x27;tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat &#123; printf(&quot;%-6d %-8s&quot;, pid, comm); join(args-&gt;argv);&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/bpftraceTwoProcess.png" class>
 
 <p>这个命令中的具体内容含义如下：</p>
 <ul>
@@ -379,7 +379,7 @@
 <li><code>join(args-&gt;argv)</code> 表示把字符串数组格式的参数用空格拼接起来，再打印到终端中。对于跟踪点来说，你可以使用  <code>args-&gt;参数名</code>  的方式直接读取参数（比如这里的 <code>args-&gt;argv</code> 就是读取系统调用中的 <code>argv</code> 参数）。</li>
 </ul>
 <p>在另一个终端中执行 ls 命令，然后你会在第一个终端中看到如下的输出：</p>
-
+<img src="/2023/08/06/eBPF-%E5%86%85%E6%A0%B8%E8%B7%9F%E8%B8%AA/lsCommand.png" class>
 
 <p>一个最简单的思路就是在系统调用的入口把参数保存到 BPF 映射中，然后再在系统调用出口获取返回值后一起输出。比如，你可以尝试执行下面的命令，把新进程的参数存入哈希映射中：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 其中，tid表示线程ID，@execs[tid]表示创建一个哈希映射</span></span><br><span class="line">sudo bpftrace -e <span class="string">&#x27;tracepoint:syscalls:sys_enter_execve,tracepoint:syscalls:sys_enter_execveat &#123;@execs[tid] = join(args-&gt;argv);&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
@@ -439,7 +439,7 @@
 <ul>
 <li><code>bpf_probe_read_user_str()</code>  返回的是包含字符串结束符 <code>\0</code> 的长度。为了拼接所有的字符串，在计算已读取参数长度的时候，需要把 <code>\0</code> 排除在外。</li>
 <li><code>&amp;data-&gt;argv[data-&gt;args_size]</code>  用来获取要存放参数的位置指针，这是为了把多个参数拼接到一起。</li>
-<li>在调用 <code>bpf_probe_read_user_str()</code> 前后，需要对指针位置和返回值进行校验，这可以帮助 eBPF 验证器获取指针读写的边界（如果你感兴趣，可以参考<a class="link"   target="_blank" rel="noopener" href="https://sysdig.com/blog/the-art-of-writing-ebpf-programs-a-primer/" >这篇文章<i class="fas fa-external-link-alt"></i></a>，了解更多的内存访问验证细节）。</li>
+<li>在调用 <code>bpf_probe_read_user_str()</code> 前后，需要对指针位置和返回值进行校验，这可以帮助 eBPF 验证器获取指针读写的边界（如果你感兴趣，可以参考<a class="link" target="_blank" rel="noopener" href="https://sysdig.com/blog/the-art-of-writing-ebpf-programs-a-primer/">这篇文章<i class="fas fa-external-link-alt"></i></a>，了解更多的内存访问验证细节）。</li>
 <li>在调用 <code>bpf_probe_read_user_str()</code> 前后，需要对指针位置和返回值进行校验，这可以帮助 eBPF 验证器获取指针读写的边界（如果你感兴趣，可以参考这篇文章，了解更多的内存访问验证细节）。</li>
 </ul>
 <p>有了这个辅助函数之后，因为 eBPF 在老版本内核中并不支持循环（有界循环在 5.3 之后才支持），要访问字符串数组，还需要一个小技巧：使用 <code>#pragma unroll</code> 告诉编译器，把源码中的循环自动展开。这就避免了最终的字节码中包含循环。</p>
@@ -463,7 +463,7 @@
 
 <p>到此处，我们就开发了一个新的 eBPF 程序，它的作用也是排查短时进程相关的性能。</p>
 <p>不过，在你想要分发这个程序到生产环境时，又会碰到一个新的难题：BCC 依赖于 LLVM 和内核头文件才可以动态编译和加载 eBPF 程序，而出于安全策略的需要，在生产环境中通常又不允许安装这些开发工具。</p>
-<p>这个难题应该怎么克服呢？一种很容易想到的方法是把 BCC 和开发工具都安装到容器中，容器本身不提供对外服务，这样可以降低安全风险。另外一种方法就是参考内核中的 <a class="link"   target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.13/source/samples/bpf" >eBPF 示例<i class="fas fa-external-link-alt"></i></a>，开发一个匹配当前内核版本的 eBPF 程序，并编译为字节码，再分发到生产环境中。</p>
+<p>这个难题应该怎么克服呢？一种很容易想到的方法是把 BCC 和开发工具都安装到容器中，容器本身不提供对外服务，这样可以降低安全风险。另外一种方法就是参考内核中的 <a class="link" target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v5.13/source/samples/bpf">eBPF 示例<i class="fas fa-external-link-alt"></i></a>，开发一个匹配当前内核版本的 eBPF 程序，并编译为字节码，再分发到生产环境中。</p>
 <p>除此之外，如果你的内核已经支持了 BPF 类型格式 (BTF)，我推荐你使用从内核源码中抽离出来的 libbpf 进行开发，这样可以借助 BTF 和 CO-RE 获得更好的移植性。实际上，BCC 的很多工具都在向 BTF 迁移中，相信未来 libbpf 会成为最受欢迎的 eBPF 程序开发基础库，甚至 Windows eBPF 也会支持 libbpf。</p>
 <h2 id="libbpf-开发内核追踪程序"><a href="#libbpf-开发内核追踪程序" class="headerlink" title="libbpf 开发内核追踪程序"></a>libbpf 开发内核追踪程序</h2><h3 id="libbpf-方法"><a href="#libbpf-方法" class="headerlink" title="libbpf 方法"></a>libbpf 方法</h3><p>那么，如何用 libbpf 来开发一个 eBPF 程序呢？跟刚才的 BCC 程序类似，使用 libbpf 开发 eBPF 程序也是分为两部分：</p>
 <ul>

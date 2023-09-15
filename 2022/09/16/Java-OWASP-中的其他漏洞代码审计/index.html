@@ -304,14 +304,14 @@
 <li><code>import sun.net.www.protocol</code> 查看</li>
 </ul>
 <p>从 <code>import sun.net.www.protocol</code> 可以看到，支持以下协议</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/SSRFProtocolSupport.png" class>
 
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file ftp mailto http https jar netdoc</span><br></pre></td></tr></table></figure>
 
 <h3 id="2-发起网络请求的类"><a href="#2-发起网络请求的类" class="headerlink" title="2. 发起网络请求的类"></a>2. 发起网络请求的类</h3><p>当然，SSRF是由发起网络请求的方法造成。所以先整理Java能发起网络请求的类。</p>
 <ul>
 <li>HttpClient</li>
-<li><a class="link"   target="_blank" rel="noopener" href="http://hc.apache.org/httpcomponents-client-ga/fluent-hc/apidocs/org/apache/http/client/fluent/Request.html" >Request<i class="fas fa-external-link-alt"></i></a> (对HttpClient封装后的类)</li>
+<li><a class="link" target="_blank" rel="noopener" href="http://hc.apache.org/httpcomponents-client-ga/fluent-hc/apidocs/org/apache/http/client/fluent/Request.html">Request<i class="fas fa-external-link-alt"></i></a> (对HttpClient封装后的类)</li>
 <li>HttpURLConnection</li>
 <li>URLConnection</li>
 <li>URL</li>
@@ -324,7 +324,7 @@
 <p>所以，如果用以下类的方法发起请求，则支持 <code>sun.net.www.protocol</code> 所有协议</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URLConnection</span><br><span class="line">URL</span><br></pre></td></tr></table></figure>
 
-<p>注意，<a class="link"   target="_blank" rel="noopener" href="http://hc.apache.org/httpcomponents-client-ga/fluent-hc/apidocs/org/apache/http/client/fluent/Request.html" >Request<i class="fas fa-external-link-alt"></i></a>类对 HttpClient 进行了封装。类似 Python 的 requests 库。<br>用法及其简单，一行代码就可以获取网页内容。</p>
+<p>注意，<a class="link" target="_blank" rel="noopener" href="http://hc.apache.org/httpcomponents-client-ga/fluent-hc/apidocs/org/apache/http/client/fluent/Request.html">Request<i class="fas fa-external-link-alt"></i></a>类对 HttpClient 进行了封装。类似 Python 的 requests 库。<br>用法及其简单，一行代码就可以获取网页内容。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Request.Get(url).execute().returnContent().toString();</span><br></pre></td></tr></table></figure>
 
 <h3 id="3-漏洞代码"><a href="#3-漏洞代码" class="headerlink" title="3. 漏洞代码"></a>3. 漏洞代码</h3><h4 id="完全无防御的-SSRF"><a href="#完全无防御的-SSRF" class="headerlink" title="完全无防御的 SSRF"></a>完全无防御的 SSRF</h4><p>payload 是很简单的，我们主要来看一下运行流程</p>
@@ -332,20 +332,20 @@
 <p>payload：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/ssrf/urlConnection/vuln?url=file:///E:/1.txt</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/URLConnection.png" class>
 
 <p>跟进 <code>HttpUtils.URLConnection()</code></p>
 <p>主要是在这里 ————— <code>getInputStream</code>，把我们输入的 url 进行了请求。</p>
 <p>我们输入的 url 是 <code>file:///E:/1.txt</code>，对应的在解析的时候 <code>url.openConnection()</code> 能够被解析成 <code>FileURLConnection</code> 这个类。所以后续就进行了文件读取的操作</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/getInputStream.png" class>
 
 <p>如果再往里走就是一些建立连接 <code>connect</code> 的操作了，这里就不细看了，最后的结果如图</p>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/readFileContentsSuccess.png" class>
 
 <blockquote>
 <p>关于利用其他协议攻击也是可以的，这里不再赘述</p>
 </blockquote>
-
+<img src="/2022/09/16/Java-OWASP-%E4%B8%AD%E7%9A%84%E5%85%B6%E4%BB%96%E6%BC%8F%E6%B4%9E%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/HTTPAttackProtocol.png" class>
 
 <h4 id="文件下载点的-SSRF"><a href="#文件下载点的-SSRF" class="headerlink" title="文件下载点的 SSRF"></a>文件下载点的 SSRF</h4><ul>
 <li>其实是一样的，不过方法从简单的 <code>URL.connection()</code> 变成了 <code>URL.openStream()</code></li>

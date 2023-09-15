@@ -299,7 +299,7 @@
 <p>讲的是 2FA 的密码重置方式</p>
 </blockquote>
 <h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p>打开源代码，优先去找 <code>return success</code> 的代码模块</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/2FAPassCode.png" class>
 
 <p>说实话这一块看不懂，关键点应该是这一块代码，很明显是继承</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (verificationHelper.verifyAccount(Integer.valueOf(userId), (HashMap) submittedAnswers))</span><br></pre></td></tr></table></figure>
@@ -308,7 +308,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">AccountVerificationHelper</span> <span class="variable">verificationHelper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AccountVerificationHelper</span>();</span><br></pre></td></tr></table></figure>
 
 <p>进入 AccoutVerificationHelper 看看，并移步到 AccoutVerificationHelper.verifyAccout 下。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/2FAsecQuestion.png" class>
 
 <p>return true 的条件：</p>
 <ul>
@@ -316,21 +316,21 @@
 <li>②：第一个密保问题，即 secQuestion0 和上文中的 “作弊” 答案不一致</li>
 <li>③：第二个密保问题，即 secQuestion1 和上文中的 “作弊” 答案不一致</li>
 </ul>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Key.png" class>
 
 <p>上框为 “作弊” 答案，下框的意思是，密码问题的参数是 “secQuestion0” 与 “secQuestion1”。只需包含这个参数即可进行判断。</p>
 <h4 id="靶场部分"><a href="#靶场部分" class="headerlink" title="靶场部分"></a>靶场部分</h4><p>于是想到绕过手段，构造 payload 成功绕过 ~</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Succ2FABypass.png" class>
 
 <h2 id="0x03-JWT-Tokens"><a href="#0x03-JWT-Tokens" class="headerlink" title="0x03 JWT Tokens"></a>0x03 JWT Tokens</h2><h3 id="1-JWT-Tokens-PageLesson3-简单理解-JWT"><a href="#1-JWT-Tokens-PageLesson3-简单理解-JWT" class="headerlink" title="1. JWT Tokens PageLesson3 简单理解 JWT"></a>1. JWT Tokens PageLesson3 简单理解 JWT</h3><ul>
 <li>打开源码，去找 JWT 那一块，代码很简单，简单判断了 “$user” 是否等于 user</li>
 </ul>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/EasyDecodingCode.png" class>
 
 <p>对 JWT 进行 base64 编码解密，轻松过</p>
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/DecodingIndex.png" class>
 
-
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/EasyDecoding.png" class>
 
 <h3 id="2-JWT-Tokens-PageLesson5-替换-payload-绕过"><a href="#2-JWT-Tokens-PageLesson5-替换-payload-绕过" class="headerlink" title="2. JWT Tokens PageLesson5 替换 payload 绕过"></a>2. JWT Tokens PageLesson5 替换 payload 绕过</h3><ul>
 <li>题意，通过 JWT Token 的问题，获得 admin 权限，从而修改这些 Vote 的内容&#x2F;样子。</li>
@@ -339,24 +339,24 @@
 <h4 id="源码部分-1"><a href="#源码部分-1" class="headerlink" title="源码部分"></a>源码部分</h4><ul>
 <li>打开文件 “JWTVotesEndPoint.java”，首先第一个函数，构造 Vote 界面</li>
 </ul>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteInitCode.png" class>
 
 <p>这里对应的就是四个投票界面，在前端界面如图所示</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteInitIndex.png" class>
 
 <p>这里有一段语句要单独拿出来讲一下，因为和 JWT 的代码原理密不可分。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTInitCode.png" class>
 
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> Jwts.builder()   <span class="comment">// 创建 JWT 对象</span></span><br><span class="line">        .setClaims(claims)      <span class="comment">//  设置主题(声明信息)</span></span><br><span class="line">        .signWith(io.jsonwebtoken.SignatureAlgorithm.HS512, JWT_PASSWORD) <span class="comment">// 设置安全密钥(生成签名所需的密钥和算法)</span></span><br><span class="line">        .compact(); <span class="comment">// 生成token（1.编码 Header 和 Payload 2.生成签名 3.拼接字符串）</span></span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>寻找一下何处可以绕过 admin 验证的，第 163 - 184 行</p>
 </blockquote>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteAdminCode.png" class>
 
 <h5 id="逐行分析，代码审计"><a href="#逐行分析，代码审计" class="headerlink" title="逐行分析，代码审计"></a><strong>逐行分析，代码审计</strong></h5><p>前面的 166 - 168 行这里，判断 <strong>“accessToken”</strong> 是否为空，若为空，则返回 failed；若不为空，则进入 else 语句</p>
 <p>第 169 - 178 行，核心的判断语句。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/VoteJudge.png" class>
 <p>170 行的语句，验证 token</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Jwt</span> <span class="variable">jwt</span> <span class="operator">=</span> Jwt.paraser()     <span class="comment">// 创建解析对象</span></span><br><span class="line">.setSigningKey(JWT_PASSWORD)<span class="comment">// 设置安全密钥（生成签名所需的密钥和算法）</span></span><br><span class="line">.parse(accessToken)  <span class="comment">// 解析token</span></span><br><span class="line"><span class="type">Claims</span> <span class="variable">claims</span> <span class="operator">=</span> (Claims) jwt.getBody(); <span class="comment">// 获取 payload 部分内容</span></span><br></pre></td></tr></table></figure>
 <p>第 172 行解读一下，中间是空格就可以了； <code>claims.get(&quot;admin&quot;)</code> 这句语句得到的是 JWT 的 Payload 信息，数据类型是 String，通过 Boolean.valueOf(String)，将其转变为 Boolean 的数据类型；判断依据则是 Payload 的值是否等于 admin；若等于 admin，则为 True，反之为 False</p>
@@ -370,20 +370,20 @@
 <li>根据上面的代码审计分析，其实我们只需要抓一个 JWT 的包，并且将 JWT 当中的 Payload 修改为 “Admin”，再发包即可。</li>
 </ul>
 <p>点击删除时抓包，如图所示</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTVoteSolved.png" class>
 
 <p>将这一串 token 拿出来，base64 解码一下。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Token64.png" class>
 
 <p>那这里，我们发包的时候将 <code>&quot;admin&quot;:&quot;false&quot;</code> 修改为 <code>&quot;admin&quot;:&quot;true&quot;</code> 即可，再发包。</p>
-<p>这里推荐一个 JWT 在线生成的工具，不要想着用 base64 去弄，我这里踩坑花了大概半个小时才解决，不信邪的小伙伴们可以试一试。<br>工具网站：<a class="link"   target="_blank" rel="noopener" href="https://jwt.io/" >JSON Web Tokens - jwt.io<i class="fas fa-external-link-alt"></i></a></p>
+<p>这里推荐一个 JWT 在线生成的工具，不要想着用 base64 去弄，我这里踩坑花了大概半个小时才解决，不信邪的小伙伴们可以试一试。<br>工具网站：<a class="link" target="_blank" rel="noopener" href="https://jwt.io/">JSON Web Tokens - jwt.io<i class="fas fa-external-link-alt"></i></a></p>
 <p>JWT token 是</p>
 <p>eyJhbGciOiJIUzUxMiJ9.eyJpYXQiOiIxNjQ5NzUwMzg1IiwiYWRtaW4iOiJ0cnVlIiwidXNlciI6IlRvbSJ9.</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTVoteGet.png" class>
 
 <h3 id="3-JWT-Tokens-PageLesson7-parseClaimsJws-与-parse"><a href="#3-JWT-Tokens-PageLesson7-parseClaimsJws-与-parse" class="headerlink" title="3. JWT Tokens PageLesson7 parseClaimsJws 与 parse"></a>3. JWT Tokens PageLesson7 parseClaimsJws 与 parse</h3><p>这里虽然是两道选择题，但是还是有必要提一嘴</p>
 <p>放进 Burpsuite 当中比较一下两段代码</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Compare.png" class>
 
 <ul>
 <li>对于 parseClaimsJws 来说，alg 为 none 则直接抛出异常</li>
@@ -394,7 +394,7 @@
 <li>题意：让我们通过爆破的手段找出 JWT 当中的 Secret Key</li>
 </ul>
 <p>一旦拥有了一个JWT token，我们可以尝试离线暴力破解或字典攻击。</p>
-<h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4>
+<h4 id="源码部分-2"><a href="#源码部分-2" class="headerlink" title="源码部分"></a>源码部分</h4><img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTIntruderCode.png" class>
 <h5 id="代码审计"><a href="#代码审计" class="headerlink" title="代码审计"></a><strong>代码审计</strong></h5><p>查看源码，第 85 行，返回成功的条件</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (WEBGOAT_USER.equalsIgnoreCase(user))</span><br></pre></td></tr></table></figure>
 
@@ -414,17 +414,17 @@
 <p>题目要求我们，让 Tom 付钱</p>
 </blockquote>
 <h4 id="源码部分-3"><a href="#源码部分-3" class="headerlink" title="源码部分"></a>源码部分</h4><p>源码部分如图所示，直接看如何才能成功的部分</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshTokenCode.png" class>
 
 <p>第 106 行，这里比对了 Tom 是否为 user。但是一番抓包之后一无所获，甚至连 Tom 是谁，token 是啥全然不知。</p>
 <p>回到题目界面，查看一下 logs.txt，发现了 Tom 的 token，丢到 jwt.io 中去验证一下。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/RefreshTomToken.png" class>
 
 <p>应该是没这么简单的，回到源代码中看一看其他的接口</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshNewToken.png" class>
 
 <p>这里是关键点了，之前尝试了使用 logs.txt 中的 JWT 登录，最终失败了，个人的一点猜测是这样的：之前 Tom 购买时是很早之前的记录了，所以对于我们来说，这时候的 JWT 其实已经是失效了的，但如果我们需要让 Tom 来付款，必须要临时给 Tom 创建一个新的 JWT，或者把 Tom 的 access_token 找出来。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTRefreshNewTokenController.png" class>
 
 <p><strong>逐行代码审计又来了</strong></p>
 <blockquote>
@@ -439,26 +439,26 @@
 
 <p>这里值得一提得是，最后解析 token 的参数，如果参数中存在 “Bearer” 就被替换为空格，这里感觉是有个双写绕过(?)，不清楚，一会儿试了就知道了。</p>
 <p>再明确一下攻击的方式，通过构造 JWT 中的 Header 部分，也就是 Header &#x3D; Authorization，把这一块放进 HTTP Request 当中。代码如下</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/AuthorizationCode.png" class>
 
 <h4 id="解题-巨坑，醉了"><a href="#解题-巨坑，醉了" class="headerlink" title="解题(巨坑，醉了)"></a>解题(巨坑，醉了)</h4><p>首先是在 WebGoat 的界面下抓包，然后会抓到 &#x2F;WebGoat&#x2F;JWT&#x2F;refresh&#x2F;login 的这么一个包，接着添加 <code>Authorization</code> 的头，值为 Bearer null，目的是获取一个 access_token，再发包。</p>
 <ul>
 <li>发包完之后，注意！！！！！！！！这里巨坑！！！！！</li>
 </ul>
 <p>这个 access_token 里面的最后一个字段是签名，不要拿进来！不要拿进来！不要拿进来！不要拿进来！</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/Refresh.png" class>
 
 <p>在 JWTio 中编辑完毕后，去到 &#x2F;checkout 接口，发送前两个字段。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/RefreshDown.png" class>
 
 
 <h3 id="6-JWT-Tokens-PageLesson11-final"><a href="#6-JWT-Tokens-PageLesson11-final" class="headerlink" title="6. JWT Tokens PageLesson11 final"></a>6. JWT Tokens PageLesson11 final</h3><ul>
 <li>题意： Jerry 想从 Twitter 上删除 Tom 的账号，算是越权吧。</li>
 </ul>
-<h4 id="源码部分-4"><a href="#源码部分-4" class="headerlink" title="源码部分"></a>源码部分</h4>
+<h4 id="源码部分-4"><a href="#源码部分-4" class="headerlink" title="源码部分"></a>源码部分</h4><img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalCode.png" class>
 
 <p>核心部分在 89- 103 行这里。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalOriCode.png" class>
 
 <ul>
 <li>这里我把源代码贴出来再分析分析</li>
@@ -468,7 +468,7 @@
 <p>前面的代码都是之前差不多，新生成一个 JWT，引人注目的是第 94 行这里的 SQL 语句，感觉是存在 SQL 注入的。<strong>再好好审一审代码</strong></p>
 <p>这次的 secret 是直接从数据库进行读取，而这个 SQL 语句查询的就是 JWT 的 secret。而因为之前使用了 parseClaimsJws 这个方法，于是无法构造 <code>&#123;&quot;alg&quot;:&quot;none&quot;&#125;</code> 来绕过。因此确定思路通过 SQL 注入来绕过。</p>
 <h4 id="题目部分"><a href="#题目部分" class="headerlink" title="题目部分"></a>题目部分</h4><p>先点击 Delete 抓包，抓包的接口是 &#x2F;JWT&#x2F;final&#x2F;delete?token&#x3D;</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalBag.png" class>
 
 <p>我们看到 JWT header 当中多了一个 “kid”</p>
 <p>修改包，将 “username” 修改为 Tom，再对 kid 进行 SQL 注入。这里使用 Union 联合查询注入。</p>
@@ -477,17 +477,17 @@
 </ul>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;kid&quot;</span><span class="punctuation">:</span> <span class="string">&quot;something_else&#x27; UNION SELECT &#x27;bmV3X2tleQ==&#x27; FROM INFORMATION_SCHEMA.SYSTEM_USERS; --&quot;</span><span class="punctuation">,</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/KidInjection.png" class>
 
 <p>修改 kid 进行 SQL 注入，并修改 iat 以及其他需要修改的数据，如上图所示。并修改下面的 secret key</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTFinalSecretKey.png" class>
 
 <ul>
 <li>不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！不要点 secret base64 encoded ！</li>
 <li>这里踩坑卡了好久 …………</li>
 </ul>
 <p>接着，发包即可。</p>
-
+<img src="/2022/04/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-04-%E8%BA%AB%E4%BB%BD%E8%AE%A4%E8%AF%81%E7%BC%BA%E9%99%B7(%E4%B8%8A)/JWTOver.png" class>
             </div>
 
             

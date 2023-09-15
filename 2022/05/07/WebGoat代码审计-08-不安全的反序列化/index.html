@@ -311,22 +311,22 @@
 <li>题意让我们设计五秒的延时，也算是命令执行了(?)</li>
 </ul>
 <p>给的一串字符，让我们反序列化一下而已，没什么用。</p>
-
+<img src="/2022/05/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-08-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/DecodeBase64.png" class>
 
 <p>直接看源码。</p>
 <h4 id="源码部分"><a href="#源码部分" class="headerlink" title="源码部分"></a>源码部分</h4><p><strong>InsecureDeserializationTask.java</strong></p>
 <ul>
 <li>重点关注这一段源码</li>
 </ul>
-
+<img src="/2022/05/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-08-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/DeserializationCode.png" class>
 
 <p>后端拿到我们的 token 之后进行了一个特殊符号替换，然后进行了 base64 解码，解码过后进行了 readObject() 反序列化操作。</p>
 <p>最后判断一下这个对象是不是 VulnerableTaskHolder 的实例。所以，我们反序列化的对象也就确定了，那就是 VulnerableTaskHolder 类的实例。</p>
 <p>进到 VulnerableTaskHolder 类中，找到了 readObject() 方法。</p>
-
+<img src="/2022/05/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-08-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/RCECode.png" class>
 
 <p>可以看到这里直接利用 Runtime.getRuntime().exec() 执行了 taskAction,而 taskAction 是在构造函数里被赋值的。所以我们可以通过控制 taskAction 来控制执行的命令。</p>
-
+<img src="/2022/05/07/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-08-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/TaskActionCode.png" class>
 
 <blockquote>
 <p>漏洞实现有两点要求<br> 1）创建的对象必须是 VulnerableTaskHolder 类的实例，包名得一致；<br>  2) 创建的序列化对象，时间戳必须在当前时间的前十分钟以内，否则会报 The task is not executable between now and the next ten minutes, so the action will be ignored. Maybe you copied an old solution? Let’s try again 错误。所以 VulnerableTaskHolder 类中的构造方法得减去一定得时间。</p>

