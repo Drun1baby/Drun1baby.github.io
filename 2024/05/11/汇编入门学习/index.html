@@ -232,7 +232,7 @@
 
             <span class="meta-info-item article-update-date">
                 <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                <span class="pc">2024-06-14 02:03:31</span>
+                <span class="pc">2025-03-17 23:17:52</span>
             </span>
         
 
@@ -265,12 +265,12 @@
         
         
             <span class="meta-info-item article-wordcount">
-                <i class="icon fas fa-file-word"></i>&nbsp;<span>1.9k 字</span>
+                <i class="icon fas fa-file-word"></i>&nbsp;<span>9.1k 字</span>
             </span>
         
         
             <span class="meta-info-item article-min2read">
-                <i class="icon fas fa-clock"></i>&nbsp;<span>6 分钟</span>
+                <i class="icon fas fa-clock"></i>&nbsp;<span>34 分钟</span>
             </span>
         
         
@@ -374,7 +374,499 @@
 <p>而如果在处理数据的时候，更常见的一种情况如下图所示。</p>
 <img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/axahal.png" class>
 
+<p>当时看完了寄存器相关的部分，对于这些寄存器的功能和作用还是不太清楚，这里详细记录一下</p>
+<h4 id="通用寄存器"><a href="#通用寄存器" class="headerlink" title="通用寄存器"></a>通用寄存器</h4><ul>
+<li><p><strong>AX（Accumulator Register）</strong></p>
+<ul>
+<li>功能：主要用于算术和逻辑运算，是许多指令默认使用的寄存器。在乘法和除法指令中，它有特殊用途。例如在进行 16 位乘法运算时，两个 16 位操作数相乘，结果的高 16 位存放在 DX 寄存器，低 16 位存放在 AX 寄存器。</li>
+<li>作用：它可以作为数据的临时存储位置，方便对数据进行快速处理。在一些输入 &#x2F; 输出操作中，也用于传递数据。</li>
+</ul>
+</li>
+<li><p><strong>BX（Base Register）</strong></p>
+<ul>
+<li>功能：可以作为基址寄存器，用于在内存寻址中提供基地址。在一些指令中，它可以与偏移量组合来访问内存中的数据结构。</li>
+<li>作用：在访问数组或者结构体等复合数据类型时非常有用。例如，当需要遍历一个数组时，BX 可以存放数组的起始地址，通过与索引值相加就能访问数组中的每个元素。</li>
+</ul>
+</li>
+<li><p><strong>CX（Count Register）</strong></p>
+<ul>
+<li>功能：常用于循环操作中，作为循环计数器。许多循环指令会自动递减 CX 寄存器的值，并且在 CX 的值为 0 时结束循环。</li>
+<li>作用：在程序中实现循环逻辑时是不可或缺的。比如，要循环执行一段代码 10 次，可以将 10 赋值给 CX，然后在循环指令中，每执行一次循环，CX 的值就会自动减 1，直到 CX 为 0，循环结束。</li>
+</ul>
+</li>
+<li><p><strong>DX（Data Register）</strong></p>
+<ul>
+<li>功能：在进行 32 位的算术运算（如乘法和除法）时与 AX 配合使用，如前面提到的乘法运算存放高 16 位结果。也可用于一些输入 &#x2F; 输出操作。</li>
+<li>作用：它扩展了数据处理的范围，特别是在处理大于 16 位的数据时发挥重要作用。在端口读写操作中，DX 用于指定 I&#x2F;O 端口地址。</li>
+</ul>
+</li>
+</ul>
+<h4 id="变址寄存器"><a href="#变址寄存器" class="headerlink" title="变址寄存器"></a>变址寄存器</h4><ul>
+<li><strong>SI（Source Index）和 DI（Destination Index）</strong><ul>
+<li>功能：这两个寄存器主要用于字符串操作和内存寻址。在字符串处理指令中，SI 通常指向源字符串的当前位置，DI 指向目标字符串的当前位置。它们也可以和基址寄存器或段寄存器一起用于内存寻址。</li>
+<li>作用：在复制、移动字符串等操作中很方便。例如，要将一个字符串从一个内存区域复制到另一个内存区域，SI 可以作为源字符串的索引，逐字节读取源字符串，DI 作为目标字符串的索引，将读取的数据逐字节写入目标区域。</li>
+</ul>
+</li>
+</ul>
+<h4 id="指针寄存器"><a href="#指针寄存器" class="headerlink" title="指针寄存器"></a>指针寄存器</h4><ul>
+<li><strong>SP（Stack Pointer）</strong><ul>
+<li>功能：指向栈顶的位置。栈是一种后进先出（LIFO）的数据结构，在程序调用子程序、中断处理等过程中，用于保存和恢复现场数据。当数据压入栈（push 操作）时，SP 的值会自动减 2（16 位环境下），指向新的栈顶；当数据从栈中弹出（pop 操作）时，SP 的值会自动加 2。</li>
+<li>作用：它维护栈的完整性，确保数据按照正确的顺序进出栈。在函数调用过程中，函数的参数、返回地址等信息都通过栈来传递和保存，SP 精确地定位栈顶元素，保证这些操作的正确执行。</li>
+</ul>
+</li>
+<li><strong>BP（Base Pointer）</strong><ul>
+<li>功能：主要用于在栈帧中访问局部变量和参数。它提供了一种相对稳定的基地址，通过与偏移量组合，可以方便地访问栈帧中的各种数据。</li>
+<li>作用：在函数调用时，栈帧中包含了函数的参数、局部变量等信息。BP 可以帮助程序员方便地在栈帧内定位这些数据，使得程序能够正确地访问和操作这些数据。</li>
+</ul>
+</li>
+</ul>
+<h4 id="指令指针寄存器"><a href="#指令指针寄存器" class="headerlink" title="指令指针寄存器"></a>指令指针寄存器</h4><ul>
+<li><strong>IP（Instruction Pointer）</strong><ul>
+<li>功能：存放下一条要执行的指令的偏移地址。在程序执行过程中，CPU 会根据 IP 寄存器中的地址从内存中读取指令并执行，每执行完一条指令，IP 会自动更新，指向下一条指令的地址。</li>
+<li>作用：它控制着程序的执行流程，使得 CPU 能够按照正确的顺序从内存中读取和执行指令。通过改变 IP 的值，可以实现程序的跳转，如在条件分支语句或者函数调用时，程序会根据条件改变 IP 的指向，从而执行不同的代码段。</li>
+</ul>
+</li>
+</ul>
+<h4 id="段寄存器"><a href="#段寄存器" class="headerlink" title="段寄存器"></a>段寄存器</h4><ul>
+<li><strong>CS（Code Segment）</strong><ul>
+<li>功能：定义代码段的起始地址。代码段是存储程序代码的内存区域，CPU 通过 CS 寄存器和 IP 寄存器相结合来确定下一条要执行的指令的物理地址（物理地址 &#x3D; CS×16 + IP）。</li>
+<li>作用：它划分了内存空间，使得程序代码能够在指定的区域存储和执行。在操作系统的内存管理和程序加载过程中，CS 寄存器的设置是至关重要的，它确保程序能够正确地运行在分配的代码段内存区域内。</li>
+</ul>
+</li>
+<li><strong>SS（Stack Segment）</strong><ul>
+<li>功能：定义栈段的起始地址。栈段是用于存储栈数据的内存区域，与 SP 寄存器一起管理栈的操作。栈段的物理地址计算方式为 SS×16 + SP（16 位环境下）。</li>
+<li>作用：它确定了栈在内存中的位置，保证栈操作的正确执行。不同的程序或者进程可能有不同的栈段，通过 SS 寄存器来区分和管理这些栈空间，防止栈数据的混乱和冲突。</li>
+</ul>
+</li>
+<li><strong>DS（Data Segment）</strong><ul>
+<li>功能：通常用于定义数据段的起始地址。数据段是存储程序中使用的数据的内存区域，在访问数据段中的内存单元时，默认情况下是通过 DS 寄存器来确定段基址。</li>
+<li>作用：它提供了一个默认的数据存储区域，方便程序对变量、数组等数据进行存储和访问。在程序初始化阶段，会设置 DS 寄存器，以便后续的数据访问操作能够顺利进行。</li>
+</ul>
+</li>
+<li><strong>ES（Extra Segment）</strong><ul>
+<li>功能：作为附加的数据段寄存器。在一些字符串操作和内存块复制等操作中，可以作为目标数据段的段基址。</li>
+<li>作用：它为数据存储和处理提供了额外的灵活性。例如，在使用 REP MOVSB 指令（重复移动字节串）时，DS:SI 指向源字符串，ES:DI 指向目标字符串，ES 在这里就起到了指定目标数据段的作用。</li>
+</ul>
+</li>
+</ul>
+<h4 id="标志寄存器（PSW-Program-Status-Word）"><a href="#标志寄存器（PSW-Program-Status-Word）" class="headerlink" title="标志寄存器（PSW - Program Status Word）"></a>标志寄存器（PSW - Program Status Word）</h4><ul>
+<li>功能：它包含了一系列的状态标志位，用于记录 CPU 执行算术和逻辑运算后的结果状态，以及一些控制标志。例如，进位标志位 CF（Carry Flag）用于表示无符号数运算是否产生进位或借位；零标志位 ZF（Zero Flag）在运算结果为 0 时被置 1；符号标志位 SF（Sign Flag）反映运算结果的符号，结果为负时 SF &#x3D; 1；溢出标志位 OF（Overflow Flag）用于表示有符号数运算是否溢出等。</li>
+<li>作用：这些标志位可以被条件跳转指令用来改变程序的执行流程。例如，在比较两个数的大小后，根据标志位的状态可以决定是否执行某一段代码。如果比较结果相等，ZF 标志位会被置 1，程序可以根据这个标志位进行相等情况的处理。</li>
+</ul>
+<h2 id="存储器-1"><a href="#存储器-1" class="headerlink" title="存储器"></a>存储器</h2><p>CPU 可以直接使用的信息在存储器中存放，CPU 想要进行数据的读写必须和外部器件进行三类信息的交互</p>
+<ul>
+<li>存储单元的地址(地址信息)</li>
+<li>器件的选择，读或写命令(控制信息)</li>
+<li>读或写的数据(数据信息)</li>
+</ul>
+<p>在存储器中指令和数据是没有区别的，它们都是二进制信息，存储器依靠传输二进制信息所使用的总线类型来进行判断是指令还是数据。</p>
+<p>一个存储单元可以存储8个 bit</p>
+<h2 id="汇编语言基础指令"><a href="#汇编语言基础指令" class="headerlink" title="汇编语言基础指令"></a>汇编语言基础指令</h2><table>
+<thead>
+<tr>
+<th style="text-align:left">汇编指令示例</th>
+<th style="text-align:left">实际作用</th>
+<th style="text-align:left">等价代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">mov rax,rbx</td>
+<td style="text-align:left">用于赋值</td>
+<td style="text-align:left">rax=rbx</td>
+</tr>
+<tr>
+<td style="text-align:left">add/sub rax,rbx</td>
+<td style="text-align:left">用于加/减法</td>
+<td style="text-align:left">rax+=rbx/rax-=rbx</td>
+</tr>
+<tr>
+<td style="text-align:left">and/xor/or rax,rbx</td>
+<td style="text-align:left">用于与/异或/或</td>
+<td style="text-align:left">rax&amp;=rbx/rax^=rbx/rax|=rbx</td>
+</tr>
+<tr>
+<td style="text-align:left">push rax</td>
+<td style="text-align:left">压栈</td>
+<td style="text-align:left">rsp-=8;*rsp=rax</td>
+</tr>
+<tr>
+<td style="text-align:left">pop rax</td>
+<td style="text-align:left">出栈</td>
+<td style="text-align:left">rax=*rsp;rsp+=8</td>
+</tr>
+<tr>
+<td style="text-align:left">call rax</td>
+<td style="text-align:left">调用函数</td>
+<td style="text-align:left">push rip;jmp rax;</td>
+</tr>
+<tr>
+<td style="text-align:left">ret</td>
+<td style="text-align:left">从函数返回</td>
+<td style="text-align:left">pop rip;</td>
+</tr>
+<tr>
+<td style="text-align:left">cmp rax,rbx</td>
+<td style="text-align:left">比较两个数</td>
+<td style="text-align:left">rax-rbx,不保留结果,只修改flags寄存器</td>
+</tr>
+<tr>
+<td style="text-align:left">test rax,rbx</td>
+<td style="text-align:left">比较两个数</td>
+<td style="text-align:left">rax&amp;rbx,不保留结果,只修改flags寄存器</td>
+</tr>
+</tbody>
+</table>
 
+<p><strong>各种跳转指令</strong>，跳转指令不同于 mov 指令，他可以用于修改段寄存器 cs、ip 的值，从而修改 CPU 在内存中所读取的内容的地址</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">汇编指令示例</th>
+<th style="text-align:left">英文</th>
+<th style="text-align:left">实际作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">jmp</td>
+<td style="text-align:left">jump</td>
+<td style="text-align:left">跳转</td>
+</tr>
+<tr>
+<td style="text-align:left">jz</td>
+<td style="text-align:left">jump if zero</td>
+<td style="text-align:left">为0时跳转</td>
+</tr>
+<tr>
+<td style="text-align:left">jnz</td>
+<td style="text-align:left">jump if not zero</td>
+<td style="text-align:left">不为0时跳转</td>
+</tr>
+<tr>
+<td style="text-align:left">jg</td>
+<td style="text-align:left">jump if greater</td>
+<td style="text-align:left">有符号数大于跳转</td>
+</tr>
+<tr>
+<td style="text-align:left">jl</td>
+<td style="text-align:left">jump if less</td>
+<td style="text-align:left">有符号数小于跳转</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="Debug-语法-amp-amp-运行一个汇编脚本"><a href="#Debug-语法-amp-amp-运行一个汇编脚本" class="headerlink" title="Debug 语法 &amp;&amp; 运行一个汇编脚本"></a>Debug 语法 &amp;&amp; 运行一个汇编脚本</h2><p>以前版本的 Windows 里面自带有 debug，但是 win10 之后的更高版本取消了，我们可以通过配置 debug 文件，下载 DOSbox 来体验 debug，并通过 debug 来初体验一下汇编语言。</p>
+<p><a class="link" target="_blank" rel="noopener" href="https://www.cnblogs.com/ECJTUACM-873284962/p/8870076.html">Windows 10无法使用debug的解决方案 - Angel_Kitty - 博客园<i class="fas fa-external-link-alt"></i></a></p>
+<p>通过命令<code>mount &lt;磁盘&gt; &lt;debug 安装路径&gt;</code>挂载磁盘</p>
+<p><strong>常见的 debug 命令</strong> 在 debug 中不区分大小写</p>
+<ul>
+<li><p>R：查看、改变 CPU 寄存器的内容</p>
+<p>  格式 -r 或 -r 寄存器名称 原始值 修改值</p>
+<p>  查看寄存器</p>
+</li>
+</ul>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/debugR.png" class>
+
+<p>修改寄存器</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/sChange.png" class>
+
+<ul>
+<li>D：查看内存中的内容</li>
+</ul>
+<p>格式 -d 或 -d 起始地址 结束地址&#x2F;长度</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/dCommand.png" class>
+
+<ul>
+<li>E：改写内存中的内容</li>
+</ul>
+<p>格式 -e 起始地址 二进制命令</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/eCommand.png" class>
+
+<ul>
+<li>U：将机器指令翻译成汇编指令</li>
+</ul>
+<p>格式 -u 起始地址 结束地址&#x2F;长度</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/uCommand.png" class>
+
+<ul>
+<li>T：执行一条机器指令</li>
+</ul>
+<p>格式 -t 或 -t 地址 指令条数</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/tCommand.png" class>
+
+<ul>
+<li>A：以汇编指令的格式向内存中存入一条机器指令</li>
+</ul>
+<p>格式 -a 地址 存放的汇编指令</p>
+<p>看起来似乎 Debug 语法是一个微型版的 gdb</p>
+<p>接下来是运行汇编脚本，可以参考这篇文章，比较容易。</p>
+<p><a class="link" target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/370786100">https://zhuanlan.zhihu.com/p/370786100<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="BX-和-Loop"><a href="#BX-和-Loop" class="headerlink" title="BX 和 Loop"></a>BX 和 Loop</h2><h3 id="BX"><a href="#BX" class="headerlink" title="BX"></a>BX</h3><h4 id="BX-是什么"><a href="#BX-是什么" class="headerlink" title="BX 是什么"></a>BX 是什么</h4><p>bx是一个通用寄存器的代号，当 bx 变成 <code>[bx]</code> 时，bx 的值就不单单代表着数值，它还表示着偏移地址。</p>
+<h4 id="BX-如何运作"><a href="#BX-如何运作" class="headerlink" title="BX 如何运作"></a>BX 如何运作</h4><p>举个例子</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mov ax, [bx]</span><br><span class="line"></span><br><span class="line">功能：bx中所存放的数据作为一个偏移地址，然后再结合 ds 中段地址的数据计算出物理地址</span><br><span class="line"></span><br><span class="line">物理地址=(ds)*16+bx</span><br></pre></td></tr></table></figure>
+
+<p>然后将该物理地址中的数据送入 ax 中。</p>
+<h3 id="Loop"><a href="#Loop" class="headerlink" title="Loop"></a>Loop</h3><p>也就是循环</p>
+<h4 id="格式以及运作原理"><a href="#格式以及运作原理" class="headerlink" title="格式以及运作原理"></a>格式以及运作原理</h4><p>格式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...  </span><br><span class="line">	...  </span><br><span class="line">  s:xxx  </span><br><span class="line">    xxx  </span><br><span class="line">    loop s  </span><br><span class="line">    xxx  </span><br><span class="line">    ...  </span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>标号 s 要放在 loop 指令之前</li>
+<li>循环执行的程序段放在标号和 loop 指令之间</li>
+</ul>
+<p><strong>运作原理：</strong></p>
+<p>当 CPU 执行 loop命令时会执行一下两个步骤：</p>
+<ol>
+<li>(cx)&#x3D;(cx)-1</li>
+<li>判断 cx 的值是否为0，如果不为0，则跳转至 s 处继续执行代码；如果为零，那就继续执行下一条指令</li>
+</ol>
+<h3 id="两者的联合使用"><a href="#两者的联合使用" class="headerlink" title="两者的联合使用"></a>两者的联合使用</h3><p>当我们需要对连续性变化的内存地址进行重复性的操作时，如果我们不适用循环，那我们的源码会变得十分冗长，且有很多的重复性语句。</p>
+<p>例如：计算 ffff:0~ffff:b 单元内数据的和，结果储存在 dx 中</p>
+<p>首先我们最应该考虑的是数据是否会溢出，数据类型是不是匹配等问题。很显然，溢出的问题是不存在的，但是将 ffff:0 中的数据直接放入 bx 中是不可取的，因为前者的数据是8位，而后者的数据是16位。</p>
+<p>通过如下步骤解决问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mov al,ds:[0] //将目标数据放入低位的 ax 寄存器中  </span><br><span class="line">mov ah,0 //将 ax 寄存器的高位置为0，此时(ax)=(ffff:0)且数据长度为16位</span><br></pre></td></tr></table></figure>
+
+<p>不利用循环的源码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">assume cs:code  </span><br><span class="line">code segment  </span><br><span class="line">  </span><br><span class="line">	mov ax,0ffffh //汇编语言中不允许字母为开头的常量，所以我们添加0  </span><br><span class="line">	mov ds,ax //设置(ds)=ffffh  </span><br><span class="line">	mov dx,0 //初始化累加器  </span><br><span class="line">	  </span><br><span class="line">	mov al,ds:[0]  </span><br><span class="line">	mov ah,0  //获取目标内存中的数据且长度为16位  </span><br><span class="line">	add dx,ax //进行数据累加  </span><br><span class="line">	  </span><br><span class="line">	mov al,ds:[1]  </span><br><span class="line">	mov ah,0    </span><br><span class="line">	add dx,ax  </span><br><span class="line">	  </span><br><span class="line">	.  </span><br><span class="line">	.  </span><br><span class="line">	.  </span><br><span class="line">	  </span><br><span class="line">	mov al,ds:[0bh]  </span><br><span class="line">	mov ah,0    </span><br><span class="line">	add dx,ax  </span><br><span class="line">	  </span><br><span class="line">	mov ax,4c00h //程序返回  </span><br><span class="line">	int 21h  </span><br><span class="line">  </span><br><span class="line">code ends  </span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>该程序中间的实现功能的主要部分大多都是相似的，变化的不过时偏移地址的值，因此我们在循环中改变偏移地址的值即可。</p>
+<p>使用循环的源码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">assume cs:code  </span><br><span class="line">code segment  </span><br><span class="line">  </span><br><span class="line">	mov ax,0ffffh //汇编语言中不允许字母为开头的常量，所以我们添加0  </span><br><span class="line">	mov ds,ax //设置(ds)=ffffh  </span><br><span class="line">	mov dx,0 //初始化累加器  </span><br><span class="line">	  </span><br><span class="line">	mov cx,12 //设置循环为12次  </span><br><span class="line">   </span><br><span class="line"> s: mov al,[bx]  </span><br><span class="line">	mov ah,0    </span><br><span class="line">	add dx,ax //将目标数据存入ax中并累加  </span><br><span class="line">	inc bx //改变偏移地址  </span><br><span class="line">	loop s  </span><br><span class="line">	  </span><br><span class="line">	mov ax,4c00h //程序返回  </span><br><span class="line">	int 21h  </span><br><span class="line">	  </span><br><span class="line">code ends  </span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<h2 id="多个段的程序"><a href="#多个段的程序" class="headerlink" title="多个段的程序"></a>多个段的程序</h2><p>有了多个段之后，程序会变得更加有条理、更清晰</p>
+<ul>
+<li>直接以实际编程问题来看</li>
+</ul>
+<p>将 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h 以下8个数据的和的结果放入寄存器 ax 中</p>
+<p>如果用其他语言来写，应该是相加，然后让 ax &#x3D; result；由汇编来写，则有一些不太一样的地方，先看实现代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg  </span><br><span class="line">codesg segment  </span><br><span class="line">  </span><br><span class="line">	dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h  </span><br><span class="line">  </span><br><span class="line">	mov bx,0  </span><br><span class="line">	mov ax,0  </span><br><span class="line">  </span><br><span class="line">	mov cx,8  </span><br><span class="line">              s:add ax,cs:[bx]  </span><br><span class="line">	add bx,2  </span><br><span class="line">	loop s  </span><br><span class="line">  </span><br><span class="line">	mov ax,4c00h  </span><br><span class="line">	int 21h  </span><br><span class="line">  </span><br><span class="line">codesg ends  </span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p>dw 先定义字型数据，即“define word”。在这里定义了8个字型数据，它们所占用的空间大小为16个字节。</p>
+<p>由于这八个数据在代码段中，程序在运行的时候会把代码段的短地址存放在 CS 中（codesg），所以我们可以从 CS 中得到它们的段地址。</p>
+<p>接下来分析一下这 8 个数据的偏移地址是多少呢？</p>
+<p>因为用 dw 定义的数据处于代码段的最开始，所以偏移地址为 0、2、4…… 程序在运行时，它们的地址就是 CS:0、CS:2、CS:4 ……</p>
+<p>接着对这段代码开启动调看一下，会发现进入了循环，我们所想要写入的数据已经被连续地存放在了代码段的最开始处。</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/debugWriteInData.png" class>
+
+<p>关注图中 -r 中显示的所要执行的下一条命令，可以发现是<code>and ax,[bx+di]</code>并不是我们所想要的<code>mov bx,0</code>。</p>
+<p>产生这种情况的原因在于，计算机认为我们程序执行的开始是 <code>076a:0000</code> 处，但是在此处之后的16个字节已经被我们用来存放我们所定义的字型数据了，而<code>and ax,[bx+di]</code>就是我们所存放的数据变成汇编语言的结果。</p>
+<p><strong>所产生的问题就是</strong>: 当我们的程序包含有自定义的数据时，由于计算机自动将 <code>cs:ip</code> 中的内容当程序执行的第一句话，我们所定义的数据会被当成命令来执行。</p>
+<p>我们也可以推理出来，我们所希望计算机开始执行语句的地方是 <code>076a:0010</code> 处</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/start.png" class>
+
+<h3 id="解决方式"><a href="#解决方式" class="headerlink" title="解决方式"></a>解决方式</h3><p>修改代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg  </span><br><span class="line">codesg segment  </span><br><span class="line">  </span><br><span class="line">	dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h  </span><br><span class="line">  </span><br><span class="line">	start:	mov bx,0  </span><br><span class="line">		mov ax,0  </span><br><span class="line">  </span><br><span class="line">		mov cx,8  </span><br><span class="line">              	              s:add ax,cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s  </span><br><span class="line">  </span><br><span class="line"> 		mov ax,4c00h  </span><br><span class="line">		int 21h  </span><br><span class="line">  </span><br><span class="line">codesg ends  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>我们通过标识符 start 来告诉计算机我们的代码段所要开始执行语句的位置。start 标识符是我们可以进行自定义的，只要是符合规定的名称都可以，其次就是保证两处的标识符要保持一致</p>
+<p><strong>end 的作用：</strong> end 不但通知计算机程序的结束之处，还告诉了编译器程序的入口之处。</p>
+<h3 id="代码段中使用栈"><a href="#代码段中使用栈" class="headerlink" title="代码段中使用栈"></a>代码段中使用栈</h3><ul>
+<li>老问题，将这些数据0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h按照逆序存放</li>
+</ul>
+<p>对应代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg  </span><br><span class="line">codesg segment  </span><br><span class="line">  </span><br><span class="line">	dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h  </span><br><span class="line">	dw 0,0,0,0,0,0,0,0 //定义栈段  </span><br><span class="line">  </span><br><span class="line">start:	mov ax,cs  </span><br><span class="line">		mov ss,ax  //修改栈段  </span><br><span class="line">		mov sp,20h  //修改栈偏移指针，将其指向栈底-1处  </span><br><span class="line">  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">   s0:  push cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s0  //数据入栈  </span><br><span class="line">		  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">   s1:  pop cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s1  //数据出栈  </span><br><span class="line">  </span><br><span class="line"> 		mov ax,4c00h  </span><br><span class="line">		int 21h  </span><br><span class="line">  </span><br><span class="line">codesg ends  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>debug 后的初始状态</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/stackOrigin.png" class>
+
+<p>执行完第一个 loop 后的状态，所有数据入栈</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/stackloop1.png" class>
+
+<p>执行完第二个 loop 后的状态，数据出栈并存放</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/stackloop2.png" class>
+
+<p><strong>小结：</strong> 以上是我们通过在代码段中自定义数据段和栈段来实现我们的功能，但当我们的程序变得复杂是，将这些段都糊在一起会显得很杂乱且容易出错。</p>
+<h3 id="使用多个段"><a href="#使用多个段" class="headerlink" title="使用多个段"></a>使用多个段</h3><p>为了解决上面的问题，我们使用多个段。所谓的多个段就是：将数据、代码、栈放入不同的段中。</p>
+<p>使用多个段的程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg,ds:data,ss:stack  </span><br><span class="line">  </span><br><span class="line">data segment  </span><br><span class="line">	dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h   </span><br><span class="line">data ends  </span><br><span class="line">  </span><br><span class="line">stack segment  </span><br><span class="line">	dw 0,0,0,0,0,0,0,0  </span><br><span class="line">stack ends  </span><br><span class="line">  </span><br><span class="line">codesg segment  </span><br><span class="line">  </span><br><span class="line">	start:	mov ax,stack  </span><br><span class="line">		mov ss,ax  </span><br><span class="line">		mov sp,10h  </span><br><span class="line">  </span><br><span class="line">		mov ax,data  </span><br><span class="line">		mov ds,ax  </span><br><span class="line">  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">              	          s0:  push cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s0  </span><br><span class="line">		  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">              	          s1:  pop cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s1  </span><br><span class="line">  </span><br><span class="line"> 		mov ax,4c00h  </span><br><span class="line">		int 21h  </span><br><span class="line">  </span><br><span class="line">codesg ends  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>观察初始状态的寄存器情况</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/stackStart.png" class>
+
+<p>一般来说寄存器中 DS 和 CS 的数值应当是相差 10h 的，但是这里它们相差了 12h，再观察图中的汇编语句我们可以知道我们所定义的 stack 段的段地址是 076b。</p>
+<p>查看内存中的情况</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/memoryStack.png" class>
+
+<p>我们所申请的数据段和栈段被安排了代码段之前，并且每一段的空间大小都为16个字节，这也就是为什么 DS 和 CS相差了12h的原因。</p>
+<p>对多个段的顺序进行改变</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg,ds:data,ss:stack  </span><br><span class="line">  </span><br><span class="line">codesg segment  </span><br><span class="line">  </span><br><span class="line">	start:	mov ax,stack  </span><br><span class="line">		mov ss,ax  </span><br><span class="line">		mov sp,10h  </span><br><span class="line">  </span><br><span class="line">		mov ax,data  </span><br><span class="line">		mov ds,ax  </span><br><span class="line">  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">              	          s0:  push cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s0  </span><br><span class="line">		  </span><br><span class="line">		mov bx,0  </span><br><span class="line">		mov cx,8  </span><br><span class="line">              	          s1:  pop cs:[bx]  </span><br><span class="line">		add bx,2  </span><br><span class="line">		loop s1  </span><br><span class="line">  </span><br><span class="line"> 		mov ax,4c00h  </span><br><span class="line">		int 21h  </span><br><span class="line">  </span><br><span class="line">codesg ends  </span><br><span class="line">  </span><br><span class="line">data segment  </span><br><span class="line">	dw 0123h,0456h,0789h,0abch,0defh,0fedh,0cbah,0987h   </span><br><span class="line">data ends  </span><br><span class="line">  </span><br><span class="line">stack segment  </span><br><span class="line">	dw 0,0,0,0,0,0,0,0  </span><br><span class="line">stack ends  </span><br><span class="line">  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>当我们在程序中改变各个段的次序时，可以发现在内存中它们的位置也发生了改变</p>
+<h2 id="灵活查看与使用内存地址"><a href="#灵活查看与使用内存地址" class="headerlink" title="灵活查看与使用内存地址"></a>灵活查看与使用内存地址</h2><p>在前面我们讲了用 <code>[0]、[bx]</code> 的方法来定位内存单元的地址，在这一部分我们学习一些更为灵活的定位内存地址的方法，和相关的编程方法。</p>
+<h3 id="bx-idata"><a href="#bx-idata" class="headerlink" title="[bx+idata]"></a><code>[bx+idata]</code></h3><p><code>[bx]</code> 可以用来指明一个内存单元，<code>[bx+idata]</code> 也具有相同的功能且更为灵活。</p>
+<p><code>[bx+idata]</code> 表示：偏移地址&#x3D;(bx)+idata</p>
+<p>例如：<code>mov ax,[bx+200]</code> 它的含义就是将一个内存单元的内容放入 ax 中，这个内存单元的长度为2个字节，偏移地址为 <code>(bx)+200</code>，段地址为 (ds)。将该命令用数学化的公式表达即为：<code>(ax)=((ds)*16+(bx)+200)</code>。</p>
+<p>指令<code>mov ax,[bx+200]</code>也可以用如下形式表示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mov ax,[200+bx]</span><br><span class="line">mov ax,200[bx]</span><br><span class="line">mov ax,[bx].200</span><br></pre></td></tr></table></figure>
+
+<h3 id="bx-idata-与数组的关系"><a href="#bx-idata-与数组的关系" class="headerlink" title="[bx+idata] 与数组的关系"></a><code>[bx+idata]</code> 与数组的关系</h3><p>问题：将 datasg 中定义的字符串转为大写，第二个字符串转为小写，在 ASCII 码中，小写字母和大写字母的区别在于第 5 位（从右往左数），将第 5 位清零即可将小写字母转换为大写字母。</p>
+<p>所以写出相对应代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg,ds:datasg  </span><br><span class="line">  </span><br><span class="line">datasg segment  </span><br><span class="line">	db &#x27;BaSiC&#x27;  </span><br><span class="line">	db &#x27;MinIX&#x27;  </span><br><span class="line">datasg ends  </span><br><span class="line">  </span><br><span class="line">codesg segment  </span><br><span class="line">	start:mov ax,datasg  </span><br><span class="line">	      mov ds,ax  </span><br><span class="line">	      mov bx,0  </span><br><span class="line">      </span><br><span class="line">          mov cx,5  </span><br><span class="line">        s:mov al,[bx]  </span><br><span class="line">          and al,11011111b  //通过 and 将小写改为大写  </span><br><span class="line">          mov [bx],al  </span><br><span class="line">          inc bx  </span><br><span class="line">          loop s  </span><br><span class="line">            </span><br><span class="line">          mov bx,5  </span><br><span class="line">          mov cx,5  </span><br><span class="line">       s0:mov al,[bx]  </span><br><span class="line">          or al,00100000b  //通过 or 将大写改为小写  </span><br><span class="line">          mov [bx],al  </span><br><span class="line">          inc bx  </span><br><span class="line">          loop s0  </span><br><span class="line">            </span><br><span class="line">          mov ax,4c00h  </span><br><span class="line">	      int 21h  </span><br><span class="line">codesg ends  </span><br><span class="line">  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>简单的逻辑解读</p>
+<ul>
+<li><code>s:</code> 是循环标签。</li>
+<li><code>mov al,[bx]</code>：将数据段中偏移地址为 <code>BX</code> 的字节数据加载到 <code>AL</code> 寄存器。</li>
+<li><code>and al,11011111b</code>：通过 <code>AND</code> 操作将 <code>AL</code> 中的字符转换为大写。在 ASCII 码中，小写字母和大写字母的区别在于第 5 位（从右往左数），将第 5 位清零即可将小写字母转换为大写字母。</li>
+<li><code>mov [bx],al</code>：将转换后的字符存回数据段原来的位置。</li>
+<li><code>inc bx</code>：将偏移地址 <code>BX</code> 加 1，指向下一个字符。</li>
+<li><code>loop s</code>：循环执行，直到 <code>CX</code> 减为 0。</li>
+</ul>
+<p>而以上的方法并没有将 <code>[bx+idata]</code> 利用起来，我们依旧是通过两个循环实现我们的目的。</p>
+<p>我们可以将这两个等长的字符串看成是2个数组，在一个循环中对2个数组同时进行处理。这两个数组的不同之处就是数组起始地址的偏移地址不一样，而每次处理时对于这两个数组的偏移地址地址都是相同的，而数组起始地址的偏移地址我们可以通过 <code>[dx+idata]</code> 的方式来改变。</p>
+<p>使用 <code>[dx+idata]</code> 的源码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">assume cs:codesg,ds:datasg  </span><br><span class="line">  </span><br><span class="line">datasg segment  </span><br><span class="line">	db &#x27;BaSiC&#x27;  </span><br><span class="line">	db &#x27;MinIX&#x27;  </span><br><span class="line">datasg ends  </span><br><span class="line">  </span><br><span class="line">codesg segment  </span><br><span class="line">	start:mov ax,datasg  </span><br><span class="line">	      mov ds,ax  </span><br><span class="line">	      mov bx,0  </span><br><span class="line">      </span><br><span class="line">          mov cx,5  </span><br><span class="line">        s:mov al,0[bx]  //0为第一个字符串起始地址的偏移地址  </span><br><span class="line">          and al,11011111b    </span><br><span class="line">          mov 0[bx],al  </span><br><span class="line">            </span><br><span class="line">          mov al,5[bx] //5为第二个字符串起始地址的偏移地址  </span><br><span class="line">          or al,00100000b  </span><br><span class="line">          mov 5[bx],al  </span><br><span class="line">            </span><br><span class="line">          inc bx  </span><br><span class="line">          loop s  </span><br><span class="line">            </span><br><span class="line">          mov ax,4c00h  </span><br><span class="line">	      int 21h  </span><br><span class="line">codesg ends  </span><br><span class="line">  </span><br><span class="line">end start</span><br></pre></td></tr></table></figure>
+
+<p>汇编语言和C语言相呼应的地方</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">汇编语言：0[bx]，5[bx]</span><br><span class="line">C语言：a[i]，b[i]</span><br></pre></td></tr></table></figure>
+
+<h3 id="SI和DI"><a href="#SI和DI" class="headerlink" title="SI和DI"></a>SI和DI</h3><p>它们是寄存器中和 bx 功能相近的寄存器，它们之间的区别就是：si 和 di 不能分成两个8位寄存器来使用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[bx+si] 偏移地址=(bx)+(si)</span><br><span class="line">[bx+si+idata] 偏移地址=(bx)+(si)+idata</span><br><span class="line">[bx+200+si]=[200+bx+si]=200[bx][si]=[bx].200[si]=[bx][si].200</span><br></pre></td></tr></table></figure>
+
+<h3 id="暂存数据"><a href="#暂存数据" class="headerlink" title="暂存数据"></a>暂存数据</h3><p>当我们程序变得复杂庞大时，需要对一些数据进行暂存，而寄存器数量有限，我们只能通过内存来帮助我们存储这些临时数据，但是如果只是通过简单地获取内存中的一个单元地址来存储我们的数据的方法是不可取的，因为我们必须要记住我们将数据放入了哪个内存单元中，这样程序会很容易混乱。</p>
+<p>解决办法就是利用<strong>栈</strong>。</p>
+<p>一般来说，在需要缓存数据的时候，我们都应该使用栈来操作。</p>
+<h2 id="数据的处理"><a href="#数据的处理" class="headerlink" title="数据的处理"></a>数据的处理</h2><ul>
+<li>前面讲了一些基本语法，现在回来看一看计算机在数据进行处理、运算的过程中，都是怎么一个过程</li>
+</ul>
+<p>计算机处理数据、运算的过程中，有两个最基本的问题</p>
+<ul>
+<li>所要处理的数据放在是什么地方</li>
+<li>所要处理的数据有多长</li>
+</ul>
+<p>这两个问题的答案在机器指令中必须给以明确或隐含的说明。</p>
+<p>为了对问题研究的方便，我们定义了两个描述性符号：</p>
+<p><strong>reg</strong>——&gt;寄存器</p>
+<p><strong>sreg</strong>——&gt;段寄存器</p>
+<p><strong>reg</strong> 的集合包括</p>
+<ul>
+<li>ax、ah、al 临时存放一些数据</li>
+<li>bx、bh、bl bp si、di 都用于表示偏移地址</li>
+<li>cx、ch、cl 控制 loop 循环的次数</li>
+<li>dx、dh、dl 数据寄存器</li>
+<li>sp 指向栈底指针的偏移地址</li>
+</ul>
+<p><strong>sreg</strong> 的集合包括</p>
+<ul>
+<li>ds 数据段的段地址</li>
+<li>ss 栈的栈段</li>
+<li>cs 代码段的段地址</li>
+<li>es 附加段寄存器</li>
+</ul>
+<p>用于表示偏移地址的 bx、si、di、bp 所有正确的用法</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/move.png" class>
+
+<p>我们可以将 bx 和 bp 理解为基本偏移地址寄存器，si 和 di 是用于灵活改变、使用这两个基本偏移地址寄存器的辅助偏移地址寄存器。</p>
+<ul>
+<li>bx 的默认段地址为 ds 中的数值</li>
+<li>bp 的默认段地址为 ss 中的数值</li>
+</ul>
+<h3 id="寻址"><a href="#寻址" class="headerlink" title="寻址"></a>寻址</h3><p>一个指令在执行前，指令所涉及的数据可以储存在3个地方：CPU内部、内存、端口</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/threeStorage.png" class>
+
+<p><strong>数据位置表达的三个概念</strong></p>
+<p>有3种概念来表达数据的位置：立即数(idata)、寄存器、段地址和偏移地址</p>
+<ul>
+<li>立即数</li>
+</ul>
+<p>在机器指令中直接给出的数据</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/idata.png" class>
+
+<ul>
+<li>寄存器</li>
+</ul>
+<p>指令要处理的数据在寄存器中，在指令中指明了相应的寄存器名称</p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/ropName.png" class>
+
+<ul>
+<li>段地址(SA)和偏移地址(EA)</li>
+</ul>
+<p>所要处理的数据在内存中，用 <code>[x]</code> 方式给出 EA，SA 为某个段的寄存器。</p>
+<blockquote>
+<p>默认段地址在 ds 中的情况</p>
+</blockquote>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/ds_segment.png" class>
+
+<blockquote>
+<p>默认段地址在 ss 中</p>
+</blockquote>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/ss_segment.png" class>
+
+<blockquote>
+<p>指明段地址</p>
+</blockquote>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/define_segment.png" class>
+
+<p><strong>寻址方式</strong></p>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/way_find_address.png" class>
+
+<p><strong>指令执行过程</strong></p>
+<ol>
+<li>在寄存器的 cs 和 ip 中获取代码段在内存中的地址</li>
+<li>读取指令</li>
+<li>将指令放入指令缓冲寄存器</li>
+<li>获取指令中涉及的相关数据</li>
+<li>执行指令</li>
+</ol>
+<p>其中获取指令的相关数据时涉及到了寻址</p>
+<h3 id="处理数据的长度"><a href="#处理数据的长度" class="headerlink" title="处理数据的长度"></a>处理数据的长度</h3><p>8086CPU 的指令能够处理两种数据的长度</p>
+<ul>
+<li>byte</li>
+<li>word</li>
+</ul>
+<p>其中 byte 占一个字节，word 占两个字节</p>
+<p>有两种方式告诉计算机所要执行的指令长度</p>
+<ul>
+<li>寄存器</li>
+<li>X ptr</li>
+</ul>
+<p><strong>寄存器指明</strong></p>
+<p>因为寄存器自带具有多少个字节的属性，因此计算机可以直接通过寄存器获取所要处理数据的长度</p>
+<ul>
+<li>对字进行操作</li>
+</ul>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/handle_word.png" class>
+
+<ul>
+<li>对字节进行操作</li>
+</ul>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/handle_byte.png" class>
+
+<h3 id="div-指令"><a href="#div-指令" class="headerlink" title="div 指令"></a>div 指令</h3><p>除法指令，使用时的注意点：</p>
+<ul>
+<li>除数：有8位和16位2种选择，位于 reg 或内存单元中</li>
+<li>被除数：默认放在 AX 或 DX 和 AX 中。<ul>
+<li>除数为8位，被除数为16位，默认存储在 AX 中</li>
+<li>除数为16位，被除数为32位，默认高位存储在 DX 中，低位放在 AX 中</li>
+</ul>
+</li>
+<li>结果：余数和商<ul>
+<li>除数为8位，AL 中存储商，AH 中存储余数</li>
+<li>除数为16位，AX 中存储商，DX 中存储余数</li>
+</ul>
+</li>
+</ul>
+<img src="/2024/05/11/%E6%B1%87%E7%BC%96%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/div_command.png" class>
+
+<h3 id="dd-伪指令"><a href="#dd-伪指令" class="headerlink" title="dd 伪指令"></a>dd 伪指令</h3><p>之前使用过 db 和 dw 来定义字节型数据和字型数据，dd 用来定义 双字型数据(double word)，dd 所定义的数据占了2个字的大小，也就是4个字节。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">data segment  </span><br><span class="line">	db 1       //在 data:0 处，数据为 01H，占1个字节  </span><br><span class="line">	dw 1       //在 data:1 处，数据为 0001H，占1个字  </span><br><span class="line">	dd 1       //在 data:3 处，数据为 00000001H，占2个字  </span><br><span class="line">data ends</span><br></pre></td></tr></table></figure>
+
+<p>举个例子：</p>
+<p>使用 div 计算 data 段中第一个数据除以第二个数据后的结果，商储存在第三个数据的存储单元内</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">data segment  </span><br><span class="line">	dd 100001  </span><br><span class="line">	dw 100  </span><br><span class="line">	dw 0  </span><br><span class="line">data ends  </span><br><span class="line">  </span><br><span class="line">code segment  </span><br><span class="line">	mov ax,data  </span><br><span class="line">	mov ds,ax  </span><br><span class="line">	mov ax,ds:[0] //将 ds:0 中的低16位存储在 ax 中  </span><br><span class="line">	mov dx,ds:[2] //将 ds:2 中的高16位存储在 dx 中  </span><br><span class="line">	div word ptr ds:[4] //用 dx:ax 中的32位数据除以 ds:[4] 字单元中的数据  </span><br><span class="line">	mov ds:[6],ax //将商储存在 ds:[6] 字单元中  </span><br><span class="line">code ends</span><br></pre></td></tr></table></figure>
+
+<h3 id="dup"><a href="#dup" class="headerlink" title="dup"></a>dup</h3><p>dup 是一个操作符。</p>
+<p>dup、db、dw、dd 都是由编译器识别处理的符号。</p>
+<p>通常和 db、dw、dd 等数据定义伪指令配合使用，用来进行数据的重复</p>
+<p>例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db 3 dup(0) //定义了3个字节，值都为0，相当于 db 0,0,0  </span><br><span class="line">db 3 dup(0,1,2) //定义了9个字节，值分别为 0,1,2,0,1,2,0,1,2，相当于 db 0,1,2,0,1,2,0,1,2。</span><br></pre></td></tr></table></figure>
+
+<p>使用的格式如下：</p>
+<ul>
+<li>db 重复的次数 dup (重复的字节型数据)</li>
+<li>dw 重复的次数 dup (重复的字型数据)</li>
+<li>dd 重复的次数 dup (重复的双字型数据)</li>
+</ul>
 
             </div>
 
@@ -550,7 +1042,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E8%AF%AD%E8%A8%80"><span class="nav-text">机器语言</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="nav-text">汇编语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E7%9A%84%E7%BB%84%E6%88%90"><span class="nav-text">汇编语言的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="nav-text">指令和数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%8D%95%E5%85%83"><span class="nav-text">存储单元</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-%E5%AF%B9%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-text">CPU 对存储器的读写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-text">内存地址空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88CPU-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%89"><span class="nav-text">寄存器（CPU 工作原理）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%A6%82%E8%BF%B0"><span class="nav-text">寄存器概述</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E8%AF%AD%E8%A8%80"><span class="nav-text">机器语言</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="nav-text">汇编语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E7%9A%84%E7%BB%84%E6%88%90"><span class="nav-text">汇编语言的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="nav-text">指令和数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%8D%95%E5%85%83"><span class="nav-text">存储单元</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-%E5%AF%B9%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-text">CPU 对存储器的读写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-text">内存地址空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88CPU-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%89"><span class="nav-text">寄存器（CPU 工作原理）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%A6%82%E8%BF%B0"><span class="nav-text">寄存器概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">通用寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%98%E5%9D%80%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">变址寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">指针寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E6%8C%87%E9%92%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">指令指针寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%87%E5%BF%97%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88PSW-Program-Status-Word%EF%BC%89"><span class="nav-text">标志寄存器（PSW - Program Status Word）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8-1"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4"><span class="nav-text">汇编语言基础指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Debug-%E8%AF%AD%E6%B3%95-amp-amp-%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AA%E6%B1%87%E7%BC%96%E8%84%9A%E6%9C%AC"><span class="nav-text">Debug 语法 &amp;&amp; 运行一个汇编脚本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BX-%E5%92%8C-Loop"><span class="nav-text">BX 和 Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BX"><span class="nav-text">BX</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BX-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">BX 是什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BX-%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C"><span class="nav-text">BX 如何运作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Loop"><span class="nav-text">Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E4%BB%A5%E5%8F%8A%E8%BF%90%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">格式以及运作原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E8%80%85%E7%9A%84%E8%81%94%E5%90%88%E4%BD%BF%E7%94%A8"><span class="nav-text">两者的联合使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AA%E6%AE%B5%E7%9A%84%E7%A8%8B%E5%BA%8F"><span class="nav-text">多个段的程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E5%BC%8F"><span class="nav-text">解决方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E6%AE%B5%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%88"><span class="nav-text">代码段中使用栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%A4%9A%E4%B8%AA%E6%AE%B5"><span class="nav-text">使用多个段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%81%B5%E6%B4%BB%E6%9F%A5%E7%9C%8B%E4%B8%8E%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80"><span class="nav-text">灵活查看与使用内存地址</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bx-idata"><span class="nav-text">[bx+idata]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bx-idata-%E4%B8%8E%E6%95%B0%E7%BB%84%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">[bx+idata] 与数组的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SI%E5%92%8CDI"><span class="nav-text">SI和DI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9A%82%E5%AD%98%E6%95%B0%E6%8D%AE"><span class="nav-text">暂存数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-text">数据的处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BB%E5%9D%80"><span class="nav-text">寻址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE%E7%9A%84%E9%95%BF%E5%BA%A6"><span class="nav-text">处理数据的长度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#div-%E6%8C%87%E4%BB%A4"><span class="nav-text">div 指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dd-%E4%BC%AA%E6%8C%87%E4%BB%A4"><span class="nav-text">dd 伪指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dup"><span class="nav-text">dup</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -731,7 +1223,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E8%AF%AD%E8%A8%80"><span class="nav-text">机器语言</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="nav-text">汇编语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E7%9A%84%E7%BB%84%E6%88%90"><span class="nav-text">汇编语言的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="nav-text">指令和数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%8D%95%E5%85%83"><span class="nav-text">存储单元</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-%E5%AF%B9%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-text">CPU 对存储器的读写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-text">内存地址空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88CPU-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%89"><span class="nav-text">寄存器（CPU 工作原理）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%A6%82%E8%BF%B0"><span class="nav-text">寄存器概述</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-text">基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E8%AF%AD%E8%A8%80"><span class="nav-text">机器语言</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80"><span class="nav-text">汇编语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E7%9A%84%E7%BB%84%E6%88%90"><span class="nav-text">汇编语言的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="nav-text">指令和数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%8D%95%E5%85%83"><span class="nav-text">存储单元</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-%E5%AF%B9%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-text">CPU 对存储器的读写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-text">内存地址空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88CPU-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%89"><span class="nav-text">寄存器（CPU 工作原理）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%A6%82%E8%BF%B0"><span class="nav-text">寄存器概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">通用寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%98%E5%9D%80%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">变址寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">指针寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E6%8C%87%E9%92%88%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">指令指针寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">段寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%87%E5%BF%97%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%88PSW-Program-Status-Word%EF%BC%89"><span class="nav-text">标志寄存器（PSW - Program Status Word）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8-1"><span class="nav-text">存储器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4"><span class="nav-text">汇编语言基础指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Debug-%E8%AF%AD%E6%B3%95-amp-amp-%E8%BF%90%E8%A1%8C%E4%B8%80%E4%B8%AA%E6%B1%87%E7%BC%96%E8%84%9A%E6%9C%AC"><span class="nav-text">Debug 语法 &amp;&amp; 运行一个汇编脚本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BX-%E5%92%8C-Loop"><span class="nav-text">BX 和 Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BX"><span class="nav-text">BX</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BX-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">BX 是什么</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BX-%E5%A6%82%E4%BD%95%E8%BF%90%E4%BD%9C"><span class="nav-text">BX 如何运作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Loop"><span class="nav-text">Loop</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E4%BB%A5%E5%8F%8A%E8%BF%90%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">格式以及运作原理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A4%E8%80%85%E7%9A%84%E8%81%94%E5%90%88%E4%BD%BF%E7%94%A8"><span class="nav-text">两者的联合使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AA%E6%AE%B5%E7%9A%84%E7%A8%8B%E5%BA%8F"><span class="nav-text">多个段的程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E5%BC%8F"><span class="nav-text">解决方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E6%AE%B5%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A0%88"><span class="nav-text">代码段中使用栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%A4%9A%E4%B8%AA%E6%AE%B5"><span class="nav-text">使用多个段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%81%B5%E6%B4%BB%E6%9F%A5%E7%9C%8B%E4%B8%8E%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80"><span class="nav-text">灵活查看与使用内存地址</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bx-idata"><span class="nav-text">[bx+idata]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bx-idata-%E4%B8%8E%E6%95%B0%E7%BB%84%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">[bx+idata] 与数组的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SI%E5%92%8CDI"><span class="nav-text">SI和DI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9A%82%E5%AD%98%E6%95%B0%E6%8D%AE"><span class="nav-text">暂存数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E5%A4%84%E7%90%86"><span class="nav-text">数据的处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BB%E5%9D%80"><span class="nav-text">寻址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE%E7%9A%84%E9%95%BF%E5%BA%A6"><span class="nav-text">处理数据的长度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#div-%E6%8C%87%E4%BB%A4"><span class="nav-text">div 指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dd-%E4%BC%AA%E6%8C%87%E4%BB%A4"><span class="nav-text">dd 伪指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dup"><span class="nav-text">dup</span></a></li></ol></li></ol>
     </div>
 </div>
 

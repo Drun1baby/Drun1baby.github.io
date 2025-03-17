@@ -232,7 +232,7 @@
 
             <span class="meta-info-item article-update-date">
                 <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                <span class="pc">2024-12-24 22:29:45</span>
+                <span class="pc">2025-03-17 23:22:42</span>
             </span>
         
 
@@ -255,9 +255,13 @@
 
         
         
+            <span class="meta-info-item article-wordcount">
+                <i class="icon fas fa-file-word"></i>&nbsp;<span>5.4k 字</span>
+            </span>
+        
         
             <span class="meta-info-item article-min2read">
-                <i class="icon fas fa-clock"></i>&nbsp;<span>1 分钟</span>
+                <i class="icon fas fa-clock"></i>&nbsp;<span>20 分钟</span>
             </span>
         
         
@@ -278,7 +282,354 @@
             <div class="article-content keep-markdown-body">
                 
 
-                
+                <p>学习 CSAPP 的主要原因是在学完基础汇编之后，发现自己对于一些 C 上基础的各种东西，还是非常不熟练的，所以需要再学习一遍 CSAPP</p>
+<p>里面有一些内容和汇编入门学习，确实也是相近的，但是我也会不厌其烦地再 review 一遍。</p>
+<h2 id="信息存储"><a href="#信息存储" class="headerlink" title="信息存储"></a>信息存储</h2><h3 id="数字表示"><a href="#数字表示" class="headerlink" title="数字表示"></a>数字表示</h3><p>二进制：区别于我们平时计数使用的十进制，二进制使用的是逢二进一原则，而我们的十进制则是逢十进一，比如我们十进制的 <code>9+1</code> 中的 <code>9</code>，答案应该是十，但是十应该进一，因此得出了我们常规的答案 <code>10</code>。在二进制里面，每一位只要大于等于 <code>2</code> 则都要向高位进一。为了方便表示，还衍生出了二进制的子类，比如八进制，十六进制等，主要是二进制向这些进制转换较为容易，而计算机平时又都处理二进制数据，因此就出现了这些常见的进制计数。</p>
+<h3 id="信息存储-1"><a href="#信息存储-1" class="headerlink" title="信息存储"></a>信息存储</h3><p>大多数计算机使用的都是8位（在计算机中，除特殊说明外，一位均指的是二进制的位）的块，或者叫字节，字节是作为计算机可寻址的最小单位。一般来说我们并不习惯于将一个字节写成八位二进制的数，而是会写成两位十六进制的数。十六进制与二进制之间的转换也会十分容易，举个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x99</span>-&gt;<span class="number">0b10011001</span>  </span><br><span class="line"><span class="number">0x88</span>-&gt;<span class="number">0b10001000</span></span><br></pre></td></tr></table></figure>
+
+<p>我们可以发现我们并不用像十进制那样权值相加或者是除二取余那么麻烦，我们把一位十六进制视为四位二进制即可，这样我们在转换的时候就是直接每一位分别转了，可以看出十分的方便。</p>
+<h3 id="字数据大小"><a href="#字数据大小" class="headerlink" title="字数据大小"></a>字数据大小</h3><p>每台计算机都有一个字长，字长为计算机 <code>CPU</code> 一次能处理的最大数据，也有一种说法是能表示的最大内存。其实意思是差不多的，比如我们都知道 <code>32</code> 位的计算机最多能装 <strong>4GB</strong> 的内存，再多它也是只能使用这么多的内存，那是因为 <code>CPU</code> 要访问内存的时候，也只能使用一个 <code>32</code> 位的数据来表示地址，32 位的数能表示的数的个数也就是 <code>2^32</code> 这么多，而地址指示的单位是字节，所以最多就是 <code>2^32</code> 字节，那就是熟知的 <strong>4GB</strong> 了。</p>
+<p><code>C</code> 语言中 <code>sizeof()</code> 会返回一个对象所占的字节数，我们对比输出下 <code>32</code> 位机子和 <code>64</code> 位机子的各个基本数据类型所占的字节数。我们不必找两个机子，只需要在 <code>64</code> 位的机子上分别编译 <code>32</code> 位和 <code>64</code> 位的程序即可。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span>  </span></span><br><span class="line">  </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;char:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">char</span>));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;short:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">short</span>));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;int:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">int</span>));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;long:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">long</span>));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;char *:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">char</span> *));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;float:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">float</span>));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;double:%d\n&quot;</span>,<span class="keyword">sizeof</span>(<span class="type">double</span>));  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>32 位的结果：</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/bit32.png" class>
+
+<p>64 位的结果</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/bit64.png" class>
+
+<p>我们总结出如下表格</p>
+<table>
+<thead>
+<tr>
+<th>C声明</th>
+<th>32位字节数</th>
+<th>64位字节数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>char</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>short</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>int</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>long</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>char *</td>
+<td>4</td>
+<td>8</td>
+</tr>
+<tr>
+<td>float</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>double</td>
+<td>8</td>
+<td>8</td>
+</tr>
+</tbody></table>
+
+<p>其实有些时候， <code>long</code> 的字节数也会随机器字长有所变化的，只是好像某个版本区分了 <code>64</code> 位整数就叫 <code>long long</code> 而 <code>long</code> 地位与 <code>int</code> 一致了。但是除了这个问题，可以发现只有指针类型的数据会随着机器字长发生变化，这也如我们所说，机器字长决定了指针就多少位，决定了有多少个地址，能用多少内存，多出的内存机器就无法做区分了。</p>
+<h3 id="寻址和字节顺序"><a href="#寻址和字节顺序" class="headerlink" title="寻址和字节顺序"></a>寻址和字节顺序</h3><p>对于多字节的数据类型我们必须确定两点：</p>
+<ol>
+<li>这个对象地址在哪里</li>
+<li>这个对象中的字节按什么顺序排列</li>
+</ol>
+<p>比如一个 <code>int</code> 它有四个字节，那么我定义 <code>int a=0x12345678</code>。首先它一定是连续排列的，因此我们确定一个 <code>int</code> 的地址只需要确定它的最高字节的位置即可确定整个 <code>int</code> 的位置。假如 <code>int</code> 的地址是在 <code>0x100</code> 的，那么它应该怎么排列这些字节呢？</p>
+<p>我们最初可能按照惯性，认为它是按照如下方式存储的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">字节：<span class="number">12</span>  <span class="number">34</span>  <span class="number">56</span>  <span class="number">78</span>  </span><br><span class="line">地址：<span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span></span><br></pre></td></tr></table></figure>
+
+<p>这个也很符合我们的书写规则，但是实时却恰恰相反，在现在大部分的机器中，它是反着存储的。也就是</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">字节：<span class="number">78</span>  <span class="number">56</span>  <span class="number">34</span>  <span class="number">12</span>  </span><br><span class="line">地址：<span class="number">100</span> <span class="number">101</span> <span class="number">102</span> <span class="number">103</span></span><br></pre></td></tr></table></figure>
+
+<p>这两种存储方式我们分别叫大端序和小端序。</p>
+<ul>
+<li>大端序：最高有效字节在低地址</li>
+<li>小端序：最高有效字节在高地址</li>
+</ul>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/duanxu.png" class>
+
+<p>由上图来看，大端序更符合人类平时的阅读习惯，但需要注意的是，大多数的 Intel 兼容机器使用的都是小端模式。我们在编写汇编语言时，也需要按照小端序的方式书写。</p>
+<p>比如我给 <code>eax</code> 寄存器加上 <code>0x12345678</code> 你会发现它的字节码是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mov    $<span class="number">0x12345678</span>,%eax   </span><br><span class="line">b8 <span class="number">78</span> <span class="number">56</span> <span class="number">34</span> <span class="number">12</span></span><br></pre></td></tr></table></figure>
+
+<p>我们通过定义以下的函数以十六进制来逐个显示内存中的字节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">show_bytes</span><span class="params">(<span class="type">void</span> *start,<span class="type">size_t</span> len)</span>&#123;      </span><br><span class="line">    <span class="type">size_t</span> i;  </span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;len;i++)  </span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%.2x &quot;</span>,*(<span class="type">unsigned</span> <span class="type">char</span> *)(start+i));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>start</code> 参数为该对象的起始地址，<code>len</code> 参数为显示的字节数，可以任意定义变量调用这个函数来查看这个对象在内存中的排布，理解浮点数的时候这个函数非常有用。</p>
+<p>来查看下面的一个例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="comment">/* $begin show-bytes */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span>* byte_pointer;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">show_bytes</span><span class="params">(byte_pointer start, <span class="type">size_t</span> len)</span> &#123;</span><br><span class="line">    <span class="type">size_t</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot; %.2x&quot;</span>, start[i]);    <span class="comment">//line:data:show_bytes_printf</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> x = <span class="number">0x3039</span>;</span><br><span class="line">    show_bytes(&amp;x, <span class="keyword">sizeof</span>(x));</span><br><span class="line">    <span class="type">float</span> y = x;</span><br><span class="line">    show_bytes(&amp;y, <span class="keyword">sizeof</span>(y));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/outputBytesMemory.png" class>
+
+<p>可以看到虽然两种类型的数据都是对 12345 编码，但他们有不同的字节模式。浮点数的输出在整数形态下为 <code>0x4640E400</code>，与整数的存储有着截然不同的结果。</p>
+<p>但是我们对这个结果的二进制适当移位就会发现它们有13个相匹配的位。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">3</span> <span class="number">0</span> <span class="number">3</span> <span class="number">9</span>  </span><br><span class="line"><span class="number">000000000</span> <span class="number">0000000001000000111001</span>  </span><br><span class="line"><span class="number">4</span> <span class="number">6</span> <span class="number">4</span> <span class="number">0</span> E <span class="number">4</span> <span class="number">0</span> <span class="number">0</span>  </span><br><span class="line"><span class="number">0100011001000000111001</span> <span class="number">0000000000</span></span><br></pre></td></tr></table></figure>
+
+<p>我们换其他的数据再次尝试就可以发现，匹配的总是 int 型的低位，但匹配位数不固定，float型的匹配部分也不是总是从最高位开始。</p>
+<blockquote>
+<p>原因是浮点数的尾数基本是和原二进制的值一致的，接下来浮点数部分会有相关原理解释</p>
+</blockquote>
+<h3 id="表示字符串"><a href="#表示字符串" class="headerlink" title="表示字符串"></a>表示字符串</h3><p>字符串的定义就是一个以 <code>null</code> 字符结尾的字符数组，如果将字符串看成一个数据类型的话，那么它是以大端形式存储的，但是其实实际上应该说是数组是大端存储的。我们在书写的时候，一般下标 <code>0</code> 是最小的，但是我们习惯把它称为高位，高位在低地址便是大端序。比如 <code>char s[]=&quot;1234&quot;;</code> 那么 <code>s[0]=&#39;1&#39;,s[1]=&#39;2&#39;,s[2]=&#39;3&#39;,s[3]=4,s[4]=NULL</code>。请注意末尾的空字节也会包括在字符串里面，但是我们算长度不会算上这个字节。在 <code>gcc</code> 编译器中，我们编译如下的程序：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span>  </span></span><br><span class="line"><span class="type">char</span> s[]=<span class="string">&quot;0123456789ABCDEF&quot;</span>;  </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;  </span><br><span class="line">    <span class="type">char</span> buf[<span class="number">16</span>];  </span><br><span class="line">    <span class="built_in">strcpy</span>(buf,s);  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,s);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/outputBytesMemory.png" class>
+
+<p>编译器会发出可能存在溢出的警告，因为在拷贝的时候会多携带一个 <code>0</code> 字节过来，这在后面堆利用中也是很常见的 <code>off by null</code> 的手段。</p>
+<p>再比如我们用这样的方式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span>  </span></span><br><span class="line"><span class="type">char</span> s[]=<span class="string">&quot;0123456789ABCDEF&quot;</span>;  </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d&quot;</span>,<span class="keyword">sizeof</span>(s));  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行我们也可以发现这个 <code>char</code> 数组占用了 <code>17</code> 个字节的空间。</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/successString.png" class>
+
+<h3 id="布尔代数简介"><a href="#布尔代数简介" class="headerlink" title="布尔代数简介"></a>布尔代数简介</h3><p>布尔代数是一个建立在二元集合集合 <code>G=&#123;0,1&#125;</code> 上的定义。</p>
+<h4 id="非"><a href="#非" class="headerlink" title="非"></a>非</h4><blockquote>
+<p>非0即为1，非非0即为0。</p>
+</blockquote>
+<h4 id="与"><a href="#与" class="headerlink" title="与"></a>与</h4><blockquote>
+<p>全1为1，不全1为0</p>
+</blockquote>
+<h4 id="或"><a href="#或" class="headerlink" title="或"></a>或</h4><blockquote>
+<p>全0为0，不全0为1</p>
+</blockquote>
+<h4 id="异或"><a href="#异或" class="headerlink" title="异或"></a>异或</h4><blockquote>
+<p>相同为0，不同为1</p>
+</blockquote>
+<hr>
+<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><ol>
+<li>非0为1，非1为0</li>
+<li>1与1为1，1与0为0，0与1为0，0与0为0</li>
+<li>1或1为1，1或0为1，0或1为1，0或0为0</li>
+<li>1异或1为0，1异或0为1，0异或1为1，0异或0为0</li>
+</ol>
+<p>在C语言中也有一个类型是 <code>bool</code>，它们有特殊的运算符：</p>
+<ul>
+<li>与：&amp;&amp;</li>
+<li>或：||</li>
+<li>非：!</li>
+</ul>
+<p>不一样的是，在进行这些运算的时候，统统会把参与运算的值转为 <code>bool</code> 类型，<code>0</code> 就是 <code>0</code>，不是 <code>0</code> 一律都是 <code>1</code></p>
+<h3 id="C-语言中的位级运算"><a href="#C-语言中的位级运算" class="headerlink" title="C 语言中的位级运算"></a>C 语言中的位级运算</h3><h4 id="位逻辑运算"><a href="#位逻辑运算" class="headerlink" title="位逻辑运算"></a>位逻辑运算</h4><p>我们平时C语言的位运算会扩展到每一位，位之间独立地运算，我们可以把一个整数(int)视为32维的向量，每个维度为0或者1，对整数进行位逻辑运算相当于每一位分别做逻辑运算，每一位结果为新向量对应位的结果。在 <code>C</code> 语言中，以上逻辑运算对应的符号分别为：</p>
+<ul>
+<li>非：~</li>
+<li>与：&amp;</li>
+<li>或：|</li>
+<li>异或：^</li>
+</ul>
+<p>我们可以在只拥有非和其它任意一个双目运算来实现所有的位逻辑运算。</p>
+<p>比如我不用异或实现异或的功能，那么就是：</p>
+<p>一个为 <code>1</code>，一个为 <code>0</code> 那么为或者一个为 <code>0</code>，一个为 <code>1</code> 的情况都是 <code>1</code>，其余都是 <code>0</code>。我们知道与的特性就是只有全 <code>1</code> 的时候为 <code>0</code>，那么如果我其中一个取非了，再与还是1的话就说明一个为 <code>1</code> 一个为 <code>0</code> 了，两边都非一下，最后把符合条件的位或一下就能得到异或的结果了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">or</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> ~(~x&amp;~y);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那与和或，把非运用到位了它们两个也能运用自如自由转换。</p>
+<p>比如我用与和非实现或，首先我对两个元素都非一下然后与起来，是不是就变成了：</p>
+<p>全 <code>0</code> 为 <code>1</code>，其余为 <code>0</code> 了，这和或的全 <code>0</code> 为 <code>0</code>，其余为 <code>1</code> 差了什么？很显然结果反了，那么我就对结果再非一下，最后就变成了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">or</span><span class="params">(<span class="type">int</span> x,<span class="type">int</span> y)</span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> ~(~x&amp;~y);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>或和非实现与运算同理。</p>
+<h4 id="移位运算"><a href="#移位运算" class="headerlink" title="移位运算"></a>移位运算</h4><p>这里分逻辑移位和算数移位，其实差不多，只不过逻辑移位适用无符号整数，算数移位适用有符号整数。</p>
+<p>分左移和右移，分别用符号 <code>&lt;&lt;</code> 和 <code>&gt;&gt;</code> 来表示，假设整数一共 <code>w</code> 位，右移 <code>n</code> 位表示丢弃低 <code>n</code> 位，原来的高<code>w-n</code> 位变为低 <code>w-n</code> 位，高 <code>n</code> 位变为0。左移 <code>n</code> 位表示丢弃高 <code>n</code> 位，原来的低 <code>w-n</code> 位变为高 <code>w-n</code> 位，低 <code>n</code> 位变为0。</p>
+<h5 id="逻辑位移"><a href="#逻辑位移" class="headerlink" title="逻辑位移"></a>逻辑位移</h5><p>左移右移就是字面意思</p>
+<h5 id="算数移位"><a href="#算数移位" class="headerlink" title="算数移位"></a>算数移位</h5><p>正数与逻辑移位一样，负数则会在右移的时候高位添1.</p>
+<p>左移x相当于对该数乘 <code>2</code> 的 <code>x</code> 次方，右移相当于对该数除 <code>2</code> 的 <code>x</code> 次方取整。当移位的位数大于等于该整数的最大位数，则会取模再移位。</p>
+<h3 id="整数表示"><a href="#整数表示" class="headerlink" title="整数表示"></a>整数表示</h3><p>整数我们之前讲过了它的字节排布规律，但是对于负数计算机又将如何处理呢？</p>
+<h4 id="整数数据类型"><a href="#整数数据类型" class="headerlink" title="整数数据类型"></a>整数数据类型</h4><p>我们先来看一张表格</p>
+<table>
+<thead>
+<tr>
+<th>C定义</th>
+<th>最小值</th>
+<th>最大值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>char</td>
+<td>-128</td>
+<td>127</td>
+</tr>
+<tr>
+<td>unsigned char</td>
+<td>0</td>
+<td>255</td>
+</tr>
+<tr>
+<td>short</td>
+<td>-32768</td>
+<td>32767</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>0</td>
+<td>65535</td>
+</tr>
+<tr>
+<td>int</td>
+<td>-2147483648</td>
+<td>2147483647</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>0</td>
+<td>4294967295</td>
+</tr>
+<tr>
+<td>long</td>
+<td>-9223372036854775808</td>
+<td>9223372036854775807</td>
+</tr>
+<tr>
+<td>unsigned long</td>
+<td>0</td>
+<td>18446744037709551615</td>
+</tr>
+</tbody></table>
+
+<p>我们可以很清楚地看到，有符号数在正数和负数的范围并不严格对称，这是为什么我们接下来再看。</p>
+<h4 id="无符号数的编码"><a href="#无符号数的编码" class="headerlink" title="无符号数的编码"></a>无符号数的编码</h4><p>无符号数的编码就是用一个固定长度的向量来表示，每个维度上的值取 <code>0</code> 或者 <code>1</code>，那么有</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/nosigned.png" class>
+
+<p>这个是我们最容易理解的。</p>
+<h4 id="补码编码"><a href="#补码编码" class="headerlink" title="补码编码"></a>补码编码</h4><p>有符号数因为需要表示负数，因此它规定：最高位的权值为负。</p>
+<p>也就是说若最高位为1，而我们知道，在等比数列 <code>ai=2^i</code> 中，数列的前n项和永远比第 <code>n+1</code> 项小 <code>1</code>，根据等比数列前 <code>n</code> 项和的公式。因此若最高位为1，那么其它位不管是是怎样都不会使这个数变为一个正数。而前 <code>n-1</code> 项可以表示 <code>0~2^n-1</code> 的范围，所以负数的范围就是<code>-2^n+0~-2^n+2^n-1</code> 也就是我们熟知的 <code>-2^n~-1</code> 再加上正数表示的 <code>0~2^n-1</code> 连起来的范围就是 <code>-2^n~2^n-1</code> 。</p>
+<h4 id="有符号和无符号数之前的转换"><a href="#有符号和无符号数之前的转换" class="headerlink" title="有符号和无符号数之前的转换"></a>有符号和无符号数之前的转换</h4><p>隐式转换按顺序遵从以下原则：</p>
+<ol>
+<li>浮点数参与运算就是浮点数，出现过double则结果一定为double</li>
+<li>若都是整数参与运算则结果也是整数</li>
+<li>整数运算的结果为出现过的位数最大的整数，若最大的整数中有无符号类型的则结果无符号。</li>
+</ol>
+<p>因此，如果</p>
+<ul>
+<li>运算中有 <code>unsigned short</code> 和 <code>int</code> 则结果为 <code>int</code>。</li>
+<li>运算中有 <code>unsigned int</code> 和 <code>int</code> 则结果为 <code>int</code>。</li>
+<li>运算中有 <code>unsigned int</code> 和 <code>float</code> 则结果为 <code>float</code>。</li>
+</ul>
+<p>也就不一一列举了。</p>
+<p>有符号与无符号的位于区别就是最高位的权值正负问题，比较的时候任意一方出现无符号则另一方也会变成无符号比较，所以如果我们做以下运算：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">-1</span>&lt;(<span class="type">unsigned</span>)<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>会发现它结果为0.</p>
+<p>因为 <code>-1</code> 的补码全为 <code>0</code>，转为无符号之后会变成无符号整数的最大值。</p>
+<h4 id="扩展一个数字的表示"><a href="#扩展一个数字的表示" class="headerlink" title="扩展一个数字的表示"></a>扩展一个数字的表示</h4><p>将一个位数较小的整数扩展为位数较大的整数非常简单，我们只需要在开头添加 <code>0</code> 即可，但是如果是负数，则需要开头添 <code>1</code>，我们运行以下代码试试看：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="comment">/* $begin show-bytes */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span>* byte_pointer;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">show_bytes</span><span class="params">(byte_pointer start, <span class="type">size_t</span> len)</span> &#123;</span><br><span class="line">    <span class="type">size_t</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot; %.2x&quot;</span>, start[i]);    <span class="comment">//line:data:show_bytes_printf</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">short</span> x = <span class="number">0x1234</span>;</span><br><span class="line">    <span class="type">short</span> y = <span class="number">-0x1234</span>;</span><br><span class="line">    show_bytes(&amp;x, <span class="keyword">sizeof</span>(x));</span><br><span class="line">    show_bytes(&amp;y, <span class="keyword">sizeof</span>(y));</span><br><span class="line">    <span class="type">int</span> x1 = x;</span><br><span class="line">    <span class="type">int</span> y1 = y;</span><br><span class="line">    show_bytes(&amp;x1, <span class="keyword">sizeof</span>(x1));</span><br><span class="line">    show_bytes(&amp;y1, <span class="keyword">sizeof</span>(y1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行可以看到结果如我们所说。</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/extendResult.png" class>
+<h4 id="截断数字"><a href="#截断数字" class="headerlink" title="截断数字"></a>截断数字</h4><p>我们需要减少一个数字的位数时就需要截断数字，当我们将 w 位的数字截断为 k 位数字时，我们就会丢弃有效位的高 <code>w-k</code> 位，补码数字的符号位是始终不变的。</p>
+<p>需要注意有符号数的阶段可能会发生溢出现象。例如，一个8位带符号整数，其范围是从 -128 到 127。如果原始带符号整数为 -150，将其截断为 8 位带符号整数会导致溢出，因为 -150 不在 -128 到 127 的范围内。截断后的结果可能是正数 106，这是 -150 的溢出结果，这不是原始值的正确表示。</p>
+<h3 id="整数运算"><a href="#整数运算" class="headerlink" title="整数运算"></a>整数运算</h3><h4 id="加法"><a href="#加法" class="headerlink" title="加法"></a>加法</h4><p>无符号加法遵循二进制的加法规则，从最低位（最右边的位）开始逐位相加，进位会传递到高位。</p>
+<p>补码加法仍然遵循标准的二进制加法规则，但符号位也会参与计算。当执行补码加法时，符号位与其他位一起相加，如果有溢出，则溢出会影响符号位。</p>
+<h4 id="乘法"><a href="#乘法" class="headerlink" title="乘法"></a>乘法</h4><p>无符号乘法遵循标准的乘法规则，乘法有 <code>x*y=(x*y) mod 2^w</code> 其中 <code>w</code> 为 <code>x</code> 和 <code>y</code> 的位数。需要注意，因为 <code>x</code> 和 <code>y</code> 相乘可能得到最大 <code>2w</code> 位的整数，因此可能会发生截断。</p>
+<p>补码乘法同样遵循标准的乘法规则，但符号位也会参与计算。可以理解为先像无符号乘法，乘出来截断之后再转为补码就是结果。</p>
+<h4 id="除以-2-的幂"><a href="#除以-2-的幂" class="headerlink" title="除以 2 的幂"></a>除以 2 的幂</h4><p>除以 2 的幂通过右移运算来实现，无符号和补码数分别使用逻辑移位和算术移位来实现。</p>
+<h3 id="浮点数"><a href="#浮点数" class="headerlink" title="浮点数"></a>浮点数</h3><h4 id="二进制小数"><a href="#二进制小数" class="headerlink" title="二进制小数"></a>二进制小数</h4><p>二进制小数的表示方法和十进制原理相同，只不过十进制的底数为 10，二进制的权值底数变成了 2。</p>
+<h4 id="IEEE-浮点数表示"><a href="#IEEE-浮点数表示" class="headerlink" title="IEEE 浮点数表示"></a>IEEE 浮点数表示</h4><p>IEEE浮点标准用如下的公式来表示一个数：</p>
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/IEEE.png" class>
+<ul>
+<li>符号(s)：<code>1</code> 表示负数，<code>0</code> 表示正数</li>
+<li>尾数(M)：是一个二进制的小数，取值范围为 <code>[1,2)</code></li>
+<li>阶码(E)：为浮点数加权。</li>
+</ul>
+<blockquote>
+<p>这个方法就相当于是二进制的科学计数法。</p>
+</blockquote>
+<p>浮点数可以分为三个字段：符号位，阶码字段和小数字段。</p>
+<p>我们知道实际上我们经常用的浮点数有两类，一类是 <code>float</code> 一类是 <code>double</code>，<code>float</code> 为 <code>32</code> 位，<code>double</code> 为 <code>64</code> 位。</p>
+<ul>
+<li>对于 <code>float</code>，最高位表示符号位，第 <code>2</code> 到第 <code>9</code> 位表示阶码，第 <code>10</code> 位到第 <code>32</code> 位均为尾数</li>
+<li>对于 <code>double</code>，最高位表示符号位，第 <code>2</code> 到第 <code>12</code> 位表示阶码，第 <code>13</code> 位到第 <code>64</code> 位均为尾数</li>
+</ul>
+<p>我们具体以 <code>float</code> 来分析：</p>
+<p>第一位是符号位没啥大问题。后面的八位是指数，这个指数需要能表示无穷大，也要能表示无穷小，因此指数必须有正有负。我们定义一个数 <code>Bias=2^(k-1)-1</code> 其中 <code>k</code> 为阶码的位数，在 <code>float</code> 中，这个值为 <code>127</code>，在 <code>double</code> 中，这个值为 <code>1023</code>。阶码实际值 <code>E=e-Bias</code>，其中 <code>e</code> 表示阶码本身的无符号二进制的数值。然后就是这个尾数了，因为我们的范围是 <code>[1,2)</code>，在这个范围内的小鼠，不难发现小数点前有一位一直是 <code>0</code>，因此这个 <code>0</code> 我们就不必多花一位存储它了，因此我们的尾数都是小数点后的值。</p>
+<p>如果一个 <code>32</code> 位浮点数在内存中的二进制表示如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bin:<span class="number">0b01000000010000000000000000000</span>  </span><br><span class="line">hex:<span class="number">0x40400000</span></span><br></pre></td></tr></table></figure>
+
+<p>那么可以发现它是正数，阶码为 <code>128</code>，尾数为 <code>100000……</code>，因为小数点后面的0都能忽略，因此尾数实际就是 <code>1</code>。然后注意这个阶码并不是真正的实际值，这只是它表面上看上去的值，再给它减去一个 <code>127</code> 之后可以发现指数为 <code>1</code>。小数位数因为有一个隐含的 <code>1</code>，所以它的实际值为 <code>1.1</code>，十进制值就是 <code>1.5</code>，所以最后结果就是 <code>1.5*2^1=3</code>。</p>
+<p>然后我们再运行程序看看 <code>3</code> 的字节显示。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="comment">/* $begin show-bytes */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span>* byte_pointer;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">show_bytes</span><span class="params">(byte_pointer start, <span class="type">size_t</span> len)</span> &#123;</span><br><span class="line">    <span class="type">size_t</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot; %.2x&quot;</span>, start[i]);    <span class="comment">//line:data:show_bytes_printf</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">float</span> x = <span class="number">3.0</span>;</span><br><span class="line">    show_bytes(&amp;x, <span class="keyword">sizeof</span>(x));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/12/24/CSAPP-%E7%AC%AC%E4%BA%8C%E7%AB%A0%E5%AD%A6%E4%B9%A0/see3.png" class>
+
+
+<h4 id="舍入"><a href="#舍入" class="headerlink" title="舍入"></a>舍入</h4><p>因为浮点数的表示方法限制了浮点数的范围和精度，多以我们需要利用特定的系统的方法使存储的数据无限接近于实际的数字，这就是舍入的工作。</p>
+<p>总共有四种舍入的方法，下表为原理示例：</p>
+<table>
+<thead>
+<tr>
+<th align="center">方式</th>
+<th align="center">1.40</th>
+<th align="center">1.60</th>
+<th align="center">1.50</th>
+<th align="center">2.50</th>
+<th align="center">-1.50</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">向偶数舍入</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">-2</td>
+</tr>
+<tr>
+<td align="center">向零舍入</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">-1</td>
+</tr>
+<tr>
+<td align="center">向下舍入</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">-2</td>
+</tr>
+<tr>
+<td align="center">向上舍入</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">3</td>
+<td align="center">-1</td>
+</tr>
+</tbody></table>
+
+<blockquote>
+<p>其中，向偶数舍入也就是向最近的值舍入，其他的方法原理均和字面含义相同</p>
+</blockquote>
+<h4 id="浮点运算"><a href="#浮点运算" class="headerlink" title="浮点运算"></a>浮点运算</h4><p>浮点数的加法和减法遵循一般的二进制加法和减法规则，但需要额外考虑指数部分的对齐。</p>
+<p>浮点数的乘法和除法也遵循一般的二进制乘法和除法规则，但需要额外的处理来正确处理指数和尾数。具体来说，乘法时将指数相加，尾数相乘，然后对结果进行规范化。除法时将指数相减，尾数相除，然后对结果进行规范化。</p>
+<p>比如最经典的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>+<span class="number">1e111</span><span class="number">-1e111</span>!=<span class="number">1e111</span><span class="number">-1e111</span>+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="CSAPP-DataLab"><a href="#CSAPP-DataLab" class="headerlink" title="CSAPP - DataLab"></a>CSAPP - DataLab</h2><h3 id="int"><a href="#int" class="headerlink" title="int"></a>int</h3><h4 id="bitXor"><a href="#bitXor" class="headerlink" title="bitXor"></a>bitXor</h4><p>题目要求：<code>只使用 ~ 和 &amp; 来实现 ^ 操作</code></p>
+<p><code>~</code> 按位非（每位二进制取反）<br><code>&amp;</code> 按位与（对应位同为1结果位才为1）<br><code>|</code> 按位或（只要有一位是1结果位就是1）<br><code>^</code> 亦或（对应位相同为0，不同为1）</p>
+<p>首先可以想到 <code>x^y = x&amp;~y + ~x&amp;y = (x&amp;~y)|(~x&amp;y)</code></p>
+<p>接下来想办法替代 <code>|</code>，<code>x|y=~(~x&amp;~y)</code>，所以最后的结果是：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * bitXor - x^y using only ~ and &amp;</span></span><br><span class="line"><span class="comment"> *   Example: bitXor(4, 5) = 1</span></span><br><span class="line"><span class="comment"> *   Legal ops: ~ and &amp;</span></span><br><span class="line"><span class="comment"> *   Max ops: 14</span></span><br><span class="line"><span class="comment"> *   Rating: 1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ~(~(x &amp; ~y) &amp; ~(~x &amp; y));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> x = <span class="number">12</span>;</span><br><span class="line">    <span class="type">int</span> y = <span class="number">11</span>;</span><br><span class="line">    <span class="type">int</span> result = bitXor(x, y);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;bitXor(%d, %d) = %d\n&quot;</span>, x, y, result);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="tmin"><a href="#tmin" class="headerlink" title="tmin"></a>tmin</h4><p>题目要求：使用 <code>! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</code> 来获取 int 的最小值</p>
+
             </div>
 
             
@@ -445,7 +796,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%AD%98%E5%82%A8"><span class="nav-text">信息存储</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E8%A1%A8%E7%A4%BA"><span class="nav-text">数字表示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%AD%98%E5%82%A8-1"><span class="nav-text">信息存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E6%95%B0%E6%8D%AE%E5%A4%A7%E5%B0%8F"><span class="nav-text">字数据大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BB%E5%9D%80%E5%92%8C%E5%AD%97%E8%8A%82%E9%A1%BA%E5%BA%8F"><span class="nav-text">寻址和字节顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-text">表示字符串</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E5%B0%94%E4%BB%A3%E6%95%B0%E7%AE%80%E4%BB%8B"><span class="nav-text">布尔代数简介</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E"><span class="nav-text">非</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E"><span class="nav-text">与</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%96"><span class="nav-text">或</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E6%88%96"><span class="nav-text">异或</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C-%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BA%A7%E8%BF%90%E7%AE%97"><span class="nav-text">C 语言中的位级运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%8D%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97"><span class="nav-text">位逻辑运算</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A7%BB%E4%BD%8D%E8%BF%90%E7%AE%97"><span class="nav-text">移位运算</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E4%BD%8D%E7%A7%BB"><span class="nav-text">逻辑位移</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%AE%97%E6%95%B0%E7%A7%BB%E4%BD%8D"><span class="nav-text">算数移位</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E8%A1%A8%E7%A4%BA"><span class="nav-text">整数表示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">整数数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B0%E7%9A%84%E7%BC%96%E7%A0%81"><span class="nav-text">无符号数的编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A5%E7%A0%81%E7%BC%96%E7%A0%81"><span class="nav-text">补码编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%89%E7%AC%A6%E5%8F%B7%E5%92%8C%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B0%E4%B9%8B%E5%89%8D%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-text">有符号和无符号数之前的转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E4%B8%80%E4%B8%AA%E6%95%B0%E5%AD%97%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">扩展一个数字的表示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%AA%E6%96%AD%E6%95%B0%E5%AD%97"><span class="nav-text">截断数字</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E8%BF%90%E7%AE%97"><span class="nav-text">整数运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E6%B3%95"><span class="nav-text">加法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B9%98%E6%B3%95"><span class="nav-text">乘法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%A4%E4%BB%A5-2-%E7%9A%84%E5%B9%82"><span class="nav-text">除以 2 的幂</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-text">浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%B0%8F%E6%95%B0"><span class="nav-text">二进制小数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IEEE-%E6%B5%AE%E7%82%B9%E6%95%B0%E8%A1%A8%E7%A4%BA"><span class="nav-text">IEEE 浮点数表示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%88%8D%E5%85%A5"><span class="nav-text">舍入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E8%BF%90%E7%AE%97"><span class="nav-text">浮点运算</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CSAPP-DataLab"><span class="nav-text">CSAPP - DataLab</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#int"><span class="nav-text">int</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bitXor"><span class="nav-text">bitXor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tmin"><span class="nav-text">tmin</span></a></li></ol></li></ol></li></ol>
     </div>
 </div>
 
@@ -626,7 +977,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap">
     <div class="post-toc">
-        
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%AD%98%E5%82%A8"><span class="nav-text">信息存储</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E8%A1%A8%E7%A4%BA"><span class="nav-text">数字表示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E5%AD%98%E5%82%A8-1"><span class="nav-text">信息存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E6%95%B0%E6%8D%AE%E5%A4%A7%E5%B0%8F"><span class="nav-text">字数据大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BB%E5%9D%80%E5%92%8C%E5%AD%97%E8%8A%82%E9%A1%BA%E5%BA%8F"><span class="nav-text">寻址和字节顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E7%A4%BA%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-text">表示字符串</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E5%B0%94%E4%BB%A3%E6%95%B0%E7%AE%80%E4%BB%8B"><span class="nav-text">布尔代数简介</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E"><span class="nav-text">非</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E"><span class="nav-text">与</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%96"><span class="nav-text">或</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E6%88%96"><span class="nav-text">异或</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C-%E8%AF%AD%E8%A8%80%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BA%A7%E8%BF%90%E7%AE%97"><span class="nav-text">C 语言中的位级运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%8D%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97"><span class="nav-text">位逻辑运算</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A7%BB%E4%BD%8D%E8%BF%90%E7%AE%97"><span class="nav-text">移位运算</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E4%BD%8D%E7%A7%BB"><span class="nav-text">逻辑位移</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%AE%97%E6%95%B0%E7%A7%BB%E4%BD%8D"><span class="nav-text">算数移位</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E8%A1%A8%E7%A4%BA"><span class="nav-text">整数表示</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">整数数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B0%E7%9A%84%E7%BC%96%E7%A0%81"><span class="nav-text">无符号数的编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A5%E7%A0%81%E7%BC%96%E7%A0%81"><span class="nav-text">补码编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%89%E7%AC%A6%E5%8F%B7%E5%92%8C%E6%97%A0%E7%AC%A6%E5%8F%B7%E6%95%B0%E4%B9%8B%E5%89%8D%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="nav-text">有符号和无符号数之前的转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E4%B8%80%E4%B8%AA%E6%95%B0%E5%AD%97%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-text">扩展一个数字的表示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%88%AA%E6%96%AD%E6%95%B0%E5%AD%97"><span class="nav-text">截断数字</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E8%BF%90%E7%AE%97"><span class="nav-text">整数运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E6%B3%95"><span class="nav-text">加法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B9%98%E6%B3%95"><span class="nav-text">乘法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%A4%E4%BB%A5-2-%E7%9A%84%E5%B9%82"><span class="nav-text">除以 2 的幂</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-text">浮点数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%B0%8F%E6%95%B0"><span class="nav-text">二进制小数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IEEE-%E6%B5%AE%E7%82%B9%E6%95%B0%E8%A1%A8%E7%A4%BA"><span class="nav-text">IEEE 浮点数表示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%88%8D%E5%85%A5"><span class="nav-text">舍入</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E8%BF%90%E7%AE%97"><span class="nav-text">浮点运算</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CSAPP-DataLab"><span class="nav-text">CSAPP - DataLab</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#int"><span class="nav-text">int</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bitXor"><span class="nav-text">bitXor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tmin"><span class="nav-text">tmin</span></a></li></ol></li></ol></li></ol>
     </div>
 </div>
 
